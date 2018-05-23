@@ -19,6 +19,8 @@ export const defaultConfig: ConfigOptions = {
     colorTheme: "dark",
     customCommands: [],
     maxSearchResultCount: 8,
+    musicPlayerHeight: 300,
+    musicPlayerWebSocketPort: 8974,
     rescanInterval: 30,
     searchEngineThreshold: 0.4,
     searchOperatingSystemSettings: true,

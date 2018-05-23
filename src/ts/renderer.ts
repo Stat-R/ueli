@@ -17,12 +17,17 @@ document.addEventListener("keyup", handleGlobalKeyPress);
 
 const vue = new Vue({
     data: {
+        albumCover: "",
+        artist: "",
         autoFocus: true,
         commandLineOutput: [] as string[],
         isMouseMoving: false,
+        playerConnectStatus: false,
         searchIcon: "",
         searchResults: [] as SearchResultItemViewModel[],
+        state: false,
         stylesheetPath: `./build/${config.colorTheme}.css`,
+        track: "",
         userInput: "",
     },
     el: "#vue-root",
@@ -66,9 +71,12 @@ const vue = new Vue({
                 vue.searchResults[index].active = true;
             }
         },
+        nextTrack,
         outputContainerHeight: (): string => {
             return `height: calc(100vh - ${config.userInputHeight}px);`;
         },
+        playPauseTrack,
+        previousTrack,
         searchResultExecutionArgumentStyle: (): string => {
             return `font-size: ${config.searchResultExecutionArgumentFontSize}px;`;
         },
@@ -226,6 +234,12 @@ function resetUserInput(): void {
 function handleGlobalKeyPress(event: KeyboardEvent): void {
     if (event.key === "F6" || (event.key === "l" && event.ctrlKey)) {
         focusOnInput();
+    } else if (event.key === "a" && event.altKey) {
+        previousTrack();
+    } else if (event.key === "s" && event.altKey) {
+        nextTrack();
+    } else if (event.key === "d" && event.altKey) {
+        playPauseTrack();
     }
 }
 
@@ -238,4 +252,35 @@ function focusOnInput(): void {
 
 function resetCommandLineOutput(): void {
     vue.commandLineOutput = [];
+}
+
+ipcRenderer.on(IpcChannels.playerTrack, (event: Electron.Event, arg: string): void => {
+    vue.track = arg;
+});
+
+ipcRenderer.on(IpcChannels.playerArtist, (event: Electron.Event, arg: string): void => {
+    vue.artist = arg;
+});
+
+ipcRenderer.on(IpcChannels.playerAlbumCover, (event: Electron.Event, arg: string): void => {
+    vue.albumCover = "url(" + arg + ")";
+});
+
+ipcRenderer.on(IpcChannels.playerState, (event: Electron.Event, arg: string): void => {
+    vue.state = parseInt(arg, 2) === 1;
+});
+
+ipcRenderer.on(IpcChannels.playerConnectStatus, (event: Electron.Event, arg: boolean): void => {
+    vue.playerConnectStatus = arg;
+    ipcRenderer.send(IpcChannels.playerConnectStatus, arg);
+});
+
+function previousTrack() {
+    ipcRenderer.send(IpcChannels.playerPrevTrack);
+}
+function nextTrack() {
+    ipcRenderer.send(IpcChannels.playerNextTrack);
+}
+function playPauseTrack() {
+    ipcRenderer.send(IpcChannels.playerPlayPause);
 }

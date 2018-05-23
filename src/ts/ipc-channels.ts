@@ -18,4 +18,13 @@ export class IpcChannels {
     public static readonly resetCommandlineOutput = "reset-commandline-output";
     public static readonly resetUserInput = "reset-user-input";
     public static readonly showHelp = "show-help";
+    public static readonly playerConnectStatus = "player-connect-status";
+    public static readonly playerArtist = "player-artist";
+    public static readonly playerAlbum = "player-album";
+    public static readonly playerTrack = "player-track";
+    public static readonly playerAlbumCover = "player-cover";
+    public static readonly playerState = "player-state";
+    public static readonly playerPrevTrack = "player-nexttrack";
+    public static readonly playerNextTrack = "player-prevtrack";
+    public static readonly playerPlayPause = "player-playpause";
 }

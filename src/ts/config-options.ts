@@ -8,6 +8,8 @@ export interface ConfigOptions {
     colorTheme: string;
     customCommands: CustomCommand[];
     maxSearchResultCount: number;
+    musicPlayerHeight: number;
+    musicPlayerWebSocketPort: number;
     rescanInterval: number;
     searchEngineThreshold: number;
     searchOperatingSystemSettings: boolean;

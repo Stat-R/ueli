@@ -21,6 +21,7 @@ import { defaultConfig } from "./default-config";
 import { ConfigFileRepository } from "./config-file-repository";
 import { CountManager } from "./count-manager";
 import { CountFileRepository } from "./count-file-repository";
+import { MusicPlayer } from "./music-player";
 
 let mainWindow: BrowserWindow;
 let trayIcon: Tray;
@@ -33,6 +34,8 @@ let inputValidationService = new InputValidationService(new InputValidatorSearch
 let executionService = new ExecutionService(
     new ExecutionArgumentValidatorExecutorCombinationManager(config).getCombinations(),
     new CountManager(new CountFileRepository(UeliHelpers.countFilePath)));
+
+let playerConnectStatus: boolean = false;
 
 const otherInstanceIsAlreadyRunning = app.makeSingleInstance(() => {
     // do nothing
@@ -54,24 +57,25 @@ function createMainWindow(): void {
 
     mainWindow = new BrowserWindow({
         autoHideMenuBar: true,
-        backgroundColor: "#00000000",
         center: true,
         frame: false,
         height: WindowHelpers.calculateMaxWindowHeight(config.userInputHeight, config.maxSearchResultCount, config.searchResultHeight),
-        resizable: false,
+        resizable: true,
         show: false,
         skipTaskbar: true,
+        transparent: true,
         width: config.windowWith,
     });
 
     mainWindow.loadURL(`file://${__dirname}/../main.html`);
-    mainWindow.setSize(config.windowWith, config.userInputHeight);
+    mainWindow.setSize(config.windowWith, config.userInputHeight + config.musicPlayerHeight);
 
     mainWindow.on("close", quitApp);
     mainWindow.on("blur", hideMainWindow);
 
     createTrayIcon();
     registerGlobalShortCuts();
+    createMusicPlayer();
 
     if (!isInDevelopment) {
         checkForUpdates();
@@ -165,7 +169,8 @@ function toggleWindow(): void {
 }
 
 function updateWindowSize(searchResultCount: number): void {
-    const newWindowHeight = WindowHelpers.calculateWindowHeight(searchResultCount, config.maxSearchResultCount, config.userInputHeight, config.searchResultHeight);
+    const musicPlayerHeight = playerConnectStatus ? config.musicPlayerHeight : 0;
+    const newWindowHeight = WindowHelpers.calculateWindowHeight(searchResultCount, config.maxSearchResultCount, config.userInputHeight, config.searchResultHeight, musicPlayerHeight);
     mainWindow.setSize(config.windowWith, newWindowHeight);
 }
 
@@ -258,3 +263,18 @@ ipcMain.on(IpcChannels.resetUserInput, (): void => {
 ipcMain.on(IpcChannels.showHelp, (): void => {
     new WebUrlExecutor().execute("https://github.com/oliverschwendener/ueli#ueli");
 });
+
+ipcMain.on(IpcChannels.playerConnectStatus, (event: any, arg: boolean): void => {
+    playerConnectStatus = arg;
+});
+
+function createMusicPlayer() {
+    const crawler = new MusicPlayer(config.musicPlayerWebSocketPort, infoSender);
+    ipcMain.on(IpcChannels.playerNextTrack, () => crawler.sendCommand("next"));
+    ipcMain.on(IpcChannels.playerPrevTrack, () => crawler.sendCommand("previous"));
+    ipcMain.on(IpcChannels.playerPlayPause, () => crawler.sendCommand("playpause"));
+}
+
+function infoSender(channel: string, value: string | number | boolean): void {
+    mainWindow.webContents.send(channel, value);
+}

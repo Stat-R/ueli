@@ -21,6 +21,25 @@
 
             <div class="output-container" :style="outputContainerHeight()">
 
+                <div id="music-info-container" :class="{ 'hidden' : commandLineOutput.length !== 0 || searchResults.length !== 0 || !playerConnectStatus }">
+                    <div id="blur-background" :style="{ 'background-image' : albumCover}"></div>
+                    <div id="player">
+                        <div id="album-cover" :style="{ 'background-image' : albumCover}"></div>
+                        <div id="player-container">
+                            <div id="player-control">
+                                <div class="icon previous-track" v-on:click="previousTrack"></div>
+                                <div class="icon next-track" v-on:click="nextTrack"></div>
+                                <div class="play-pause" :class="{ 'play': !state, 'pause' : state }" v-on:click="playPauseTrack"></div>
+                            </div>
+                            <div class="spacer"></div>
+                            <div id="player-info">
+                                <div class="title">{{ track }}</div>
+                                <div class="artist">{{ artist }}</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
                 <div class="command-line-output-container" :class="{ 'hidden' : commandLineOutput.length === 0 }">
                     <pre v-for="line in commandLineOutput">{{ line }}</pre>
                 </div>
