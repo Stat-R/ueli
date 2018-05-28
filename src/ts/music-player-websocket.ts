@@ -3,7 +3,7 @@ import { ipcRenderer } from "electron";
 import { IpcChannels } from "./ipc-channels";
 import { MusicInfoHandler, InfoSender } from "./music-info-handler";
 
-export class MusicPlayer {
+export class MusicPlayerWebSocket {
     public artist: MusicInfoHandler;
     public cover: MusicInfoHandler;
     public sender: InfoSender;
@@ -13,13 +13,6 @@ export class MusicPlayer {
     private socket: ws;
     private server: ws.Server;
     private port: number;
-    // public album: MusicInfoHandler;
-    // public position: MusicInfoHandler;
-    // public duration: MusicInfoHandler;
-    // public volume: MusicInfoHandler;
-    // public rating: MusicInfoHandler;
-    // public repeat: MusicInfoHandler;
-    // public shuffle: MusicInfoHandler;
 
     constructor(port: number, sender: InfoSender) {
         this.title = new MusicInfoHandler(sender, IpcChannels.playerTrack);
@@ -27,13 +20,6 @@ export class MusicPlayer {
         this.cover = new MusicInfoHandler(sender, IpcChannels.playerAlbumCover);
         this.state = new MusicInfoHandler(sender, IpcChannels.playerState);
         this.connectStatus = new MusicInfoHandler(sender, IpcChannels.playerConnectStatus);
-        // this.album = new MusicInfoHandler(sender, IpcChannels.spotifyAlbum);
-        // this.position = new MusicInfoHandler(sender);
-        // this.duration = new MusicInfoHandler(sender);
-        // this.volume = new MusicInfoHandler(sender);
-        // this.rating = new MusicInfoHandler(sender);
-        // this.repeat = new MusicInfoHandler(sender);
-        // this.shuffle = new MusicInfoHandler(sender);
         this.port = port;
         this.attemptConnect();
     }
@@ -70,13 +56,6 @@ export class MusicPlayer {
             case "ARTIST":      this.artist.value    = info; break;
             case "COVER":       this.cover.value     = info; break;
             case "STATE":       this.state.value     = info; break;
-            // case "ALBUM":       this.album.value     = info; break;
-            // case "POSITION":    this.position.value  = info; break;
-            // case "DURATION":    this.duration.value  = info; break;
-            // case "VOLUME":      this.volume.value    = info; break;
-            // case "RATING":      this.rating.value    = info; break;
-            // case "REPEAT":      this.repeat.value    = info; break;
-            // case "SHUFFLE":     this.shuffle.value   = info; break;
         }
     }
 }

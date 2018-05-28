@@ -44,6 +44,10 @@ module.exports = {
             loader: "sass-loader"
           }
         ]
+      },
+      {
+        test: /\.node$/,
+        use: 'node-loader'
       }
     ]
   }

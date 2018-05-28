@@ -263,11 +263,20 @@ ipcRenderer.on(IpcChannels.playerArtist, (event: Electron.Event, arg: string): v
 });
 
 ipcRenderer.on(IpcChannels.playerAlbumCover, (event: Electron.Event, arg: string): void => {
-    vue.albumCover = "url(" + arg + ")";
+    try {
+        const url = new URL(arg);
+        vue.albumCover = "url(" + url.href + ")";
+    } catch (e) {
+        // nah
+    }
+    vue.$forceUpdate();
 });
 
-ipcRenderer.on(IpcChannels.playerState, (event: Electron.Event, arg: string): void => {
-    vue.state = parseInt(arg, 2) === 1;
+ipcRenderer.on(IpcChannels.playerState, (event: Electron.Event, arg: string | number): void => {
+    if (typeof arg === "string") {
+        arg = parseInt(arg, 10);
+    }
+    vue.state = arg === 1;
 });
 
 ipcRenderer.on(IpcChannels.playerConnectStatus, (event: Electron.Event, arg: boolean): void => {

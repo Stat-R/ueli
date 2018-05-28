@@ -21,7 +21,8 @@ import { defaultConfig } from "./default-config";
 import { ConfigFileRepository } from "./config-file-repository";
 import { CountManager } from "./count-manager";
 import { CountFileRepository } from "./count-file-repository";
-import { MusicPlayer } from "./music-player";
+import { MusicPlayerWebSocket } from "./music-player-websocket";
+import { MusicPlayerNowPlaying, NowPlayingPlayerName } from "./music-player-nowplaying";
 
 let mainWindow: BrowserWindow;
 let trayIcon: Tray;
@@ -68,14 +69,14 @@ function createMainWindow(): void {
     });
 
     mainWindow.loadURL(`file://${__dirname}/../main.html`);
-    mainWindow.setSize(config.windowWith, config.userInputHeight + config.musicPlayerHeight);
+    mainWindow.setSize(config.windowWith, config.userInputHeight);
 
     mainWindow.on("close", quitApp);
     mainWindow.on("blur", hideMainWindow);
 
     createTrayIcon();
     registerGlobalShortCuts();
-    createMusicPlayer();
+    createMusicPlayerFroNowPlaying();
 
     if (!isInDevelopment) {
         checkForUpdates();
@@ -266,13 +267,23 @@ ipcMain.on(IpcChannels.showHelp, (): void => {
 
 ipcMain.on(IpcChannels.playerConnectStatus, (event: any, arg: boolean): void => {
     playerConnectStatus = arg;
+    updateWindowSize(0);
 });
 
-function createMusicPlayer() {
-    const crawler = new MusicPlayer(config.musicPlayerWebSocketPort, infoSender);
-    ipcMain.on(IpcChannels.playerNextTrack, () => crawler.sendCommand("next"));
-    ipcMain.on(IpcChannels.playerPrevTrack, () => crawler.sendCommand("previous"));
-    ipcMain.on(IpcChannels.playerPlayPause, () => crawler.sendCommand("playpause"));
+let websocketCrawler: MusicPlayerWebSocket;
+function createMusicPlayerFromWebSocket() {
+    websocketCrawler = new MusicPlayerWebSocket(config.musicPlayerWebSocketPort, infoSender);
+    ipcMain.on(IpcChannels.playerNextTrack, () => websocketCrawler.sendCommand("next"));
+    ipcMain.on(IpcChannels.playerPrevTrack, () => websocketCrawler.sendCommand("previous"));
+    ipcMain.on(IpcChannels.playerPlayPause, () => websocketCrawler.sendCommand("playpause"));
+}
+
+let npCrawer: MusicPlayerNowPlaying;
+function createMusicPlayerFroNowPlaying() {
+    npCrawer = new MusicPlayerNowPlaying(NowPlayingPlayerName.AIMP, infoSender);
+    ipcMain.on(IpcChannels.playerNextTrack, () => npCrawer.nextTrack());
+    ipcMain.on(IpcChannels.playerPrevTrack, () => npCrawer.prevTrack());
+    ipcMain.on(IpcChannels.playerPlayPause, () => npCrawer.playPause());
 }
 
 function infoSender(channel: string, value: string | number | boolean): void {
