@@ -1,6 +1,6 @@
 import { SearchResultItemViewModel } from "./search-result-item-view-model";
 import { IpcChannels } from "./ipc-channels";
-import { platform } from "os";
+import { platform, homedir } from "os";
 import { ipcRenderer } from "electron";
 import * as macStyles from "../scss/mac.scss";
 import * as windowsStyles from "../scss/windows.scss";
@@ -21,6 +21,7 @@ const vue = new Vue({
         artist: "",
         autoFocus: true,
         commandLineOutput: [] as string[],
+        customStyleSheet: `${homedir()}\\ueli.custom.css`,
         isMouseMoving: false,
         playerConnectStatus: false,
         searchIcon: "",
@@ -232,13 +233,14 @@ function resetUserInput(): void {
 }
 
 function handleGlobalKeyPress(event: KeyboardEvent): void {
-    if (event.key === "F6" || (event.key === "l" && event.ctrlKey)) {
+    const key = event.key.toLowerCase();
+    if (key === "F6" || (key === "l" && event.ctrlKey)) {
         focusOnInput();
-    } else if (event.key === "a" && event.altKey) {
+    } else if (key === "a" && event.altKey) {
         previousTrack();
-    } else if (event.key === "s" && event.altKey) {
+    } else if (key === "s" && event.altKey) {
         nextTrack();
-    } else if (event.key === "d" && event.altKey) {
+    } else if (key === "d" && event.altKey) {
         playPauseTrack();
     }
 }
@@ -256,6 +258,7 @@ function resetCommandLineOutput(): void {
 
 ipcRenderer.on(IpcChannels.playerTrack, (event: Electron.Event, arg: string): void => {
     vue.track = arg;
+    vue.$forceUpdate();
 });
 
 ipcRenderer.on(IpcChannels.playerArtist, (event: Electron.Event, arg: string): void => {
@@ -269,13 +272,9 @@ ipcRenderer.on(IpcChannels.playerAlbumCover, (event: Electron.Event, arg: string
     } catch (e) {
         // nah
     }
-    vue.$forceUpdate();
 });
 
-ipcRenderer.on(IpcChannels.playerState, (event: Electron.Event, arg: string | number): void => {
-    if (typeof arg === "string") {
-        arg = parseInt(arg, 10);
-    }
+ipcRenderer.on(IpcChannels.playerState, (event: Electron.Event, arg: number): void => {
     vue.state = arg === 1;
 });
 

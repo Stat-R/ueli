@@ -9,7 +9,9 @@ export interface ConfigOptions {
     customCommands: CustomCommand[];
     maxSearchResultCount: number;
     musicPlayerHeight: number;
+    musicPlayerType: string;
     musicPlayerWebSocketPort: number;
+    musicPlayerLocalName: string;
     rescanInterval: number;
     searchEngineThreshold: number;
     searchOperatingSystemSettings: boolean;

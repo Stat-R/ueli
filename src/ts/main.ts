@@ -23,6 +23,7 @@ import { CountManager } from "./count-manager";
 import { CountFileRepository } from "./count-file-repository";
 import { MusicPlayerWebSocket } from "./music-player-websocket";
 import { MusicPlayerNowPlaying, NowPlayingPlayerName } from "./music-player-nowplaying";
+import { PlayerName } from "nowplaying-node";
 
 let mainWindow: BrowserWindow;
 let trayIcon: Tray;
@@ -76,7 +77,12 @@ function createMainWindow(): void {
 
     createTrayIcon();
     registerGlobalShortCuts();
-    createMusicPlayerFroNowPlaying();
+    const playerType = config.musicPlayerType.toLowerCase();
+    if (playerType === "local") {
+        createMusicPlayerNowPlaying();
+    } else if (playerType === "websocket") {
+        createMusicPlayerWebSocket();
+    }
 
     if (!isInDevelopment) {
         checkForUpdates();
@@ -271,7 +277,7 @@ ipcMain.on(IpcChannels.playerConnectStatus, (event: any, arg: boolean): void => 
 });
 
 let websocketCrawler: MusicPlayerWebSocket;
-function createMusicPlayerFromWebSocket() {
+function createMusicPlayerWebSocket() {
     websocketCrawler = new MusicPlayerWebSocket(config.musicPlayerWebSocketPort, infoSender);
     ipcMain.on(IpcChannels.playerNextTrack, () => websocketCrawler.sendCommand("next"));
     ipcMain.on(IpcChannels.playerPrevTrack, () => websocketCrawler.sendCommand("previous"));
@@ -279,13 +285,32 @@ function createMusicPlayerFromWebSocket() {
 }
 
 let npCrawer: MusicPlayerNowPlaying;
-function createMusicPlayerFroNowPlaying() {
-    npCrawer = new MusicPlayerNowPlaying(NowPlayingPlayerName.AIMP, infoSender);
+function createMusicPlayerNowPlaying() {
+    let player = 0;
+    const name = config.musicPlayerLocalName.toLowerCase();
+    if (name === "aimp") {
+        player = PlayerName.AIMP;
+    } else if (name === "cad") {
+        player = PlayerName.CAD;
+    } else if (name === "foobar") {
+        player = PlayerName.FOOBAR;
+    } else if (name === "itunes") {
+        player = PlayerName.ITUNES;
+    } else if (name === "mediamonkey") {
+        player = PlayerName.MEDIAMONKEY;
+    } else if (name === "spotify") {
+        player = PlayerName.SPOTIFY;
+    } else if (name === "winamp") {
+        player = PlayerName.WINAMP;
+    } else if (name === "wmp") {
+        player = PlayerName.WMP;
+    }
+    npCrawer = new MusicPlayerNowPlaying(player, infoSender);
     ipcMain.on(IpcChannels.playerNextTrack, () => npCrawer.nextTrack());
     ipcMain.on(IpcChannels.playerPrevTrack, () => npCrawer.prevTrack());
     ipcMain.on(IpcChannels.playerPlayPause, () => npCrawer.playPause());
 }
 
-function infoSender(channel: string, value: string | number | boolean): void {
+function infoSender(channel: string, value: any): void {
     mainWindow.webContents.send(channel, value);
 }

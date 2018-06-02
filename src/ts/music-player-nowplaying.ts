@@ -8,12 +8,12 @@ import { NowPlaying, PlayerName } from "nowplaying-node";
 export const NowPlayingPlayerName = PlayerName;
 
 export class MusicPlayerNowPlaying {
-    public artist: MusicInfoHandler;
-    public cover: MusicInfoHandler;
+    public artist: MusicInfoHandler<string>;
+    public cover: MusicInfoHandler<string>;
     public sender: InfoSender;
-    public state: MusicInfoHandler;
-    public title: MusicInfoHandler;
-    public connectStatus: MusicInfoHandler;
+    public state: MusicInfoHandler<number>;
+    public title: MusicInfoHandler<string>;
+    public connectStatus: MusicInfoHandler<boolean>;
     private nowplaying: NowPlaying;
 
     constructor(playerName: PlayerName, sender: InfoSender) {
@@ -34,7 +34,9 @@ export class MusicPlayerNowPlaying {
                 this.connectStatus.value = this.nowplaying.getStatus();
                 this.title.value = this.nowplaying.getTitle();
                 this.artist.value = this.nowplaying.getArtist();
-                this.cover.value = this.nowplaying.getCoverPath();
+                // Nowplaying uses same file to store cover image.
+                // Append a meaningless parameter to force browser reload image again.
+                this.cover.value = this.nowplaying.getCoverPath() + "?" + this.artist.value + this.title.value;
                 this.state.value = this.nowplaying.getState();
             }, 1000);
         }

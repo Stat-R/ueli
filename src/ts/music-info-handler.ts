@@ -1,8 +1,8 @@
-export type InfoSender = (channel: string, value: string | number | boolean) => void;
+export type InfoSender = (channel: string, value: any) => void;
 
-export class MusicInfoHandler {
-    public cur: string | number | boolean;
-    public old: string | number | boolean;
+export class MusicInfoHandler<T> {
+    public cur: T;
+    public old: T;
     private sender: InfoSender;
     private channel: string;
 

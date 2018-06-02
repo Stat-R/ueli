@@ -11,9 +11,10 @@
 
     <div id="vue-root">
         <link rel="stylesheet" :href="stylesheetPath">
+        <link rel="stylesheet" :href="customStyleSheet">
         <div class="container">
 
-            <div class="user-input-container" :style="userInputContainerStyle()">
+            <div class="user-input-container" :style="userInputContainerStyle()" :class="{ 'active': commandLineOutput.length !== 0 || searchResults.length !== 0 || playerConnectStatus }">
                 <input id="user-input" class="user-input" :style="userInputStyle()" type="text" v-model="userInput" :autofocus="{ 'autofocus' : autoFocus }"
                     v-on:keyDown="handleKeyPress">
                 <div class="search-icon-container" style="-webkit-app-region: drag;" :style="searchResultWidth()" v-html="searchIcon"></div>

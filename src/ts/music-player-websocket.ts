@@ -4,12 +4,12 @@ import { IpcChannels } from "./ipc-channels";
 import { MusicInfoHandler, InfoSender } from "./music-info-handler";
 
 export class MusicPlayerWebSocket {
-    public artist: MusicInfoHandler;
-    public cover: MusicInfoHandler;
+    public artist: MusicInfoHandler<string>;
+    public cover: MusicInfoHandler<string>;
     public sender: InfoSender;
-    public state: MusicInfoHandler;
-    public title: MusicInfoHandler;
-    public connectStatus: MusicInfoHandler;
+    public state: MusicInfoHandler<number>;
+    public title: MusicInfoHandler<string>;
+    public connectStatus: MusicInfoHandler<boolean>;
     private socket: ws;
     private server: ws.Server;
     private port: number;
@@ -26,6 +26,13 @@ export class MusicPlayerWebSocket {
 
     public sendCommand(command: string) {
         this.socket.send(command);
+    }
+
+    public cleanData() {
+        this.title.value = "";
+        this.artist.value = "";
+        this.cover.value = "";
+        this.state.value = 0;
     }
 
     private attemptConnect() {
@@ -55,7 +62,7 @@ export class MusicPlayerWebSocket {
             case "TITLE":       this.title.value     = info; break;
             case "ARTIST":      this.artist.value    = info; break;
             case "COVER":       this.cover.value     = info; break;
-            case "STATE":       this.state.value     = info; break;
+            case "STATE":       this.state.value     = parseInt(info, 10); break;
         }
     }
 }

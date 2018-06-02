@@ -20,6 +20,8 @@ export const defaultConfig: ConfigOptions = {
     customCommands: [],
     maxSearchResultCount: 8,
     musicPlayerHeight: 300,
+    musicPlayerLocalName: "aimp",
+    musicPlayerType: "websocket",
     musicPlayerWebSocketPort: 8974,
     rescanInterval: 30,
     searchEngineThreshold: 0.4,
