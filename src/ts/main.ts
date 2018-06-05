@@ -1,29 +1,37 @@
-import { app, BrowserWindow, globalShortcut, ipcMain, Menu, MenuItem, Tray } from "electron";
-import { autoUpdater } from "electron-updater";
-import * as fs from "fs";
-import * as path from "path";
+import { ConfigFileRepository } from "./config-file-repository";
+import { CountFileRepository } from "./count-file-repository";
+import { CountManager } from "./count-manager";
+import { defaultConfig } from "./default-config";
+import { ExecutionArgumentValidatorExecutorCombinationManager } from "./execution-argument-validator-executor-combination-manager";
 import { FilePathExecutionArgumentValidator } from "./execution-argument-validators/file-path-execution-argument-validator";
 import { ExecutionService } from "./execution-service";
 import { FilePathExecutor } from "./executors/file-path-executor";
+import { WebUrlExecutor } from "./executors/web-url-executor";
+import { UeliHelpers } from "./helpers/ueli-helpers";
+import { WindowHelpers } from "./helpers/winow-helpers";
 import { Injector } from "./injector";
 import { InputValidationService } from "./input-validation-service";
-import { SearchEngine } from "./search-engine";
-import { IpcChannels } from "./ipc-channels";
-import { OperatingSystem } from "./operating-system";
-import * as isInDevelopment from "electron-is-dev";
-import { platform } from "os";
-import { WindowHelpers } from "./helpers/winow-helpers";
-import { ExecutionArgumentValidatorExecutorCombinationManager } from "./execution-argument-validator-executor-combination-manager";
 import { InputValidatorSearcherCombinationManager } from "./input-validator-searcher-combination-manager";
-import { UeliHelpers } from "./helpers/ueli-helpers";
-import { WebUrlExecutor } from "./executors/web-url-executor";
-import { defaultConfig } from "./default-config";
-import { ConfigFileRepository } from "./config-file-repository";
-import { CountManager } from "./count-manager";
-import { CountFileRepository } from "./count-file-repository";
-import { MusicPlayerWebSocket } from "./music-player-websocket";
+import { IpcChannels } from "./ipc-channels";
 import { MusicPlayerNowPlaying, NowPlayingPlayerName } from "./music-player-nowplaying";
+import { MusicPlayerWebSocket } from "./music-player-websocket";
+import { OperatingSystem } from "./operating-system";
+import { SearchEngine } from "./search-engine";
+import * as isInDevelopment from "electron-is-dev";
+import { autoUpdater } from "electron-updater";
+import * as fs from "fs";
 import { PlayerName } from "nowplaying-node";
+import { platform } from "os";
+import * as path from "path";
+import {
+    app,
+    BrowserWindow,
+    globalShortcut,
+    ipcMain,
+    Menu,
+    MenuItem,
+    Tray,
+    } from "electron";
 
 let mainWindow: BrowserWindow;
 let trayIcon: Tray;
@@ -282,6 +290,10 @@ function createMusicPlayerWebSocket() {
     ipcMain.on(IpcChannels.playerNextTrack, () => websocketCrawler.sendCommand("next"));
     ipcMain.on(IpcChannels.playerPrevTrack, () => websocketCrawler.sendCommand("previous"));
     ipcMain.on(IpcChannels.playerPlayPause, () => websocketCrawler.sendCommand("playpause"));
+    ipcMain.on(IpcChannels.playerLikeTrack, () => {
+        const rating = `setrating ${websocketCrawler.rating.value === 5 ? 0 : 5}`;
+        websocketCrawler.sendCommand(rating);
+    });
 }
 
 let npCrawer: MusicPlayerNowPlaying;
@@ -309,6 +321,10 @@ function createMusicPlayerNowPlaying() {
     ipcMain.on(IpcChannels.playerNextTrack, () => npCrawer.nextTrack());
     ipcMain.on(IpcChannels.playerPrevTrack, () => npCrawer.prevTrack());
     ipcMain.on(IpcChannels.playerPlayPause, () => npCrawer.playPause());
+    ipcMain.on(IpcChannels.playerLikeTrack, () => {
+        const rating = npCrawer.rating.value > 3 ? 0 : 5;
+        npCrawer.setRating(rating);
+    });
 }
 
 function infoSender(channel: string, value: any): void {

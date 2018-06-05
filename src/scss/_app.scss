@@ -172,16 +172,8 @@ span {
     width: calc(100% - 50px * 2);
 }
 
-#album-cover {
-    width: 200px;
-    height: 200px;
-    background-size: cover;
-    // border-radius: 5px;
-    box-shadow: 0 10px 40px rgba(0,0,0,0.4);
-}
-
 #player-container {
-    padding-left: 20px;
+    padding-left: 220px;
     width: calc(100% - 200px)
 }
 
@@ -266,4 +258,64 @@ span {
 
 #player-container .spacer {
     height: 100px;
+}
+
+#cover-container {
+    position: absolute;
+    width: 200px;
+    height: 200px;
+}
+
+#like-track {
+    left: calc(50% - 25px /2);
+    text-align: center;
+    font-family: $font-icon;
+    font-size: 25px;
+    color: $mono-font-color;
+    position: absolute;
+    bottom: 0px;
+    opacity: 0;
+    transition: all 0.5s cubic-bezier(0.215, 0.610, 0.355, 1);
+}
+
+#cover-container:hover #album-cover,
+#cover-container.hover #album-cover {
+    top: -30px;
+}
+
+#cover-container:hover #like-track,
+#cover-container.hover #like-track  {
+    bottom: -10px;
+    opacity: 1;
+}
+
+#album-cover {
+    width: 100%;
+    height: 100%;
+    background-size: cover;
+    // border-radius: 5px;
+    box-shadow: 0 10px 40px rgba(0,0,0,0.4);
+    position: absolute;
+    z-index: 2;
+    top: 0px;
+    transition: all 0.5s cubic-bezier(0.215, 0.610, 0.355, 1);
+}
+
+
+#like-track::before {
+    content: "\E006";
+}
+
+#like-track:hover::before {
+    content: "\E00B";
+}
+
+#like-track.liked::before {
+    content: "\E00B";
+    color: #FF213F;
+}
+
+#like-track.liked:hover::before {
+    content: "\E00C";
+    color: #FF213F;
 }

@@ -25,7 +25,10 @@
                 <div id="music-info-container" :class="{ 'hidden' : commandLineOutput.length !== 0 || searchResults.length !== 0 || !playerConnectStatus }">
                     <div id="blur-background" :style="{ 'background-image' : albumCover}"></div>
                     <div id="player">
-                        <div id="album-cover" :style="{ 'background-image' : albumCover}"></div>
+                        <div id="cover-container">
+                            <div id="album-cover" :style="{ 'background-image' : albumCover}"></div>
+                            <div id="like-track" :class="{ 'liked': liked }" v-on:click="likeTrack"></div>
+                        </div>
                         <div id="player-container">
                             <div id="player-control">
                                 <div class="icon previous-track" v-on:click="previousTrack"></div>

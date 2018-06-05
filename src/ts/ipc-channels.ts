@@ -27,4 +27,5 @@ export class IpcChannels {
     public static readonly playerPrevTrack = "player-nexttrack";
     public static readonly playerNextTrack = "player-prevtrack";
     public static readonly playerPlayPause = "player-playpause";
+    public static readonly playerLikeTrack = "player-liketrack";
 }

@@ -1,8 +1,8 @@
 import { ConfigOptions } from "./config-options";
 import { OperatingSystemHelpers } from "./helpers/operating-system-helpers";
-import { homedir, platform } from "os";
 import { OperatingSystem } from "./operating-system";
 import { WebSearch } from "./web-search";
+import { homedir, platform } from "os";
 
 export const defaultConfig: ConfigOptions = {
     applicationFileExtensions: OperatingSystemHelpers.getOperatingSystemFromString(platform()) === OperatingSystem.Windows
@@ -21,7 +21,7 @@ export const defaultConfig: ConfigOptions = {
     maxSearchResultCount: 8,
     musicPlayerHeight: 300,
     musicPlayerLocalName: "aimp",
-    musicPlayerType: "websocket",
+    musicPlayerType: "local",
     musicPlayerWebSocketPort: 8974,
     rescanInterval: 30,
     searchEngineThreshold: 0.4,

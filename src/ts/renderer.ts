@@ -1,14 +1,14 @@
-import { SearchResultItemViewModel } from "./search-result-item-view-model";
+import { ColorThemeLoader } from "./color-theme-loader";
+import { ConfigFileRepository } from "./config-file-repository";
+import { defaultConfig } from "./default-config";
+import { UeliHelpers } from "./helpers/ueli-helpers";
 import { IpcChannels } from "./ipc-channels";
-import { platform, homedir } from "os";
-import { ipcRenderer } from "electron";
+import { SearchResultItemViewModel } from "./search-result-item-view-model";
 import * as macStyles from "../scss/mac.scss";
 import * as windowsStyles from "../scss/windows.scss";
+import { ipcRenderer } from "electron";
+import { homedir, platform } from "os";
 import Vue from "vue";
-import { ConfigFileRepository } from "./config-file-repository";
-import { UeliHelpers } from "./helpers/ueli-helpers";
-import { defaultConfig } from "./default-config";
-import { ColorThemeLoader } from "./color-theme-loader";
 
 const colorThemeLoader = new ColorThemeLoader();
 const config = new ConfigFileRepository(defaultConfig, UeliHelpers.configFilePath).getConfig();
@@ -23,6 +23,7 @@ const vue = new Vue({
         commandLineOutput: [] as string[],
         customStyleSheet: `${homedir()}\\ueli.custom.css`,
         isMouseMoving: false,
+        liked: false,
         playerConnectStatus: false,
         searchIcon: "",
         searchResults: [] as SearchResultItemViewModel[],
@@ -72,6 +73,7 @@ const vue = new Vue({
                 vue.searchResults[index].active = true;
             }
         },
+        likeTrack,
         nextTrack,
         outputContainerHeight: (): string => {
             return `height: calc(100vh - ${config.userInputHeight}px);`;
@@ -242,6 +244,15 @@ function handleGlobalKeyPress(event: KeyboardEvent): void {
         nextTrack();
     } else if (key === "d" && event.altKey) {
         playPauseTrack();
+    } else if (key === "q" && event.altKey) {
+        likeTrack();
+        const cover = document.getElementById("cover-container");
+        if (cover) {
+            cover.classList.add("hover");
+            setTimeout(() => {
+                cover.classList.remove("hover");
+            }, 2000);
+        }
     }
 }
 
@@ -278,6 +289,10 @@ ipcRenderer.on(IpcChannels.playerState, (event: Electron.Event, arg: number): vo
     vue.state = arg === 1;
 });
 
+ipcRenderer.on(IpcChannels.playerState, (event: Electron.Event, arg: number): void => {
+    vue.liked = arg === 5;
+});
+
 ipcRenderer.on(IpcChannels.playerConnectStatus, (event: Electron.Event, arg: boolean): void => {
     vue.playerConnectStatus = arg;
     ipcRenderer.send(IpcChannels.playerConnectStatus, arg);
@@ -291,4 +306,7 @@ function nextTrack() {
 }
 function playPauseTrack() {
     ipcRenderer.send(IpcChannels.playerPlayPause);
+}
+function likeTrack() {
+    ipcRenderer.send(IpcChannels.playerLikeTrack);
 }

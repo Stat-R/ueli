@@ -1,13 +1,14 @@
-import * as ws from "ws";
-import { ipcRenderer } from "electron";
 import { IpcChannels } from "./ipc-channels";
-import { MusicInfoHandler, InfoSender } from "./music-info-handler";
+import { InfoSender, MusicInfoHandler } from "./music-info-handler";
+import { ipcRenderer } from "electron";
+import * as ws from "ws";
 
 export class MusicPlayerWebSocket {
     public artist: MusicInfoHandler<string>;
     public cover: MusicInfoHandler<string>;
     public sender: InfoSender;
     public state: MusicInfoHandler<number>;
+    public rating: MusicInfoHandler<number>;
     public title: MusicInfoHandler<string>;
     public connectStatus: MusicInfoHandler<boolean>;
     private socket: ws;
@@ -19,6 +20,7 @@ export class MusicPlayerWebSocket {
         this.artist = new MusicInfoHandler(sender, IpcChannels.playerArtist);
         this.cover = new MusicInfoHandler(sender, IpcChannels.playerAlbumCover);
         this.state = new MusicInfoHandler(sender, IpcChannels.playerState);
+        this.rating = new MusicInfoHandler(sender, IpcChannels.playerState);
         this.connectStatus = new MusicInfoHandler(sender, IpcChannels.playerConnectStatus);
         this.port = port;
         this.attemptConnect();
@@ -26,13 +28,6 @@ export class MusicPlayerWebSocket {
 
     public sendCommand(command: string) {
         this.socket.send(command);
-    }
-
-    public cleanData() {
-        this.title.value = "";
-        this.artist.value = "";
-        this.cover.value = "";
-        this.state.value = 0;
     }
 
     private attemptConnect() {
@@ -63,6 +58,7 @@ export class MusicPlayerWebSocket {
             case "ARTIST":      this.artist.value    = info; break;
             case "COVER":       this.cover.value     = info; break;
             case "STATE":       this.state.value     = parseInt(info, 10); break;
+            case "RATING":       this.rating.value     = parseInt(info, 10); break;
         }
     }
 }

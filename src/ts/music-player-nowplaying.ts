@@ -1,9 +1,8 @@
-import * as ws from "ws";
-import { ipcRenderer } from "electron";
 import { IpcChannels } from "./ipc-channels";
-import { MusicInfoHandler, InfoSender } from "./music-info-handler";
-
+import { InfoSender, MusicInfoHandler } from "./music-info-handler";
+import { ipcRenderer } from "electron";
 import { NowPlaying, PlayerName } from "nowplaying-node";
+import * as ws from "ws";
 
 export const NowPlayingPlayerName = PlayerName;
 
@@ -12,6 +11,7 @@ export class MusicPlayerNowPlaying {
     public cover: MusicInfoHandler<string>;
     public sender: InfoSender;
     public state: MusicInfoHandler<number>;
+    public rating: MusicInfoHandler<number>;
     public title: MusicInfoHandler<string>;
     public connectStatus: MusicInfoHandler<boolean>;
     private nowplaying: NowPlaying;
@@ -21,6 +21,7 @@ export class MusicPlayerNowPlaying {
         this.artist = new MusicInfoHandler(sender, IpcChannels.playerArtist);
         this.cover = new MusicInfoHandler(sender, IpcChannels.playerAlbumCover);
         this.state = new MusicInfoHandler(sender, IpcChannels.playerState);
+        this.rating = new MusicInfoHandler(sender, IpcChannels.playerState);
         this.connectStatus = new MusicInfoHandler(sender, IpcChannels.playerConnectStatus);
 
         this.nowplaying = new NowPlaying({
@@ -38,6 +39,7 @@ export class MusicPlayerNowPlaying {
                 // Append a meaningless parameter to force browser reload image again.
                 this.cover.value = this.nowplaying.getCoverPath() + "?" + this.artist.value + this.title.value;
                 this.state.value = this.nowplaying.getState();
+                this.rating.value = this.nowplaying.getRating();
             }, 1000);
         }
     }
@@ -56,5 +58,9 @@ export class MusicPlayerNowPlaying {
         } else {
             this.nowplaying.play();
         }
+    }
+
+    public setRating(rating: number): void {
+        this.nowplaying.setRating(rating);
     }
 }
