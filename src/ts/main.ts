@@ -12,6 +12,7 @@ import { WindowHelpers } from "./helpers/winow-helpers";
 import { Injector } from "./injector";
 import { InputValidationService } from "./input-validation-service";
 import { InputValidatorSearcherCombinationManager } from "./input-validator-searcher-combination-manager";
+import { VariableInputValidator } from "./input-validators/variable-input-validator";
 import { IpcChannels } from "./ipc-channels";
 import { MusicPlayerNowPlaying, NowPlayingPlayerName } from "./music-player-nowplaying";
 import { MusicPlayerWebSocket } from "./music-player-websocket";
@@ -252,7 +253,8 @@ ipcMain.on(IpcChannels.autoComplete, (event: any, arg: string[]): void => {
     let executionArgument = arg[1];
     const dirSeparator = Injector.getDirectorySeparator(platform());
 
-    if (new FilePathExecutionArgumentValidator().isValidForExecution(userInput)) {
+    if (new FilePathExecutionArgumentValidator().isValidForExecution(userInput)
+     || new VariableInputValidator().isValidForSearchResults(userInput)) {
         if (!executionArgument.endsWith(dirSeparator) && fs.lstatSync(executionArgument).isDirectory()) {
             executionArgument = `${executionArgument}${dirSeparator}`;
         }

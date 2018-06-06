@@ -1,5 +1,5 @@
-import { Injector } from "../injector";
 import { ExecutionArgumentValidator } from "./execution-argument-validator";
+import { Injector } from "../injector";
 import { platform } from "os";
 
 export class FilePathExecutionArgumentValidator implements ExecutionArgumentValidator {

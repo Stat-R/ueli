@@ -1,24 +1,26 @@
-import { CalculatorSearcher } from "./searcher/calculator-searcher";
-import { CalculatorInputValidator } from "./input-validators/calculator-input-validator";
-import { FilePathSearcher } from "./searcher/file-path-searcher";
-import { FilePathInputValidator } from "./input-validators/file-path-input-validator";
-import { CommandLineSearcher } from "./searcher/command-line-searcher";
-import { CommandLineInputValidator } from "./input-validators/command-line-input-validator";
-import { WebSearchSearcher } from "./searcher/web-search-searcher";
-import { WebSearchInputValidator } from "./input-validators/web-search-input-validator";
-import { EmailAddressSearcher } from "./searcher/email-address-searcher";
-import { EmailAddressInputValidator } from "./input-validators/email-address-input-validator";
-import { WebUrlSearcher } from "./searcher/web-url-searcher";
-import { WebUrlInputValidator } from "./input-validators/web-url-input-validator";
-import { SearchPluginsSearcher } from "./searcher/search-plugins-searcher";
-import { SearchPluginsInputValidator } from "./input-validators/search-plugins-input-validator";
-import { InputValidatorSearcherCombination } from "./input-validator-searcher-combination";
+import { ConfigOptions } from "./config-options";
+import { CountFileRepository } from "./count-file-repository";
+import { CountManager } from "./count-manager";
 import { defaultConfig } from "./default-config";
 import { UeliHelpers } from "./helpers/ueli-helpers";
-import { ConfigOptions } from "./config-options";
-import { CountManager } from "./count-manager";
-import { CountFileRepository } from "./count-file-repository";
 import { Injector } from "./injector";
+import { InputValidatorSearcherCombination } from "./input-validator-searcher-combination";
+import { CalculatorInputValidator } from "./input-validators/calculator-input-validator";
+import { CommandLineInputValidator } from "./input-validators/command-line-input-validator";
+import { EmailAddressInputValidator } from "./input-validators/email-address-input-validator";
+import { FilePathInputValidator } from "./input-validators/file-path-input-validator";
+import { SearchPluginsInputValidator } from "./input-validators/search-plugins-input-validator";
+import { VariableInputValidator } from "./input-validators/variable-input-validator";
+import { WebSearchInputValidator } from "./input-validators/web-search-input-validator";
+import { WebUrlInputValidator } from "./input-validators/web-url-input-validator";
+import { CalculatorSearcher } from "./searcher/calculator-searcher";
+import { CommandLineSearcher } from "./searcher/command-line-searcher";
+import { EmailAddressSearcher } from "./searcher/email-address-searcher";
+import { FilePathSearcher } from "./searcher/file-path-searcher";
+import { SearchPluginsSearcher } from "./searcher/search-plugins-searcher";
+import { VariableSearcher } from "./searcher/variable-searcher";
+import { WebSearchSearcher } from "./searcher/web-search-searcher";
+import { WebUrlSearcher } from "./searcher/web-url-searcher";
 import { platform } from "os";
 
 export class InputValidatorSearcherCombinationManager {
@@ -29,6 +31,10 @@ export class InputValidatorSearcherCombinationManager {
             {
                 searcher: new CalculatorSearcher(),
                 validator: new CalculatorInputValidator(),
+            },
+            {
+                searcher: new VariableSearcher(config),
+                validator: new VariableInputValidator(),
             },
             {
                 searcher: new FilePathSearcher(config),
