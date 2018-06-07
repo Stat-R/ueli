@@ -47,7 +47,15 @@ module.exports = {
       },
       {
         test: /\.node$/,
-        use: 'node-loader'
+        use: [
+          {
+            loader: "file-loader",
+            options: {}
+          },
+          {
+            loader: "node-loader"
+          }
+        ]
       }
     ]
   }
