@@ -19,7 +19,8 @@
     "test:all": "./node_modules/.bin/jest --silent ./src/tests",
     "coverage": "./node_modules/.bin/coveralls < ./coverage/lcov.info",
     "package:publish": "./node_modules/.bin/electron-builder --config electron-builder-config.yml --publish onTag",
-    "package": "./node_modules/.bin/electron-builder --dir --config electron-builder-config.yml --publish never"
+    "package": "./node_modules/.bin/electron-builder --dir --config electron-builder-config.yml --publish never",
+    "package:32": "./node_modules/.bin/electron-builder --dir --config electron-builder-config.yml --ia32 --publish never"
   },
   "husky": {
     "hooks": {
@@ -53,6 +54,7 @@
     "husky": "^1.0.0-rc.8",
     "jest": "^23.1.0",
     "mathjs": "^4.4.1",
+    "node-sass": "^4.9.0",
     "sass-loader": "^7.0.1",
     "style-loader": "^0.21.0",
     "ts-jest": "^22.4.6",
@@ -71,8 +73,7 @@
     "electron-updater": "^2.21.10",
     "fuse.js": "^3.2.0",
     "node-loader": "^0.6.0",
-    "node-sass": "^4.9.0",
-    "nowplaying-node": "^0.1.1",
+    "nowplaying-node": "^0.1.3",
     "vue": "^2.5.16",
     "ws": "^5.2.0"
   },

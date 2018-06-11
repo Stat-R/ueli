@@ -7,7 +7,12 @@ files:
   - build/**/*.css
   - main.html
   - img/**/*
-
+extraFiles:
+  - {
+      from: "build",
+      to: "./",
+      filter: ["*.node"]
+    }
 win:
   icon: ./img/icons/win/icon.ico
   target:
