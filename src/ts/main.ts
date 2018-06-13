@@ -16,13 +16,11 @@ import { VariableInputValidator } from "./input-validators/variable-input-valida
 import { IpcChannels } from "./ipc-channels";
 import { MusicPlayerNowPlaying, NowPlayingPlayerName } from "./music-player-nowplaying";
 import { MusicPlayerWebSocket } from "./music-player-websocket";
-import { OperatingSystem } from "./operating-system";
-import { SearchEngine } from "./search-engine";
 import * as isInDevelopment from "electron-is-dev";
 import { autoUpdater } from "electron-updater";
 import * as fs from "fs";
 import { PlayerName } from "nowplaying-node";
-import { platform } from "os";
+import { homedir, platform } from "os";
 import * as path from "path";
 import {
     app,
@@ -33,6 +31,7 @@ import {
     MenuItem,
     Tray,
     } from "electron";
+import * as childProcess from "child_process";
 
 let mainWindow: BrowserWindow;
 let trayIcon: Tray;
@@ -75,6 +74,11 @@ function createMainWindow(): void {
         show: false,
         skipTaskbar: true,
         transparent: true,
+        webPreferences: {
+            backgroundThrottling: true,
+            experimentalCanvasFeatures : true,
+            experimentalFeatures: true,
+        },
         width: config.windowWith,
     });
 
@@ -176,11 +180,22 @@ function addUpdateStatusToTrayIcon(label: string, clickHandler?: any): void {
     ]));
 }
 
+const screenshotFile = path.join(homedir(), "acrylic.bmp");
+const maximumHeight = config.maxSearchResultCount * config.searchResultHeight + config.userInputHeight;
+
 function toggleWindow(): void {
     if (mainWindow.isVisible()) {
         hideMainWindow();
     } else {
-        mainWindow.show();
+        const bound = mainWindow.getBounds();
+        childProcess.exec(`"${config.imageMagickPath}" convert screenshot: -crop ${bound.width}x${maximumHeight}+${bound.x}+${bound.y} "${screenshotFile}"`, (err, stdout) => {
+            if (!err) {
+                mainWindow.webContents.send(IpcChannels.tookScreenshot, screenshotFile);
+            } else {
+                throw err;
+            }
+            mainWindow.show();
+        });
     }
 }
 

@@ -10,14 +10,16 @@ export const defaultConfig: ConfigOptions = {
         : [".app"],
     applicationFolders: OperatingSystemHelpers.getOperatingSystemFromString(platform()) === OperatingSystem.Windows
         ? [
-            "C:\\ProgramData\\Microsoft\\Windows\\Start Menu\\Programs",
-            `${homedir()}\\AppData\\Roaming\\Microsoft\\Windows\\Start Menu`,
-            `${homedir()}\\Desktop`,
+            ["C:\\ProgramData\\Microsoft\\Windows\\Start Menu\\Programs", "Start Menu"],
+            [`${homedir()}\\AppData\\Roaming\\Microsoft\\Windows\\Start Menu`, "Start Menu"],
+            [`${homedir()}\\Desktop`, "Desktop"],
         ]
-        : ["/Applications"],
+        : [["/Applications", "Applications"]],
     autoStartApp: true,
     colorTheme: "dark",
     customCommands: [],
+    directorySeparator: " \u23F5 ",
+    imageMagickPath: "C:\\Program Files\\ImageMagick-7.0.7-Q16\\magick.exe",
     maxSearchResultCount: 8,
     musicPlayerHeight: 300,
     musicPlayerLocalName: "aimp",

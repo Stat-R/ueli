@@ -6,6 +6,7 @@ import { IconManager } from "../icon-manager/icon-manager";
 import { Injector } from "../injector";
 import { SearchResultItem } from "../search-result-item";
 import { SearchPlugin } from "./search-plugin";
+import { ConfigOptions } from "../config-options";
 
 export class HomeFolderSearchPlugin implements SearchPlugin {
     private homeFolderPath = os.homedir();
@@ -23,17 +24,21 @@ export class HomeFolderSearchPlugin implements SearchPlugin {
 
     private getFilesAndFolders(): SearchResultItem[] {
 
-        const files = FileHelpers.getFilesFromFolder(this.homeFolderPath);
+        const files = FileHelpers.getFilesFromFolder({
+            breadCrumb: ["Home"],
+            fullPath: this.homeFolderPath,
+        });
 
         const result = files.map((f): SearchResultItem => {
-            const stats = fs.lstatSync(f);
+            const stats = fs.lstatSync(f.fullPath);
 
             return {
-                executionArgument: f,
+                breadCrumb: f.breadCrumb,
+                executionArgument: f.fullPath,
                 icon: stats.isDirectory()
                     ? this.iconManager.getFolderIcon()
                     : this.iconManager.getFileIcon(),
-                name: path.basename(f),
+                name: path.basename(f.fullPath),
                 tags: [],
             } as SearchResultItem;
         });

@@ -7,7 +7,7 @@ export class ProgramFileRepository implements ProgramRepository {
     private applicationFileExtensions: string[];
     private programs: Program[];
 
-    public constructor(applicationFolders: string[], applicationFileExtensions: string[]) {
+    public constructor(applicationFolders: Array<[string, string]>, applicationFileExtensions: string[]) {
         this.applicationFileExtensions = applicationFileExtensions;
         this.programs = this.loadPrograms(applicationFolders);
     }
@@ -16,17 +16,23 @@ export class ProgramFileRepository implements ProgramRepository {
         return this.programs;
     }
 
-    private loadPrograms(applicationFolders: string[]): Program[] {
+    private loadPrograms(applicationFolders: Array<[string, string]>): Program[] {
         const result = [] as Program[];
 
-        const files = FileHelpers.getFilesFromFoldersRecursively(applicationFolders);
+        const files = FileHelpers.getFilesFromFoldersRecursively(
+            applicationFolders.map((f) => ({
+                breadCrumb: [f[1]],
+                fullPath: f[0],
+            })),
+        );
 
         for (const file of files) {
             for (const applicationFileExtension of this.applicationFileExtensions) {
-                if (file.endsWith(applicationFileExtension)) {
+                if (file.fullPath.endsWith(applicationFileExtension)) {
                     result.push({
-                        executionArgument: file,
-                        name: path.basename(file).replace(applicationFileExtension, ""),
+                        breadCrumb: file.breadCrumb,
+                        executionArgument: file.fullPath,
+                        name: path.basename(file.fullPath).replace(applicationFileExtension, ""),
                     } as Program);
                 }
             }

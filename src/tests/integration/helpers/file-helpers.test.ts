@@ -51,7 +51,10 @@ describe(FileHelpers.name, (): void => {
         createFile(hiddenFilePath, "some-text");
 
         it("should return only visible files", (): void => {
-            const actual = FileHelpers.getFilesFromFolder(testFolder);
+            const actual = FileHelpers.getFilesFromFolder({
+                breadCrumb: [],
+                fullPath: testFolder,
+            });
             expect(actual.length).toBe(testFiles.length);
         });
 
@@ -71,7 +74,10 @@ describe(FileHelpers.name, (): void => {
         });
 
         it("should return only visible files", (): void => {
-            const actual = FileHelpers.getFilesFromFolderRecursively(testFolder);
+            const actual = FileHelpers.getFilesFromFolderRecursively({
+                breadCrumb: [],
+                fullPath: testFolder,
+            });
             expect(actual.length).toBeGreaterThan(0);
         });
 
@@ -89,14 +95,22 @@ describe(FileHelpers.name, (): void => {
         });
 
         it("should return some files", (): void => {
-            const actual = FileHelpers.getFilesFromFoldersRecursively(testFolders);
+            const actual = FileHelpers.getFilesFromFoldersRecursively(
+                testFolders.map((folder) => ({
+                    breadCrumb: [],
+                    fullPath: folder,
+                })),
+            );
             expect(actual.length).toBeGreaterThan(0);
         });
 
         it("should return an empty list when folder does not exist", (): void => {
             const testFolder = path.join(os.homedir(), "hopefully-this-folder-does-not-exist");
 
-            const actual = FileHelpers.getFilesFromFoldersRecursively([testFolder]);
+            const actual = FileHelpers.getFilesFromFoldersRecursively([{
+                breadCrumb: [],
+                fullPath: testFolder,
+            }]);
 
             expect(actual.length).toBe(0);
         });

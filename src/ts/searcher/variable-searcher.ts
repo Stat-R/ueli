@@ -1,13 +1,11 @@
 import { Searcher } from "./searcher";
 import { ConfigOptions } from "../config-options";
-import { FileHelpers } from "../helpers/file-helpers";
 import { Injector } from "../injector";
 import { FilePathInputValidator } from "../input-validators/file-path-input-validator";
 import { SearchEngine } from "../search-engine";
 import { SearchResultItem } from "../search-result-item";
-import * as fs from "fs";
-import { homedir, platform } from "os";
-import * as path from "path";
+import { platform } from "os";
+import { DirectorySeparator } from "../directory-separator";
 
 export class VariableSearcher implements Searcher {
     private config: ConfigOptions;
@@ -26,6 +24,7 @@ export class VariableSearcher implements Searcher {
             const value = env[varName];
             if (validator.isValidForSearchResults(value)) {
                 this.collection.push({
+                    breadCrumb: value.split(DirectorySeparator.WindowsDirectorySeparator),
                     executionArgument: value,
                     icon,
                     name: `${varName}`,

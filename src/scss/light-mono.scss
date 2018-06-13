@@ -1,10 +1,12 @@
-$background-color: #fff;
 $text-color: #555;
-$accent-color: #111;
+$accent-color: rgba(17, 17, 17, 0.2);
 $accent-text-color: #fff;
 $mono-font-color: #666;
 
 $scrollbar-foreground-color: #858585;
-$scrollbar-background-color: #ccc;
+
+:root {
+    --background-color: 255,255,255;
+}
 
 @import "app";

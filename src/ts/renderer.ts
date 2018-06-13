@@ -4,8 +4,6 @@ import { defaultConfig } from "./default-config";
 import { UeliHelpers } from "./helpers/ueli-helpers";
 import { IpcChannels } from "./ipc-channels";
 import { SearchResultItemViewModel } from "./search-result-item-view-model";
-import * as macStyles from "../scss/mac.scss";
-import * as windowsStyles from "../scss/windows.scss";
 import { ipcRenderer } from "electron";
 import { homedir, platform } from "os";
 import Vue from "vue";
@@ -25,6 +23,7 @@ const vue = new Vue({
         isMouseMoving: false,
         liked: false,
         playerConnectStatus: false,
+        screenshotFile: "",
         searchIcon: "",
         searchResults: [] as SearchResultItemViewModel[],
         state: false,
@@ -133,10 +132,12 @@ ipcRenderer.on(IpcChannels.resetUserInput, resetUserInput);
 
 function updateSearchResults(searchResults: SearchResultItemViewModel[]): void {
     let index = 0;
-
     searchResults.forEach((searchResultItem: SearchResultItemViewModel): void => {
         searchResultItem.id = `search-result-item-${index}`;
         searchResultItem.active = false;
+        if (searchResultItem.breadCrumb) {
+            searchResultItem.description = searchResultItem.breadCrumb.join(config.directorySeparator);
+        }
         index++;
     });
 
@@ -310,3 +311,7 @@ function playPauseTrack() {
 function likeTrack() {
     ipcRenderer.send(IpcChannels.playerLikeTrack);
 }
+
+ipcRenderer.on(IpcChannels.tookScreenshot, (event: Electron.Event, arg: string): void => {
+    vue.screenshotFile = "url(\"" + new URL(arg + "?" + new Date().getSeconds()).href + "\")";
+});

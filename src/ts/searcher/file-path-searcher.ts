@@ -7,6 +7,7 @@ import { SearchResultItem } from "../search-result-item";
 import { Searcher } from "./searcher";
 import { platform } from "os";
 import { ConfigOptions } from "../config-options";
+import { DirectorySeparator } from "../directory-separator";
 
 export class FilePathSearcher implements Searcher {
     private iconManager = Injector.getIconManager(platform());
@@ -39,15 +40,24 @@ export class FilePathSearcher implements Searcher {
     private getFolderSearchResult(folderPath: string, searchTerm?: string): SearchResultItem[] {
         const result = [] as SearchResultItem[];
 
-        const files = FileHelpers.getFilesFromFolder(folderPath);
+        const crumbs = folderPath.split(DirectorySeparator.WindowsDirectorySeparator);
+        if (!crumbs[crumbs.length - 1]) {
+            crumbs.length = crumbs.length - 1;
+        }
+
+        const files = FileHelpers.getFilesFromFolder({
+            breadCrumb: crumbs,
+            fullPath: folderPath,
+        });
 
         for (const file of files) {
             result.push({
-                executionArgument: file,
-                icon: fs.lstatSync(file).isDirectory()
+                breadCrumb: file.breadCrumb,
+                executionArgument: file.fullPath,
+                icon: fs.lstatSync(file.fullPath).isDirectory()
                     ? this.iconManager.getFolderIcon()
                     : this.iconManager.getFileIcon(),
-                name: path.basename(file),
+                name: path.basename(file.fullPath),
                 tags: [],
             } as SearchResultItem);
         }
@@ -65,6 +75,7 @@ export class FilePathSearcher implements Searcher {
     private getFileSearchResult(filePath: string): SearchResultItem[] {
         return [
             {
+                breadCrumb: filePath.split(DirectorySeparator.WindowsDirectorySeparator),
                 executionArgument: filePath,
                 icon: this.iconManager.getFileIcon(),
                 name: path.basename(filePath),

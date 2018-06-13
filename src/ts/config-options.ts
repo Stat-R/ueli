@@ -3,10 +3,12 @@ import { CustomCommand } from "./custom-command";
 
 export interface ConfigOptions {
     applicationFileExtensions: string[];
-    applicationFolders: string[];
+    applicationFolders: Array<[string, string]>;
     autoStartApp: boolean;
     colorTheme: string;
     customCommands: CustomCommand[];
+    directorySeparator: string;
+    imageMagickPath: string;
     maxSearchResultCount: number;
     musicPlayerHeight: number;
     musicPlayerType: string;
