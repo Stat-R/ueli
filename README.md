@@ -4,9 +4,9 @@
 
 This is an alt+space launcher for Windows and macOS.
 
-![musicplayer](https://i.imgur.com/1pxCNYB.png)
+![musicplayer](https://i.imgur.com/eIvCyih.png)
 
-![ueli screenshot](img/doc/ueli-example.jpg)
+![ueli screenshot](https://i.imgur.com/hFRUMHv.png)
 
 ## Table of contents
 
