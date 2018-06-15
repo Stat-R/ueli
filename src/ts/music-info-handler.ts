@@ -1,8 +1,8 @@
 export type InfoSender = (channel: string, value: any) => void;
 
 export class MusicInfoHandler<T> {
-    public cur: T;
-    public old: T;
+    private cur: T;
+    private old: T;
     private sender: InfoSender;
     private channel: string;
 

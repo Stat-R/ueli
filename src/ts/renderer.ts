@@ -286,12 +286,12 @@ ipcRenderer.on(IpcChannels.playerAlbumCover, (event: Electron.Event, arg: string
     }
 });
 
-ipcRenderer.on(IpcChannels.playerState, (event: Electron.Event, arg: number): void => {
-    vue.state = arg === 1;
+ipcRenderer.on(IpcChannels.playerState, (event: Electron.Event, arg: boolean): void => {
+    vue.state = arg;
 });
 
-ipcRenderer.on(IpcChannels.playerState, (event: Electron.Event, arg: number): void => {
-    vue.liked = arg === 5;
+ipcRenderer.on(IpcChannels.playerLikeTrack, (event: Electron.Event, arg: number): void => {
+    vue.liked = arg > 3;
 });
 
 ipcRenderer.on(IpcChannels.playerConnectStatus, (event: Electron.Event, arg: boolean): void => {

@@ -17,11 +17,16 @@ module.exports = function(content) {
   this.emitFile(url, content);
 
   var publicPath = `__webpack_public_path__ + ${JSON.stringify(url)}`;
-  var absPath = path.join("build", url);
+  var devPath = `__webpack_public_path__ + ${JSON.stringify(path.join("build", url))}`;
+
   return `try {
-  global.process.dlopen(module, ${process.cwd() + JSON.stringify(absPath)});
+  global.process.dlopen(module, ${publicPath});
 } catch(e) {
-  throw new Error('Cannot open ' + ${publicPath} + ': ' + e);
+  try {
+    global.process.dlopen(module, ${devPath});
+  } catch (e2) {
+    throw new Error('Cannot open ' + ${JSON.stringify(url)} + ': ' + e2);
+  }
 };`
 }
 module.exports.raw = true;
