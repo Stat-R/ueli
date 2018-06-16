@@ -1,7 +1,7 @@
 {
   "name": "ueli",
   "productName": "ueli",
-  "version": "4.2.3",
+  "version": "4.2.4",
   "author": {
     "name": "Oliver Schwendener",
     "email": "oliver.schwendener@hotmail.com",
@@ -68,11 +68,15 @@
   },
   "license": "MIT",
   "dependencies": {
+    "@types/cheerio": "^0.22.7",
+    "@types/node-fetch": "^2.1.1",
     "@types/ws": "^5.1.1",
+    "cheerio": "^1.0.0-rc.2",
     "desktop-screenshot": "^0.1.1",
     "electron-is-dev": "^0.3.0",
     "electron-updater": "^2.21.10",
     "fuse.js": "^3.2.0",
+    "node-fetch": "^2.1.2",
     "nowplaying-node": "^0.1.3",
     "vue": "^2.5.16",
     "ws": "^5.2.0"

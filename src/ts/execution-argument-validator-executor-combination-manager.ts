@@ -23,6 +23,8 @@ import { UeliHelpers } from "./helpers/ueli-helpers";
 import { OperatingSystem } from "./operating-system";
 import { WebSearch } from "./web-search";
 import { platform } from "os";
+import { SpotifyExecutor } from "./executors/spotify-executor";
+import { SpotifyExecutionArgumentValidator } from "./execution-argument-validators/spotify-exeuction-argument-validator";
 
 export class ExecutionArgumentValidatorExecutorCombinationManager {
     private webSearches: WebSearch[];
@@ -57,6 +59,10 @@ export class ExecutionArgumentValidatorExecutorCombinationManager {
             {
                 executor: new CustomCommandExecutor(),
                 validator: new CustomCommandExecutionArgumentValidator(),
+            },
+            {
+                executor: new SpotifyExecutor(),
+                validator: new SpotifyExecutionArgumentValidator(),
             },
         ];
 

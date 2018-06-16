@@ -15,7 +15,7 @@ import { InputValidatorSearcherCombinationManager } from "./input-validator-sear
 import { VariableInputValidator } from "./input-validators/variable-input-validator";
 import { IpcChannels } from "./ipc-channels";
 import { MusicPlayerNowPlaying, NowPlayingPlayerName } from "./music-player-nowplaying";
-import { MusicPlayerWebSocket } from "./music-player-websocket";
+import { MusicPlayerWebSocket, WebSocketSearcher } from "./music-player-websocket";
 import * as isInDevelopment from "electron-is-dev";
 import { autoUpdater } from "electron-updater";
 import * as fs from "fs";
@@ -32,6 +32,9 @@ import {
     Tray,
     } from "electron";
 import * as childProcess from "child_process";
+import { OnlineInputValidationService } from "./online-input-validation-service";
+import { OnlineInputValidatorSearcherCombinationManager } from "./online-input-validator-searcher-combination-manager";
+import { SearchResultItem } from "./search-result-item";
 
 let mainWindow: BrowserWindow;
 let trayIcon: Tray;
@@ -40,7 +43,63 @@ const delayWhenHidingCommandlineOutputInMs = 25;
 const filePathExecutor = new FilePathExecutor();
 
 let config = new ConfigFileRepository(defaultConfig, UeliHelpers.configFilePath).getConfig();
-let inputValidationService = new InputValidationService(new InputValidatorSearcherCombinationManager(config).getCombinations());
+
+function infoSender(channel: string, value: any): void {
+    mainWindow.webContents.send(channel, value);
+}
+
+const playerType = config.musicPlayerType.toLowerCase();
+
+let websocketCrawler: MusicPlayerWebSocket;
+let webSocketSearch: WebSocketSearcher = (query: string) => new Promise((resolve) => resolve([]));
+let npCrawer: MusicPlayerNowPlaying;
+
+if (playerType === "local") {
+    let player = 0;
+    const name = config.musicPlayerLocalName.toLowerCase();
+    if (name === "aimp") {
+        player = PlayerName.AIMP;
+    } else if (name === "cad") {
+        player = PlayerName.CAD;
+    } else if (name === "foobar") {
+        player = PlayerName.FOOBAR;
+    } else if (name === "itunes") {
+        player = PlayerName.ITUNES;
+    } else if (name === "mediamonkey") {
+        player = PlayerName.MEDIAMONKEY;
+    } else if (name === "spotify") {
+        player = PlayerName.SPOTIFY;
+    } else if (name === "winamp") {
+        player = PlayerName.WINAMP;
+    } else if (name === "wmp") {
+        player = PlayerName.WMP;
+    }
+    npCrawer = new MusicPlayerNowPlaying(player, infoSender);
+    ipcMain.on(IpcChannels.playerNextTrack, () => npCrawer.nextTrack());
+    ipcMain.on(IpcChannels.playerPrevTrack, () => npCrawer.prevTrack());
+    ipcMain.on(IpcChannels.playerPlayPause, () => npCrawer.playPause());
+    ipcMain.on(IpcChannels.playerLikeTrack, () => {
+        const rating = npCrawer.rating.value > 3 ? 0 : 5;
+        npCrawer.setRating(rating);
+    });
+} else if (playerType === "websocket") {
+    websocketCrawler = new MusicPlayerWebSocket(config.musicPlayerWebSocketPort, infoSender);
+    webSocketSearch = websocketCrawler.search.bind(websocketCrawler);
+    ipcMain.on(IpcChannels.playerNextTrack, () => websocketCrawler.sendCommand("next"));
+    ipcMain.on(IpcChannels.playerPrevTrack, () => websocketCrawler.sendCommand("previous"));
+    ipcMain.on(IpcChannels.playerPlayPause, () => websocketCrawler.sendCommand("playpause"));
+    ipcMain.on(IpcChannels.playerLikeTrack, () => {
+        const rating = `setrating ${websocketCrawler.rating.value === 5 ? 0 : 5}`;
+        websocketCrawler.sendCommand(rating);
+    });
+}
+
+let inputValidationService = new InputValidationService(
+    new InputValidatorSearcherCombinationManager(config).getCombinations());
+
+const onlineInputValidationService = new OnlineInputValidationService(
+    new OnlineInputValidatorSearcherCombinationManager(webSocketSearch).getCombinations());
+
 let executionService = new ExecutionService(
     new ExecutionArgumentValidatorExecutorCombinationManager(config).getCombinations(),
     new CountManager(new CountFileRepository(UeliHelpers.countFilePath)));
@@ -90,12 +149,6 @@ function createMainWindow(): void {
 
     createTrayIcon();
     registerGlobalShortCuts();
-    const playerType = config.musicPlayerType.toLowerCase();
-    if (playerType === "local") {
-        createMusicPlayerNowPlaying();
-    } else if (playerType === "websocket") {
-        createMusicPlayerWebSocket();
-    }
 
     if (!isInDevelopment) {
         checkForUpdates();
@@ -219,7 +272,8 @@ function hideMainWindow(): void {
 
 function reloadApp(): void {
     config = new ConfigFileRepository(defaultConfig, UeliHelpers.configFilePath).getConfig();
-    inputValidationService = new InputValidationService(new InputValidatorSearcherCombinationManager(config).getCombinations());
+    inputValidationService = new InputValidationService(
+        new InputValidatorSearcherCombinationManager(config).getCombinations());
     executionService = new ExecutionService(
         new ExecutionArgumentValidatorExecutorCombinationManager(config).getCombinations(),
         new CountManager(new CountFileRepository(UeliHelpers.countFilePath)));
@@ -249,6 +303,19 @@ ipcMain.on(IpcChannels.getSearch, (event: any, arg: string): void => {
     const result = inputValidationService.getSearchResult(userInput);
     updateWindowSize(result.length);
     event.sender.send(IpcChannels.getSearchResponse, result);
+
+    // Override
+    Promise.all(onlineInputValidationService.getSearchResult(userInput))
+        .then((allResults) => {
+            const flat: SearchResultItem[] = [];
+            allResults.forEach((field) => {
+                flat.push(...field);
+            });
+            if (flat.length > 0) {
+                updateWindowSize(flat.length);
+                event.sender.send(IpcChannels.getSearchResponse, flat);
+            }
+        });
 });
 
 ipcMain.on(IpcChannels.execute, (event: any, arg: string): void => {
@@ -300,50 +367,3 @@ ipcMain.on(IpcChannels.playerConnectStatus, (event: any, arg: boolean): void => 
     playerConnectStatus = arg;
     updateWindowSize(0);
 });
-
-let websocketCrawler: MusicPlayerWebSocket;
-function createMusicPlayerWebSocket() {
-    websocketCrawler = new MusicPlayerWebSocket(config.musicPlayerWebSocketPort, infoSender);
-    ipcMain.on(IpcChannels.playerNextTrack, () => websocketCrawler.sendCommand("next"));
-    ipcMain.on(IpcChannels.playerPrevTrack, () => websocketCrawler.sendCommand("previous"));
-    ipcMain.on(IpcChannels.playerPlayPause, () => websocketCrawler.sendCommand("playpause"));
-    ipcMain.on(IpcChannels.playerLikeTrack, () => {
-        const rating = `setrating ${websocketCrawler.rating.value === 5 ? 0 : 5}`;
-        websocketCrawler.sendCommand(rating);
-    });
-}
-
-let npCrawer: MusicPlayerNowPlaying;
-function createMusicPlayerNowPlaying() {
-    let player = 0;
-    const name = config.musicPlayerLocalName.toLowerCase();
-    if (name === "aimp") {
-        player = PlayerName.AIMP;
-    } else if (name === "cad") {
-        player = PlayerName.CAD;
-    } else if (name === "foobar") {
-        player = PlayerName.FOOBAR;
-    } else if (name === "itunes") {
-        player = PlayerName.ITUNES;
-    } else if (name === "mediamonkey") {
-        player = PlayerName.MEDIAMONKEY;
-    } else if (name === "spotify") {
-        player = PlayerName.SPOTIFY;
-    } else if (name === "winamp") {
-        player = PlayerName.WINAMP;
-    } else if (name === "wmp") {
-        player = PlayerName.WMP;
-    }
-    npCrawer = new MusicPlayerNowPlaying(player, infoSender);
-    ipcMain.on(IpcChannels.playerNextTrack, () => npCrawer.nextTrack());
-    ipcMain.on(IpcChannels.playerPrevTrack, () => npCrawer.prevTrack());
-    ipcMain.on(IpcChannels.playerPlayPause, () => npCrawer.playPause());
-    ipcMain.on(IpcChannels.playerLikeTrack, () => {
-        const rating = npCrawer.rating.value > 3 ? 0 : 5;
-        npCrawer.setRating(rating);
-    });
-}
-
-function infoSender(channel: string, value: any): void {
-    mainWindow.webContents.send(channel, value);
-}
