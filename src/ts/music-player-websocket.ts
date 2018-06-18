@@ -6,6 +6,7 @@ export interface WebSocketSearchResult {
     name: string;
     artist: string;
     url: string;
+    image: string;
 }
 
 export type WebSocketSearcher = (query: string) => Promise<WebSocketSearchResult[]>;
@@ -55,6 +56,10 @@ export class MusicPlayerWebSocket {
         return new Promise<WebSocketSearchResult[]>((resolve) => resolve([] as WebSocketSearchResult[]));
     }
 
+    public playURL(url: string): void {
+        this.sendCommand(`playurl ${url}`);
+    }
+
     private attemptConnect() {
         this.server = new ws.Server({ port: this.port });
 
@@ -86,8 +91,9 @@ export class MusicPlayerWebSocket {
             case "RATING":      this.rating.value     = parseInt(info, 10); break;
             case "SEARCHRESULT": {
                 this.searchResult = JSON.parse(info).map(
-                    (item: {n: string, a: string, u: string}) => ({
+                    (item: {a: string, i: string, n: string, u: string}) => ({
                         artist: item.a,
+                        image: item.i,
                         name: item.n,
                         url: item.u,
                     })) as WebSocketSearchResult[];

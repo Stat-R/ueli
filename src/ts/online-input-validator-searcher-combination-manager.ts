@@ -1,4 +1,3 @@
-import { ConfigOptions } from "./config-options";
 import { OnlineInputValidatorSearcherCombination } from "./online-input-validator-searcher-combination";
 import { SpotifySearcher } from "./searcher-online/spotify-searcher";
 import { WebSocketSearcher } from "./music-player-websocket";
