@@ -35,6 +35,12 @@ import * as childProcess from "child_process";
 import { OnlineInputValidationService } from "./online-input-validation-service";
 import { OnlineInputValidatorSearcherCombinationManager } from "./online-input-validator-searcher-combination-manager";
 import { SearchResultItem } from "./search-result-item";
+import { ConfigOptions } from "./config-options";
+
+export interface GlobalUELI {
+    config: ConfigOptions;
+    webSocketCommandSender: (command: string) => void;
+}
 
 let mainWindow: BrowserWindow;
 let trayIcon: Tray;
@@ -43,6 +49,11 @@ const delayWhenHidingCommandlineOutputInMs = 25;
 const filePathExecutor = new FilePathExecutor();
 
 let config = new ConfigFileRepository(defaultConfig, UeliHelpers.configFilePath).getConfig();
+
+const globalUELI: GlobalUELI = {
+    config,
+    webSocketCommandSender: () => {/* do nothing */},
+};
 
 function infoSender(channel: string, value: any): void {
     mainWindow.webContents.send(channel, value);
@@ -85,6 +96,7 @@ if (playerType === "local") {
 } else if (playerType === "websocket") {
     websocketCrawler = new MusicPlayerWebSocket(config.musicPlayerWebSocketPort, infoSender);
     webSocketSearch = websocketCrawler.search.bind(websocketCrawler);
+    globalUELI.webSocketCommandSender = websocketCrawler.playURL.bind(websocketCrawler);
     ipcMain.on(IpcChannels.playerNextTrack, () => websocketCrawler.sendCommand("next"));
     ipcMain.on(IpcChannels.playerPrevTrack, () => websocketCrawler.sendCommand("previous"));
     ipcMain.on(IpcChannels.playerPlayPause, () => websocketCrawler.sendCommand("playpause"));
@@ -101,7 +113,7 @@ const onlineInputValidationService = new OnlineInputValidationService(
     new OnlineInputValidatorSearcherCombinationManager(webSocketSearch).getCombinations());
 
 let executionService = new ExecutionService(
-    new ExecutionArgumentValidatorExecutorCombinationManager(config).getCombinations(),
+    new ExecutionArgumentValidatorExecutorCombinationManager(globalUELI).getCombinations(),
     new CountManager(new CountFileRepository(UeliHelpers.countFilePath)));
 
 let playerConnectStatus: boolean = false;
@@ -272,10 +284,12 @@ function hideMainWindow(): void {
 
 function reloadApp(): void {
     config = new ConfigFileRepository(defaultConfig, UeliHelpers.configFilePath).getConfig();
+    globalUELI.config = config;
+
     inputValidationService = new InputValidationService(
         new InputValidatorSearcherCombinationManager(config).getCombinations());
     executionService = new ExecutionService(
-        new ExecutionArgumentValidatorExecutorCombinationManager(config).getCombinations(),
+        new ExecutionArgumentValidatorExecutorCombinationManager(globalUELI).getCombinations(),
         new CountManager(new CountFileRepository(UeliHelpers.countFilePath)));
 
     mainWindow.reload();

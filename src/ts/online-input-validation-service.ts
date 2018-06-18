@@ -13,9 +13,9 @@ export class OnlineInputValidationService {
         const result = [] as Array<Promise<SearchResultItem[]>>;
         userInput = StringHelpers.trimAndReplaceMultipleWhiteSpacesWithOne(userInput);
 
-        // if (StringHelpers.stringIsWhiteSpace(userInput)) {
-        //     return result;
-        // }
+        if (StringHelpers.stringIsWhiteSpace(userInput)) {
+            return result;
+        }
 
         for (const combination of this.validatorSearcherCombinations) {
             if (combination.validator.isValidForSearchResults(userInput)) {

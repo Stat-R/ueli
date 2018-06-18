@@ -12,7 +12,10 @@ describe(ExecutionArgumentValidatorExecutorCombinationManager.name, (): void => 
     it("should return the correct execution argument valiator executor combinations", (): void => {
         let counter = 0;
 
-        const combinations = new ExecutionArgumentValidatorExecutorCombinationManager(defaultConfig).getCombinations();
+        const combinations = new ExecutionArgumentValidatorExecutorCombinationManager({
+            config: defaultConfig,
+            webSocketCommandSender: () => {/* do nothing */},
+        }).getCombinations();
 
         const currentOperatingSystem = OperatingSystemHelpers.getOperatingSystemFromString(platform());
 

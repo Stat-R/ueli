@@ -3,13 +3,14 @@ import { exec } from "child_process";
 import { UeliHelpers } from "../helpers/ueli-helpers";
 
 export class SpotifyExecutor implements Executor {
+    private sender: (c: string) => void;
+
+    constructor(sender: (c: string) => void) {
+        this.sender = sender;
+    }
+
     public execute(executionArgument: string): void {
-        executionArgument = `start ${executionArgument}#0:1`;
-        exec(executionArgument, (err: Error): void => {
-            if (err) {
-                throw err;
-            }
-        });
+        this.sender(executionArgument);
     }
 
     public hideAfterExecution(): boolean {

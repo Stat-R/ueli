@@ -25,12 +25,13 @@ import { WebSearch } from "./web-search";
 import { platform } from "os";
 import { SpotifyExecutor } from "./executors/spotify-executor";
 import { SpotifyExecutionArgumentValidator } from "./execution-argument-validators/spotify-exeuction-argument-validator";
+import { GlobalUELI } from "./main";
 
 export class ExecutionArgumentValidatorExecutorCombinationManager {
     private webSearches: WebSearch[];
     private combinations: ExecutionArgumentValidatorExecutorCombination[];
 
-    constructor(config: ConfigOptions) {
+    constructor(globalUELI: GlobalUELI) {
         this.combinations = [
             {
                 executor: new CommandLineExecutor(),
@@ -45,8 +46,8 @@ export class ExecutionArgumentValidatorExecutorCombinationManager {
                 validator: new FilePathExecutionArgumentValidator(),
             },
             {
-                executor: new WebSearchExecutor(config.webSearches),
-                validator: new WebSearchExecutionArgumentValidator(config.webSearches),
+                executor: new WebSearchExecutor(globalUELI.config.webSearches),
+                validator: new WebSearchExecutionArgumentValidator(globalUELI.config.webSearches),
             },
             {
                 executor: new FilePathExecutor(),
@@ -61,7 +62,7 @@ export class ExecutionArgumentValidatorExecutorCombinationManager {
                 validator: new CustomCommandExecutionArgumentValidator(),
             },
             {
-                executor: new SpotifyExecutor(),
+                executor: new SpotifyExecutor(globalUELI.webSocketCommandSender),
                 validator: new SpotifyExecutionArgumentValidator(),
             },
         ];
