@@ -40,6 +40,7 @@ This is an alt+space launcher for Windows and macOS.
 ### Program search
 
 ![Feature Program search](img/doc/features/ueli-feature-program-search.png)
+[![FOSSA Status](https://app.fossa.io/api/projects/git%2Bgithub.com%2Fkhanhas%2Fueli.svg?type=shield)](https://app.fossa.io/projects/git%2Bgithub.com%2Fkhanhas%2Fueli?ref=badge_shield)
 
 * You can search for installed programs
 * Use the arrow keys to scroll up and down
@@ -294,3 +295,6 @@ $ yarn package
 Copyright (c) Oliver Schwendener. All rights reserved.
 
 Licensed under the [MIT](LICENSE) License.
+
+
+[![FOSSA Status](https://app.fossa.io/api/projects/git%2Bgithub.com%2Fkhanhas%2Fueli.svg?type=large)](https://app.fossa.io/projects/git%2Bgithub.com%2Fkhanhas%2Fueli?ref=badge_large)
