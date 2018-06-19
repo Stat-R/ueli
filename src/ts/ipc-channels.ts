@@ -30,4 +30,6 @@ export class IpcChannels {
     public static readonly playerLikeTrack = "player-liketrack";
 
     public static readonly tookScreenshot = "took-screenshot";
+
+    public static readonly getLoadingIconResponse = "get-loading-icon-response";
 }

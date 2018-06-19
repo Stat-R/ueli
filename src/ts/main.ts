@@ -14,7 +14,7 @@ import { InputValidationService } from "./input-validation-service";
 import { InputValidatorSearcherCombinationManager } from "./input-validator-searcher-combination-manager";
 import { VariableInputValidator } from "./input-validators/variable-input-validator";
 import { IpcChannels } from "./ipc-channels";
-import { MusicPlayerNowPlaying, NowPlayingPlayerName } from "./music-player-nowplaying";
+import { MusicPlayerNowPlaying } from "./music-player-nowplaying";
 import { MusicPlayerWebSocket, WebSocketSearcher } from "./music-player-websocket";
 import * as isInDevelopment from "electron-is-dev";
 import { autoUpdater } from "electron-updater";
@@ -318,8 +318,11 @@ ipcMain.on(IpcChannels.getSearch, (event: any, arg: string): void => {
     updateWindowSize(result.length);
     event.sender.send(IpcChannels.getSearchResponse, result);
 
-    // Override
-    Promise.all(onlineInputValidationService.getSearchResult(userInput))
+    const promises = onlineInputValidationService.getSearchResult(userInput);
+
+    if (promises.length > 0) {
+        setLoadingIcon();
+        Promise.all(promises)
         .then((allResults) => {
             const flat: SearchResultItem[] = [];
             allResults.forEach((field) => {
@@ -329,7 +332,9 @@ ipcMain.on(IpcChannels.getSearch, (event: any, arg: string): void => {
                 updateWindowSize(flat.length);
                 event.sender.send(IpcChannels.getSearchResponse, flat);
             }
+            setSearchIcon();
         });
+    }
 });
 
 ipcMain.on(IpcChannels.execute, (event: any, arg: string): void => {
@@ -381,3 +386,13 @@ ipcMain.on(IpcChannels.playerConnectStatus, (event: any, arg: boolean): void => 
     playerConnectStatus = arg;
     updateWindowSize(0);
 });
+
+function setLoadingIcon(): void {
+    const iconManager = Injector.getIconManager(platform());
+    mainWindow.webContents.send(IpcChannels.getLoadingIconResponse, iconManager.getLoadingIcon());
+}
+
+function setSearchIcon(): void {
+    const iconManager = Injector.getIconManager(platform());
+    mainWindow.webContents.send(IpcChannels.getSearchIconResponse, iconManager.getSearchIcon());
+}

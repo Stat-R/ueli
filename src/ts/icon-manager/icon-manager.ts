@@ -6,4 +6,5 @@ export interface IconManager {
     getEmailIcon(): string;
     getCustomShortCutIcon(): string;
     getVariableIcon(): string;
+    getLoadingIcon(): string;
 }
