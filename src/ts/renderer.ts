@@ -119,6 +119,10 @@ ipcRenderer.on(IpcChannels.getSearchIconResponse, (event: Electron.Event, arg: s
     vue.searchIcon = arg;
 });
 
+ipcRenderer.on(IpcChannels.getLoadingIconResponse, (event: Electron.Event, arg: string): void => {
+    vue.searchIcon = arg;
+});
+
 ipcRenderer.on(IpcChannels.autoCompleteResponse, (event: Electron.Event, arg: string): void => {
     vue.userInput = arg;
 });

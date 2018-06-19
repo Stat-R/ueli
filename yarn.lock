@@ -60,12 +60,6 @@
   version "8.10.18"
   resolved "https://registry.yarnpkg.com/@types/node/-/node-8.10.18.tgz#eb9ad8b0723d13fa9bc8b42543e3661ed805f2bb"
 
-"@types/snekfetch@^4.0.1":
-  version "4.0.1"
-  resolved "https://registry.yarnpkg.com/@types/snekfetch/-/snekfetch-4.0.1.tgz#497035dfec05cf8b1db50872a5da2177fc877bee"
-  dependencies:
-    "@types/node" "*"
-
 "@types/ws@^5.1.1":
   version "5.1.1"
   resolved "https://registry.yarnpkg.com/@types/ws/-/ws-5.1.1.tgz#4adc1f1a5e92e7e0e95658fb35c7eab1bc52f4ac"
@@ -6117,10 +6111,6 @@ snapdragon@^0.8.1:
     source-map "^0.5.6"
     source-map-resolve "^0.5.0"
     use "^3.1.0"
-
-snekfetch@^4.0.2:
-  version "4.0.2"
-  resolved "https://registry.yarnpkg.com/snekfetch/-/snekfetch-4.0.2.tgz#fa1de5d363c5cd81422c0659a6fdc9793a0df399"
 
 sntp@1.x.x:
   version "1.0.9"

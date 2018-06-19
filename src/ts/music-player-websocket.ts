@@ -53,7 +53,7 @@ export class MusicPlayerWebSocket {
                 }, 50);
             });
         }
-        return new Promise<WebSocketSearchResult[]>((resolve) => resolve([] as WebSocketSearchResult[]));
+        return new Promise<WebSocketSearchResult[]>((resolve) => resolve([]));
     }
 
     public playURL(url: string): void {
