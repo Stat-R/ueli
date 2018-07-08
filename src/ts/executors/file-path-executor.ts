@@ -2,19 +2,20 @@ import * as childProcess from "child_process";
 import { Injector } from "../injector";
 import { Executor } from "./executor";
 import { platform } from "os";
+import { ipcMain } from "electron";
+import { IpcChannels } from "../ipc-channels";
 
 export class FilePathExecutor implements Executor {
-    public execute(filePath: string): void {
-        const command = Injector.getFileExecutionCommand(platform(), filePath);
-        this.handleExecution(command);
-    }
+    public readonly hideAfterExecution = true;
+    public readonly resetUserInputAfterExecution = true;
+    public readonly logExecution = true;
 
-    public hideAfterExecution(): boolean {
-        return true;
-    }
-
-    public resetUserInputAfterExecution(): boolean {
-        return true;
+    public execute(filePath: string, alternative = false): void {
+        if (alternative) {
+            this.handleAlternativeExecute(filePath);
+        } else {
+            this.handleExecution(filePath);
+        }
     }
 
     public openFileLocation(filePath: string): void {
@@ -22,15 +23,17 @@ export class FilePathExecutor implements Executor {
         this.handleExecution(command);
     }
 
-    public logExecution(): boolean {
-        return true;
-    }
-
-    private handleExecution(command: string): void {
-        childProcess.exec(command, (err, stoud, sterr) => {
+    private handleExecution(filePath: string): void {
+        const command = Injector.getFileExecutionCommand(platform(), filePath);
+        childProcess.exec(command, (err) => {
             if (err) {
                 throw err;
             }
         });
+    }
+
+    private handleAlternativeExecute(filePath: string) {
+        // TODO: Do something for macOS here
+        ipcMain.emit(IpcChannels.elevatedExecute, filePath);
     }
 }

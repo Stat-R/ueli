@@ -16,7 +16,7 @@ export class SpotifySearcher implements SearcherOnline {
                     resolve(result.map((item) => ({
                         breadCrumb: [item.artist],
                         executionArgument: item.url,
-                        icon: `<img src="${item.image}" width="30" height="30"></img>`,
+                        icon: `<image xlink:href="${item.image}" width="32" height="32"/>`,
                         name: item.name,
                         tags: [],
                     } as SearchResultItem)));

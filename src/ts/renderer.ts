@@ -7,11 +7,14 @@ import { SearchResultItemViewModel } from "./search-result-item-view-model";
 import { ipcRenderer } from "electron";
 import { homedir, platform } from "os";
 import Vue from "vue";
-
+import { Injector } from "./injector";
+import * as os from "os";
+import { Hotkey } from "./hotkey";
 const colorThemeLoader = new ColorThemeLoader();
 const config = new ConfigFileRepository(defaultConfig, UeliHelpers.configFilePath).getConfig();
 
 document.addEventListener("keyup", handleGlobalKeyPress);
+document.addEventListener("keydown", handleHoldingKey);
 
 const vue = new Vue({
     data: {
@@ -22,10 +25,12 @@ const vue = new Vue({
         customStyleSheet: `${homedir()}\\ueli.custom.css`,
         isMouseMoving: false,
         liked: false,
+        mode: "",
         playerConnectStatus: false,
         screenshotFile: "",
         searchIcon: "",
         searchResults: [] as SearchResultItemViewModel[],
+        showAlternativePrefix: false,
         state: false,
         stylesheetPath: `./build/${config.colorTheme}.css`,
         track: "",
@@ -33,13 +38,15 @@ const vue = new Vue({
     },
     el: "#vue-root",
     methods: {
-        handleClick: (index: number): void => {
+        handleClick: (): void => {
             handleEnterPress();
             focusOnInput();
         },
         handleKeyPress: (event: KeyboardEvent): void => {
-            if (event.key === "Enter") {
-                handleEnterPress();
+            if (event.key === "Enter" && event.altKey) {
+                handleEnterPress(true);
+            } else if (event.key === "Enter") {
+                handleEnterPress(false);
             } else if (event.ctrlKey && event.key === "o") {
                 handleOpenFileLocation();
             } else if (event.key === "ArrowDown" || event.key === "ArrowUp") {
@@ -51,11 +58,7 @@ const vue = new Vue({
                 event.preventDefault();
                 handleAutoCompletion();
             } else if (event.key === "Escape") {
-                ipcRenderer.send(IpcChannels.hideWindow);
-            } else if (event.ctrlKey && event.key === "c") {
-                ipcRenderer.send(IpcChannels.exitCommandLineTool);
-            } else if (event.key === "F1") {
-                ipcRenderer.send(IpcChannels.showHelp);
+                ipcRenderer.send(IpcChannels.hideWindow, true);
             }
         },
         handleMouseMove: (event: MouseEvent): void => {
@@ -79,6 +82,9 @@ const vue = new Vue({
         },
         playPauseTrack,
         previousTrack,
+        searchResultAlternativePrefixStyle: (): string => {
+            return `font-size: ${config.searchResultNameFontSize - 4}px;`;
+        },
         searchResultExecutionArgumentStyle: (): string => {
             return `font-size: ${config.searchResultExecutionArgumentFontSize}px;`;
         },
@@ -116,11 +122,7 @@ ipcRenderer.on(IpcChannels.getSearchResponse, (event: Electron.Event, arg: Searc
 ipcRenderer.send(IpcChannels.getSearchIcon);
 
 ipcRenderer.on(IpcChannels.getSearchIconResponse, (event: Electron.Event, arg: string): void => {
-    vue.searchIcon = arg;
-});
-
-ipcRenderer.on(IpcChannels.getLoadingIconResponse, (event: Electron.Event, arg: string): void => {
-    vue.searchIcon = arg;
+    vue.searchIcon = iconManager[arg].call();
 });
 
 ipcRenderer.on(IpcChannels.autoCompleteResponse, (event: Electron.Event, arg: string): void => {
@@ -131,18 +133,20 @@ ipcRenderer.on(IpcChannels.commandLineOutput, (event: Electron.Event, arg: strin
     vue.commandLineOutput.push(arg);
 });
 
-ipcRenderer.on(IpcChannels.resetCommandlineOutput, resetCommandLineOutput);
 ipcRenderer.on(IpcChannels.resetUserInput, resetUserInput);
 
+const iconManager = Injector.getIconManager(os.platform());
+
 function updateSearchResults(searchResults: SearchResultItemViewModel[]): void {
-    let index = 0;
-    searchResults.forEach((searchResultItem: SearchResultItemViewModel): void => {
+    searchResults.forEach((searchResultItem: SearchResultItemViewModel, index: number): void => {
         searchResultItem.id = `search-result-item-${index}`;
         searchResultItem.active = false;
         if (searchResultItem.breadCrumb) {
             searchResultItem.description = searchResultItem.breadCrumb.join(config.directorySeparator);
         }
-        index++;
+        if (iconManager[searchResultItem.icon]) {
+            searchResultItem.icon = iconManager[searchResultItem.icon].call();
+        }
     });
 
     if (searchResults.length > 0) {
@@ -197,11 +201,19 @@ function scrollIntoView(searchResult: SearchResultItemViewModel): void {
     }
 }
 
-function handleEnterPress(): void {
+function handleEnterPress(alternative = false): void {
     const activeItem = getActiveItem();
 
     if (activeItem !== undefined) {
-        execute(activeItem.executionArgument);
+        if (alternative) {
+            if (activeItem.alternativeExecutionArgument) {
+                execute(activeItem.alternativeExecutionArgument, true);
+            } else {
+                execute(activeItem.executionArgument, true);
+            }
+        } else {
+            execute(activeItem.executionArgument, false);
+        }
     }
 }
 
@@ -222,34 +234,37 @@ function handleAutoCompletion(): void {
 }
 
 function getActiveItem(): SearchResultItemViewModel | undefined {
-    const activeSearchResults = vue.searchResults.filter((s: any) => {
-        return s.active;
-    }) as SearchResultItemViewModel[];
-
-    if (activeSearchResults.length > 0) {
-        return activeSearchResults[0];
-    }
+    const index = vue.searchResults.findIndex((item: SearchResultItemViewModel) => item.active);
+    return index !== -1 ? vue.searchResults[index] : undefined;
 }
 
-function execute(executionArgument: string): void {
-    ipcRenderer.send(IpcChannels.execute, executionArgument);
+function execute(executionArgument: string, alternative: boolean): void {
+    ipcRenderer.send(IpcChannels.execute, executionArgument, alternative);
 }
 
 function resetUserInput(): void {
     vue.userInput = "";
 }
 
+const nextHotKey = new Hotkey(config.musicPlayerHotkeyNext);
+const backHotKey = new Hotkey(config.musicPlayerHotkeyBack);
+const playPauseHotKey = new Hotkey(config.musicPlayerHotkeyPlayPause);
+const likeHotKey = new Hotkey(config.musicPlayerHotkeyLike);
+
 function handleGlobalKeyPress(event: KeyboardEvent): void {
     const key = event.key.toLowerCase();
-    if (key === "F6" || (key === "l" && event.ctrlKey)) {
+    if (event.keyCode === 18) {
+        hideAlternativePrefix();
+    }
+    if (key === "f6" || (key === "l" && event.ctrlKey)) {
         focusOnInput();
-    } else if (key === "a" && event.altKey) {
+    } else if (backHotKey.validateWithEvent(event)) {
         previousTrack();
-    } else if (key === "s" && event.altKey) {
+    } else if (nextHotKey.validateWithEvent(event)) {
         nextTrack();
-    } else if (key === "d" && event.altKey) {
+    } else if (playPauseHotKey.validateWithEvent(event)) {
         playPauseTrack();
-    } else if (key === "q" && event.altKey) {
+    } else if (likeHotKey.validateWithEvent(event)) {
         likeTrack();
         const cover = document.getElementById("cover-container");
         if (cover) {
@@ -258,6 +273,10 @@ function handleGlobalKeyPress(event: KeyboardEvent): void {
                 cover.classList.remove("hover");
             }, 2000);
         }
+    } else if (key === "tab" && event.ctrlKey && event.shiftKey) {
+        rotateMode(-1);
+    } else if (key === "tab" && event.ctrlKey) {
+        rotateMode(1);
     }
 }
 
@@ -268,13 +287,8 @@ function focusOnInput(): void {
     }
 }
 
-function resetCommandLineOutput(): void {
-    vue.commandLineOutput = [];
-}
-
 ipcRenderer.on(IpcChannels.playerTrack, (event: Electron.Event, arg: string): void => {
     vue.track = arg;
-    vue.$forceUpdate();
 });
 
 ipcRenderer.on(IpcChannels.playerArtist, (event: Electron.Event, arg: string): void => {
@@ -317,5 +331,33 @@ function likeTrack() {
 }
 
 ipcRenderer.on(IpcChannels.tookScreenshot, (event: Electron.Event, arg: string): void => {
-    vue.screenshotFile = "url(\"" + new URL(arg + "?" + new Date().getSeconds()).href + "\")";
+    vue.screenshotFile = new URL(`${arg}?${Date.now()}`).href;
 });
+
+function rotateMode(direction: -1 | 0 | 1) {
+    ipcRenderer.send(IpcChannels.rotateMode, direction);
+}
+
+ipcRenderer.on(IpcChannels.moveX, (event: Electron.Event, arg: number): void => {
+    const ele = document.querySelectorAll("#acrylic img")[0] as HTMLElement;
+    ele.style.left = `${-arg}px`;
+});
+
+ipcRenderer.on(IpcChannels.moveY, (event: Electron.Event, arg: number): void => {
+    const ele = document.querySelectorAll("#acrylic img")[0] as HTMLElement;
+    ele.style.top = `${-arg}px`;
+});
+
+function handleHoldingKey(event: KeyboardEvent) {
+    if (event.altKey) {
+        showAlternativePrefix();
+    }
+}
+
+function showAlternativePrefix() {
+    vue.showAlternativePrefix = true;
+}
+
+function hideAlternativePrefix() {
+    vue.showAlternativePrefix = false;
+}

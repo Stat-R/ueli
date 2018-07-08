@@ -3,6 +3,7 @@ import { UeliHelpers } from "./helpers/ueli-helpers";
 export class IpcChannels {
     public static readonly hideWindow = "hide-window";
     public static readonly execute = "execute";
+    public static readonly alternativeExecute = "alternative-execute";
     public static readonly getSearch = "get-search";
     public static readonly getSearchResponse = "get-search-response";
     public static readonly openFileLocation = "open-file-location";
@@ -14,6 +15,7 @@ export class IpcChannels {
     public static readonly commandLineOutput = "command-line-output";
     public static readonly ueliReload = `${UeliHelpers.ueliCommandPrefix}reload`;
     public static readonly ueliExit = `${UeliHelpers.ueliCommandPrefix}exit`;
+    public static readonly ueliRescan = `${UeliHelpers.ueliCommandPrefix}rescan`;
     public static readonly exitCommandLineTool = "exit-command-line-tool";
     public static readonly resetCommandlineOutput = "reset-commandline-output";
     public static readonly resetUserInput = "reset-user-input";
@@ -32,4 +34,11 @@ export class IpcChannels {
     public static readonly tookScreenshot = "took-screenshot";
 
     public static readonly getLoadingIconResponse = "get-loading-icon-response";
+
+    public static readonly rotateMode = "rotate-mode";
+    public static readonly switchMode = "switch-mode";
+    public static readonly moveX = "move-x";
+    public static readonly moveY = "move-y";
+
+    public static readonly elevatedExecute = "elevate-execute";
 }

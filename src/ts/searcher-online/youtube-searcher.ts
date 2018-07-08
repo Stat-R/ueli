@@ -33,7 +33,7 @@ export class YoutubeSearcher implements SearcherOnline {
                         items.push({
                             breadCrumb: [channel.text()],
                             executionArgument: `https://youtube.com${link}`,
-                            icon: `<img src="${thumbLink} width="30" height="30"></img>`,
+                            icon: `<image xlink:href="${thumbLink}" width="32" height="32"/>`,
                             name: title.text(),
                             tags: [],
                         } as SearchResultItem);

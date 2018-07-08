@@ -6,7 +6,6 @@ import { ExecutionArgumentValidatorExecutorCombinationManager } from "./executio
 import { FilePathExecutionArgumentValidator } from "./execution-argument-validators/file-path-execution-argument-validator";
 import { ExecutionService } from "./execution-service";
 import { FilePathExecutor } from "./executors/file-path-executor";
-import { WebUrlExecutor } from "./executors/web-url-executor";
 import { UeliHelpers } from "./helpers/ueli-helpers";
 import { WindowHelpers } from "./helpers/winow-helpers";
 import { Injector } from "./injector";
@@ -17,10 +16,9 @@ import { IpcChannels } from "./ipc-channels";
 import { MusicPlayerNowPlaying } from "./music-player-nowplaying";
 import { MusicPlayerWebSocket, WebSocketSearcher } from "./music-player-websocket";
 import * as isInDevelopment from "electron-is-dev";
-import { autoUpdater } from "electron-updater";
 import * as fs from "fs";
 import { PlayerName } from "nowplaying-node";
-import { homedir, platform } from "os";
+import { platform, homedir } from "os";
 import * as path from "path";
 import {
     app,
@@ -28,30 +26,50 @@ import {
     globalShortcut,
     ipcMain,
     Menu,
-    MenuItem,
     Tray,
+    screen,
     } from "electron";
 import * as childProcess from "child_process";
 import { OnlineInputValidationService } from "./online-input-validation-service";
 import { OnlineInputValidatorSearcherCombinationManager } from "./online-input-validator-searcher-combination-manager";
 import { SearchResultItem } from "./search-result-item";
 import { ConfigOptions } from "./config-options";
+import { ProcessInputValidationService } from "./process-input-validation-service";
+import { Icons } from "./icon-manager/icon-manager";
+import { Taskbar } from "taskbar-node";
+import { App } from "../../../taskbar-node/lib-types";
+import { NativeUtil } from "../../native-util/native-util";
 
 export interface GlobalUELI {
     config: ConfigOptions;
     webSocketCommandSender: (command: string) => void;
+    bringAppToTop: (hwnd: number) => void;
+    getAllApps: () => App[];
+}
+
+export enum InputMode {
+    RUN,
+    ONLINE,
+    WINDOWS,
+    TOTALMODE, // Number of modes
 }
 
 let mainWindow: BrowserWindow;
 let trayIcon: Tray;
 const delayWhenHidingCommandlineOutputInMs = 25;
 
+let nativeUtil: NativeUtil;
+
 const filePathExecutor = new FilePathExecutor();
 
 let config = new ConfigFileRepository(defaultConfig, UeliHelpers.configFilePath).getConfig();
 
+const taskbar = new Taskbar();
+
 const globalUELI: GlobalUELI = {
+    bringAppToTop: taskbar.bringAppToTop.bind(taskbar),
     config,
+    getAllApps: taskbar.getAllApps.bind(taskbar),
     webSocketCommandSender: () => {/* do nothing */},
 };
 
@@ -106,11 +124,16 @@ if (playerType === "local") {
     });
 }
 
+let currentInputMode = 0;
+let currentInputString = "";
+
 let inputValidationService = new InputValidationService(
-    new InputValidatorSearcherCombinationManager(config).getCombinations());
+    new InputValidatorSearcherCombinationManager(config).getCombinations(), config.searchEngineThreshold);
 
 const onlineInputValidationService = new OnlineInputValidationService(
     new OnlineInputValidatorSearcherCombinationManager(webSocketSearch).getCombinations());
+
+const processInputValidationService = new ProcessInputValidationService(globalUELI.getAllApps, config.searchEngineThreshold);
 
 let executionService = new ExecutionService(
     new ExecutionArgumentValidatorExecutorCombinationManager(globalUELI).getCombinations(),
@@ -118,20 +141,8 @@ let executionService = new ExecutionService(
 
 let playerConnectStatus: boolean = false;
 
-const otherInstanceIsAlreadyRunning = app.makeSingleInstance(() => {
-    // do nothing
-});
-
-if (otherInstanceIsAlreadyRunning) {
-    app.quit();
-} else {
-    startApp();
-}
-
-function startApp(): void {
-    app.on("ready", createMainWindow);
-    app.on("window-all-closed", quitApp);
-}
+app.on("ready", createMainWindow);
+app.on("window-all-closed", quitApp);
 
 function createMainWindow(): void {
     hideAppInDock();
@@ -141,31 +152,38 @@ function createMainWindow(): void {
         center: true,
         frame: false,
         height: WindowHelpers.calculateMaxWindowHeight(config.userInputHeight, config.maxSearchResultCount, config.searchResultHeight),
-        resizable: true,
         show: false,
         skipTaskbar: true,
         transparent: true,
-        webPreferences: {
-            backgroundThrottling: true,
-            experimentalCanvasFeatures : true,
-            experimentalFeatures: true,
-        },
         width: config.windowWith,
     });
+
+    nativeUtil = new NativeUtil(mainWindow.getNativeWindowHandle().readUInt8(0));
 
     mainWindow.loadURL(`file://${__dirname}/../main.html`);
     mainWindow.setSize(config.windowWith, config.userInputHeight);
 
     mainWindow.on("close", quitApp);
-    mainWindow.on("blur", hideMainWindow);
+    mainWindow.on("blur", () => hideMainWindow(false));
+
+    mainWindow.on("move", moveWindow);
+    mainWindow.on("show", () => {
+        setTimeout(() => mainWindow.setOpacity(1), 100);
+    });
+    moveWindow();
 
     createTrayIcon();
     registerGlobalShortCuts();
 
     if (!isInDevelopment) {
-        checkForUpdates();
         setAutostartSettings();
     }
+}
+
+function moveWindow() {
+    const newPos = mainWindow.getPosition();
+    mainWindow.webContents.send(IpcChannels.moveX, newPos[0]);
+    mainWindow.webContents.send(IpcChannels.moveY, newPos[1]);
 }
 
 function createTrayIcon(): void {
@@ -184,7 +202,29 @@ function createTrayIcon(): void {
 }
 
 function registerGlobalShortCuts(): void {
-    globalShortcut.register("alt+space", toggleWindow);
+    globalShortcut.register(config.hotkeyRunMode, () => {
+        changeModeWithHotkey(InputMode.RUN);
+    });
+    globalShortcut.register(config.hotkeyWindowsMode, () => {
+        changeModeWithHotkey(InputMode.WINDOWS);
+    });
+    globalShortcut.register(config.hotkeyOnlineMode, () => {
+        changeModeWithHotkey(InputMode.ONLINE);
+    });
+}
+
+function changeModeWithHotkey(mode) {
+    const isVisible = mainWindow.isVisible();
+    if (isVisible && mode === currentInputMode) {
+        hideMainWindow(true);
+        return;
+    }
+
+    switchMode(mode);
+    if (!isVisible) {
+        nativeUtil.storeForegroundHwnd();
+        showMainWindow();
+    }
 }
 
 function hideAppInDock(): void {
@@ -192,32 +232,6 @@ function hideAppInDock(): void {
         app.dock.hide();
     }
 }
-
-function checkForUpdates(): void {
-    autoUpdater.autoDownload = false;
-    autoUpdater.checkForUpdates();
-}
-
-function downloadUpdate(): void {
-    autoUpdater.downloadUpdate();
-    addUpdateStatusToTrayIcon("Downloading update...");
-}
-
-autoUpdater.on("update-available", (): void => {
-    addUpdateStatusToTrayIcon("Download and install update", downloadUpdate);
-});
-
-autoUpdater.on("error", (): void => {
-    addUpdateStatusToTrayIcon("Update check failed");
-});
-
-autoUpdater.on("update-not-available", (): void => {
-    addUpdateStatusToTrayIcon(`${UeliHelpers.productName} is up to date`);
-});
-
-autoUpdater.on("update-downloaded", (): void => {
-    autoUpdater.quitAndInstall();
-});
 
 function setAutostartSettings() {
     app.setLoginItemSettings({
@@ -227,41 +241,32 @@ function setAutostartSettings() {
     });
 }
 
-function addUpdateStatusToTrayIcon(label: string, clickHandler?: any): void {
-    const updateItem = clickHandler === undefined
-        ? { label }
-        : { label, click: clickHandler } as MenuItem;
-
-    trayIcon.setContextMenu(Menu.buildFromTemplate([
-        updateItem,
-        {
-            click: toggleWindow,
-            label: "Show/Hide",
-        },
-        {
-            click: quitApp,
-            label: "Exit",
-        },
-    ]));
-}
-
 const screenshotFile = path.join(homedir(), "acrylic.bmp");
-const maximumHeight = config.maxSearchResultCount * config.searchResultHeight + config.userInputHeight;
 
 function toggleWindow(): void {
     if (mainWindow.isVisible()) {
-        hideMainWindow();
+        hideMainWindow(true);
     } else {
-        const bound = mainWindow.getBounds();
-        childProcess.exec(`"${config.imageMagickPath}" convert screenshot: -crop ${bound.width}x${maximumHeight}+${bound.x}+${bound.y} "${screenshotFile}"`, (err, stdout) => {
-            if (!err) {
-                mainWindow.webContents.send(IpcChannels.tookScreenshot, screenshotFile);
-            } else {
-                throw err;
-            }
-            mainWindow.show();
-        });
+        showMainWindow();
     }
+}
+
+function showMainWindow(): void {
+
+    getSearch("");
+    let magickExecute = "cmd /C magick";
+    if (config.imageMagickPath) {
+        magickExecute = `"${config.imageMagickPath}"`;
+    }
+
+    childProcess.exec(`${magickExecute} screenshot:[0] "${screenshotFile}"`, (err) => {
+        if (!err) {
+            mainWindow.webContents.send(IpcChannels.tookScreenshot, screenshotFile);
+        } else {
+            throw err;
+        }
+        mainWindow.show();
+    });
 }
 
 function updateWindowSize(searchResultCount: number): void {
@@ -270,14 +275,18 @@ function updateWindowSize(searchResultCount: number): void {
     mainWindow.setSize(config.windowWith, newWindowHeight);
 }
 
-function hideMainWindow(): void {
+function hideMainWindow(focusLastActiveWindow = false): void {
     mainWindow.webContents.send(IpcChannels.resetCommandlineOutput);
     mainWindow.webContents.send(IpcChannels.resetUserInput);
 
     setTimeout(() => {
-        if (mainWindow !== null && mainWindow !== undefined) {
+        if (mainWindow !== null && mainWindow !== undefined && mainWindow.isVisible()) {
             updateWindowSize(0);
             mainWindow.hide();
+            mainWindow.setOpacity(0);
+            if (focusLastActiveWindow) {
+                nativeUtil.activateLastActiveHwnd();
+            }
         }
     }, delayWhenHidingCommandlineOutputInMs); // to give user input and command line output time to reset properly delay hiding window
 }
@@ -285,12 +294,12 @@ function hideMainWindow(): void {
 function reloadApp(): void {
     config = new ConfigFileRepository(defaultConfig, UeliHelpers.configFilePath).getConfig();
     globalUELI.config = config;
-
-    inputValidationService = new InputValidationService(
-        new InputValidatorSearcherCombinationManager(config).getCombinations());
     executionService = new ExecutionService(
         new ExecutionArgumentValidatorExecutorCombinationManager(globalUELI).getCombinations(),
         new CountManager(new CountFileRepository(UeliHelpers.countFilePath)));
+
+    inputValidationService = new InputValidationService(
+        new InputValidatorSearcherCombinationManager(config).getCombinations(), config.searchEngineThreshold);
 
     mainWindow.reload();
     resetWindowToDefaultSizeAndPosition();
@@ -308,38 +317,56 @@ function quitApp(): void {
     app.quit();
 }
 
-ipcMain.on(IpcChannels.hideWindow, hideMainWindow);
+ipcMain.on(IpcChannels.hideWindow, (event: any, arg: boolean) => hideMainWindow(arg));
 ipcMain.on(IpcChannels.ueliReload, reloadApp);
 ipcMain.on(IpcChannels.ueliExit, quitApp);
 
-ipcMain.on(IpcChannels.getSearch, (event: any, arg: string): void => {
-    const userInput = arg;
-    const result = inputValidationService.getSearchResult(userInput);
-    updateWindowSize(result.length);
-    event.sender.send(IpcChannels.getSearchResponse, result);
+ipcMain.on(IpcChannels.getSearch, (event: any, arg: string) => getSearch(arg));
 
-    const promises = onlineInputValidationService.getSearchResult(userInput);
+function getSearch(userInput: string): void {
+    currentInputString = userInput;
+    let result: SearchResultItem[] = [];
+    switch (currentInputMode) {
+        case InputMode.RUN: {
+            Promise.all(inputValidationService.getSearchResult(userInput))
+                .then((resultsArray) => {
+                    result = resultsArray.reduce((acc, curr) => {
+                        acc.push(...curr);
+                        return acc;
+                    }, [] as SearchResultItem[]);
 
-    if (promises.length > 0) {
-        setLoadingIcon();
-        Promise.all(promises)
-        .then((allResults) => {
-            const flat: SearchResultItem[] = [];
-            allResults.forEach((field) => {
-                flat.push(...field);
-            });
-            if (flat.length > 0) {
-                updateWindowSize(flat.length);
-                event.sender.send(IpcChannels.getSearchResponse, flat);
-            }
-            setSearchIcon();
-        });
+                    updateWindowSize(result.length);
+                    mainWindow.webContents.send(IpcChannels.getSearchResponse, result);
+                });
+            break;
+        }
+        case InputMode.ONLINE: {
+            setLoadingIcon();
+            Promise.all(onlineInputValidationService.getSearchResult(userInput))
+                .then((allResults) => {
+                    allResults.forEach((field) => {
+                        result.push(...field);
+                    });
+
+                    updateWindowSize(result.length);
+                    if (result.length > 0) {
+                        mainWindow.webContents.send(IpcChannels.getSearchResponse, result);
+                    }
+                    setSearchIcon();
+                });
+            break;
+        }
+        case InputMode.WINDOWS: {
+            result = processInputValidationService.getSearchResult(userInput);
+            updateWindowSize(result.length);
+            mainWindow.webContents.send(IpcChannels.getSearchResponse, result);
+            break;
+        }
     }
-});
+}
 
-ipcMain.on(IpcChannels.execute, (event: any, arg: string): void => {
-    const executionArgument = arg;
-    executionService.execute(executionArgument);
+ipcMain.on(IpcChannels.execute, (event: any, arg: string, alternative: boolean): void => {
+    executionService.execute(arg, alternative);
 });
 
 ipcMain.on(IpcChannels.openFileLocation, (event: any, arg: string): void => {
@@ -364,10 +391,7 @@ ipcMain.on(IpcChannels.autoComplete, (event: any, arg: string[]): void => {
     }
 });
 
-ipcMain.on(IpcChannels.getSearchIcon, (event: any): void => {
-    const iconManager = Injector.getIconManager(platform());
-    event.sender.send(IpcChannels.getSearchIconResponse, iconManager.getSearchIcon());
-});
+ipcMain.on(IpcChannels.getSearchIcon, setSearchIcon);
 
 ipcMain.on(IpcChannels.commandLineExecution, (arg: string): void => {
     mainWindow.webContents.send(IpcChannels.commandLineOutput, arg);
@@ -378,21 +402,48 @@ ipcMain.on(IpcChannels.resetUserInput, (): void => {
     mainWindow.webContents.send(IpcChannels.resetUserInput);
 });
 
-ipcMain.on(IpcChannels.showHelp, (): void => {
-    new WebUrlExecutor().execute("https://github.com/oliverschwendener/ueli#ueli");
-});
-
 ipcMain.on(IpcChannels.playerConnectStatus, (event: any, arg: boolean): void => {
     playerConnectStatus = arg;
     updateWindowSize(0);
 });
 
 function setLoadingIcon(): void {
-    const iconManager = Injector.getIconManager(platform());
-    mainWindow.webContents.send(IpcChannels.getLoadingIconResponse, iconManager.getLoadingIcon());
+    mainWindow.webContents.send(IpcChannels.getSearchIconResponse, Icons.LOADING);
 }
 
 function setSearchIcon(): void {
-    const iconManager = Injector.getIconManager(platform());
-    mainWindow.webContents.send(IpcChannels.getSearchIconResponse, iconManager.getSearchIcon());
+    switch (currentInputMode) {
+        case InputMode.RUN:
+            mainWindow.webContents.send(IpcChannels.getSearchIconResponse, Icons.SEARCH);
+            break;
+        case InputMode.ONLINE:
+            mainWindow.webContents.send(IpcChannels.getSearchIconResponse, Icons.ONLINE);
+            break;
+        case InputMode.WINDOWS:
+            mainWindow.webContents.send(IpcChannels.getSearchIconResponse, Icons.WINDOWS);
+            break;
+    }
 }
+
+ipcMain.on(IpcChannels.switchMode, (event: any, mode: number, currentInput: string): void => switchMode(mode, currentInput));
+
+function switchMode(mode: number, userInput = "") {
+    mainWindow.webContents.send(IpcChannels.getSearchResponse, []);
+    currentInputMode = mode;
+    getSearch(userInput);
+    setSearchIcon();
+}
+
+ipcMain.on(IpcChannels.rotateMode, (event: any, arg: number, currentInput: string): void => {
+    let newMode = currentInputMode + arg;
+    if (newMode < 0) {
+        newMode = InputMode.TOTALMODE - 1;
+    } else {
+        newMode = newMode % InputMode.TOTALMODE;
+    }
+    switchMode(newMode, currentInput);
+});
+
+ipcMain.on(IpcChannels.elevatedExecute, (arg: string): void => {
+    nativeUtil.elevateExecute(arg);
+});
