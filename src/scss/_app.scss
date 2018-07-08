@@ -23,28 +23,30 @@ div.container {
     overflow: hidden;
 }
 
-#acrylic-container {
-    position: absolute;
-    background-color: rgba(var(--background-color), 0.7);
-    z-index: 0;
-    width: 100%;
-    height: 100%;
-    border-radius: 10px;
-}
-
 #acrylic {
+    position: absolute;
+    z-index: 0;
+    border-radius: 10px;
     width: 100%;
     height: 100%;
     @include transitions();
-    filter: blur(40px);
+    overflow: hidden;
+}
+
+#acrylic img {
+    filter: blur(60px);
+    position: absolute;
 }
 
 div.user-input-container {
     display: flex;
     padding: 0 $side-padding;
-    // border-radius: 10px 10px 0 0;
-    background-color: rgba(var(--background-color), 0.7);
+    background-color: rgba(var(--background-color), 0.5);
     z-index: 1;
+    border-radius: 10px;
+    &.active {
+        border-radius: 10px 10px 0 0;
+    }
 }
 
 input.user-input {
@@ -55,6 +57,7 @@ input.user-input {
     border: none;
     background: transparent;
     color: $text-color;
+    overflow: hidden;
 
     &:focus {
         outline: none;
@@ -76,8 +79,8 @@ div.output-container {
     width: 100%;
     overflow-y: auto;
     overflow-x: hidden;
-    // border-radius: 0 0 10px 10px;
-    background-color: rgba(var(--background-color), 0.6);
+    border-radius: 0 0 10px 10px;
+    background-color: rgba(var(--background-color), 0.4);
     z-index: 1;
 }
 
@@ -145,13 +148,36 @@ div.hidden {
     display: none;
 }
 
+div.search-result-header-container {
+    display: flex;
+    vertical-align: middle;
+    align-items: center;
+}
+
 span {
-    display: block;
     white-space: nowrap;
     font-family: $font-family;
 
     &.search-result-name {
         font-weight: 500;
+    }
+
+    &.search-result-alternative-prefix {
+        background-color: rgba(var(--background-color), 0.8);
+        padding: 0;
+        margin: 0;
+        border-radius: 3px;
+        font-weight: 500;
+        opacity: 0;
+        width: 0;
+
+        @include transitions();
+        &.active {
+            width: unset;
+            padding: 0 10px 0 10px;
+            margin: 0 10px 0 0;
+            opacity: 1;
+        }
     }
 
     &.search-result-execution-argument {
@@ -185,6 +211,7 @@ span {
     height: 280px;
     background-size: cover;
     background-position: 50%;
+    transition: all 0.5s cubic-bezier(0.215, 0.610, 0.355, 1);
     filter: blur(40px) brightness(0.5);
 }
 
@@ -279,11 +306,11 @@ span {
     border-radius: 50%;
     text-align: center;
     margin-left: 20px;
-}
 
-.play-pause:hover {
-    box-shadow: inset 0 0 0 2px $accent-color;
-    cursor: pointer;
+    &:hover {
+        box-shadow: inset 0 0 0 2px $accent-color;
+        cursor: pointer;
+    }
 }
 
 #player-container .spacer {
@@ -323,7 +350,7 @@ span {
     width: 100%;
     height: 100%;
     background-size: cover;
-    // border-radius: 5px;
+    border-radius: 5px;
     box-shadow: 0 10px 40px rgba(0,0,0,0.4);
     position: absolute;
     z-index: 2;
