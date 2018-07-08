@@ -22,7 +22,20 @@ export class ConfigFileRepository {
             const parsed = JSON.parse(fileContent) as ConfigOptions;
 
             // Apply defaults if some settings are not set
-            const mergedConfig = Object.assign(this.defaultConfig, parsed);
+            const mergedConfig = parsed;
+            let needRewrite = false;
+
+            // Merge
+            Object.keys(this.defaultConfig).forEach((option) => {
+                if (mergedConfig[option] === undefined) {
+                    mergedConfig[option] = this.defaultConfig[option];
+                    needRewrite = true;
+                }
+            });
+
+            if (needRewrite) {
+                this.saveConfig(mergedConfig);
+            }
 
             return mergedConfig;
         } catch (err) {
