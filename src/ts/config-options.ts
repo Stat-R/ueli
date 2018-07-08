@@ -2,18 +2,27 @@ import { WebSearch } from "./web-search";
 import { CustomCommand } from "./custom-command";
 
 export interface ConfigOptions {
+    alwaysShowOnPrimaryDisplay: boolean;
     applicationFileExtensions: string[];
     applicationFolders: Array<[string, string]>;
     autoStartApp: boolean;
     colorTheme: string;
     customCommands: CustomCommand[];
     directorySeparator: string;
+    hotkeyOnlineMode: string;
+    hotkeyRunMode: string;
+    hotkeyWindowsMode: string;
     imageMagickPath: string;
     maxSearchResultCount: number;
     musicPlayerHeight: number;
     musicPlayerType: string;
     musicPlayerWebSocketPort: number;
     musicPlayerLocalName: string;
+    musicPlayerHotkeyPlayPause: string;
+    musicPlayerHotkeyNext: string;
+    musicPlayerHotkeyBack: string;
+    musicPlayerHotkeyLike: string;
+    musicPlayerHotkeyMute: string;
     rescanInterval: number;
     searchEngineThreshold: number;
     searchOperatingSystemSettings: boolean;
