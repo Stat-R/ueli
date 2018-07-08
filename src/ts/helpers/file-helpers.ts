@@ -1,5 +1,6 @@
 import * as fs from "fs";
 import * as path from "path";
+import * as ulit from "util";
 
 export interface FancyFile {
     fullPath: string;
@@ -7,85 +8,113 @@ export interface FancyFile {
 }
 
 export class FileHelpers {
-    public static getFilesFromFolderRecursively(folderPath: FancyFile): FancyFile[] {
-        try {
+    public static getFilesFromFolderRecursively(folderPath: FancyFile): Promise<FancyFile[]> {
+        return new Promise((resolve, reject) => {
             let result = [] as FancyFile[];
-            const fileNames = FileHelpers.getFileNamesFromFolder(folderPath.fullPath);
 
-            for (const fileName of fileNames) {
-                try {
-                    const filePath = path.join(folderPath.fullPath, fileName);
-                    const stats = fs.lstatSync(filePath);
-
-                    const fancified = {
-                        breadCrumb: [...folderPath.breadCrumb, fileName],
-                        fullPath: filePath,
-                    } as FancyFile;
-
-                    if (stats.isDirectory()) {
-                        // treat .app folder as a file
-                        // because going recursively through the app folder on macOS would cause longer scan times
-                        if (filePath.endsWith(".app")) {
-                            result.push(fancified);
-                        } else {
-                            result = result.concat(FileHelpers.getFilesFromFolderRecursively(fancified));
-                        }
-                    } else if (stats.isFile()) {
-                        result.push(fancified);
+            FileHelpers.getFileNamesFromFolder(folderPath.fullPath)
+                .then((fileNames) => {
+                    let pending = fileNames.length;
+                    if (!pending) {
+                        resolve(result);
                     }
-                } catch (error) {
-                    continue;
-                }
-            }
 
-            return result;
+                    fileNames.forEach((fileName) => {
+                        const filePath = path.resolve(folderPath.fullPath, fileName);
+                        fs.stat(filePath, (error, stat) => {
+                            if (error ) {
+                                if (!--pending) {
+                                    resolve(result);
+                                }
+                                return;
+                            }
 
-        } catch (error) {
-            return [];
-        }
+                            const fancified = {
+                                breadCrumb: [...folderPath.breadCrumb, fileName],
+                                fullPath: filePath,
+                            } as FancyFile;
+
+                            if (stat && stat.isDirectory() && !filePath.endsWith(".app")) {
+                                FileHelpers.getFilesFromFolderRecursively(fancified)
+                                    .then((res) => {
+                                        result = result.concat(res);
+                                        if (!--pending) {
+                                            resolve(result);
+                                        }
+                                    })
+                                    .catch(() => {
+                                        if (!--pending) {
+                                            resolve(result);
+                                        }
+                                    });
+                            } else {
+                                result.push(fancified);
+                                if (!--pending) {
+                                    resolve(result);
+                                }
+                            }
+                        });
+                    });
+                })
+                .catch(() => {
+                    resolve(result);
+                });
+        });
     }
 
-    public static getFilesFromFolder(folderPath: FancyFile): FancyFile[] {
-        try {
-            const fileNames = FileHelpers.getFileNamesFromFolder(folderPath.fullPath);
+    public static getFilesFromFolder(folderPath: FancyFile): Promise<FancyFile[]> {
+        return new Promise((resolve, reject) => {
+            const result = [] as FancyFile[];
+            FileHelpers.getFileNamesFromFolder(folderPath.fullPath)
+                .then((filePaths) => {
+                    const fancifiedPaths = filePaths.map((f): FancyFile => ({
+                        breadCrumb: [...folderPath.breadCrumb, f],
+                        fullPath: path.join(folderPath.fullPath, f),
+                    }));
+                    let pending = fancifiedPaths.length;
 
-            const filePaths = fileNames.map((f): FancyFile => {
-                return {
-                    breadCrumb: [...folderPath.breadCrumb, f],
-                    fullPath: path.join(folderPath.fullPath, f),
-                };
-            });
+                    if (!pending) {
+                        resolve(result);
+                    }
 
-            const accessibleFiles = filePaths.map((filePath) => {
-                try {
-                    fs.lstatSync(filePath.fullPath);
-                    return filePath;
-                } catch (err) {
-                    // do nothing
-                }
-            }).filter((maybe) => maybe !== undefined) as FancyFile[];
+                    fancifiedPaths.forEach((f) => {
+                        // Check file accessibilty
+                        fs.lstat(f.fullPath, (error) => {
+                            if (!error) {
+                                result.push(f);
+                            }
 
-            return accessibleFiles;
-        } catch (error) {
-            return [];
-        }
+                            if (!--pending) {
+                                resolve(result);
+                            }
+                        });
+
+                    });
+                });
+        });
     }
 
-    public static getFilesFromFoldersRecursively(folderPaths: FancyFile[]): FancyFile[] {
+    public static getFilesFromFoldersRecursively(folderPaths: FancyFile[]): Array<Promise<FancyFile[]>> {
         const result = folderPaths.map((folderPath) => {
             return FileHelpers.getFilesFromFolderRecursively(folderPath);
-        }).reduce((acc, files) => acc.concat(files));
+        });
 
         return result;
     }
 
-    private static getFileNamesFromFolder(folderPath: string): string[] {
-        const allFiles = fs.readdirSync(folderPath);
+    private static getFileNamesFromFolder(folderPath: string): Promise<string[]> {
+        return new Promise((resolve, reject) => {
+            fs.readdir(folderPath, (error, files) => {
+                if (error) {
+                    reject(error);
+                }
 
-        const visibleFiles = allFiles.filter((fileName) => {
-            return !fileName.startsWith(".");
+                files = files.filter((fileName) => !fileName.startsWith("."));
+                if (files.length === 0) {
+                    reject();
+                }
+                resolve(files);
+            });
         });
-
-        return visibleFiles;
     }
 }

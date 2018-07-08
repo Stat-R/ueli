@@ -1,43 +1,38 @@
 import * as path from "path";
-import { FileHelpers } from "../helpers/file-helpers";
+import { FileHelpers, FancyFile } from "../helpers/file-helpers";
 import { Program } from "./program";
 import { ProgramRepository } from "./program-repository";
 
 export class ProgramFileRepository implements ProgramRepository {
-    private applicationFileExtensions: string[];
-    private programs: Program[];
-
-    public constructor(applicationFolders: Array<[string, string]>, applicationFileExtensions: string[]) {
-        this.applicationFileExtensions = applicationFileExtensions;
-        this.programs = this.loadPrograms(applicationFolders);
+    private appExtensions: string[];
+    private appFolder: [string, string];
+    public constructor(applicationFolder: [string, string], applicationFileExtensions: string[]) {
+        this.appExtensions = applicationFileExtensions;
+        this.appFolder = applicationFolder;
     }
 
-    public getPrograms(): Program[] {
-        return this.programs;
-    }
+    public getPrograms(): Promise<Program[]> {
+        return new Promise((resolve, reject) => {
+            const result = [] as Program[];
 
-    private loadPrograms(applicationFolders: Array<[string, string]>): Program[] {
-        const result = [] as Program[];
-
-        const files = FileHelpers.getFilesFromFoldersRecursively(
-            applicationFolders.map((f) => ({
-                breadCrumb: [f[1]],
-                fullPath: f[0],
-            })),
-        );
-
-        for (const file of files) {
-            for (const applicationFileExtension of this.applicationFileExtensions) {
-                if (file.fullPath.endsWith(applicationFileExtension)) {
-                    result.push({
-                        breadCrumb: file.breadCrumb,
-                        executionArgument: file.fullPath,
-                        name: path.basename(file.fullPath).replace(applicationFileExtension, ""),
-                    } as Program);
-                }
-            }
-        }
-
-        return result;
+            FileHelpers.getFilesFromFolderRecursively({
+                    breadCrumb: [this.appFolder[1]],
+                    fullPath: this.appFolder[0],
+                })
+                .then((files) => {
+                    for (const file of files) {
+                        for (const extension of this.appExtensions) {
+                            if (file.fullPath.endsWith(extension)) {
+                                result.push({
+                                    breadCrumb: file.breadCrumb,
+                                    executionArgument: file.fullPath,
+                                    name: path.basename(file.fullPath).replace(extension, ""),
+                                } as Program);
+                            }
+                        }
+                    }
+                    resolve(result);
+                });
+        });
     }
 }

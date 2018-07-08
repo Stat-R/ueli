@@ -7,18 +7,20 @@ import { platform } from "os";
 import { ProgramFileRepository } from "./programs-plugin/program-file-repository";
 import { ConfigOptions } from "./config-options";
 import { CustomCommandsPlugin } from "./search-plugins/custom-commands-plugin";
-import { IconManager } from "./icon-manager/icon-manager";
 
 export class SearchPluginManager {
     private plugins: SearchPlugin[];
 
-    public constructor(config: ConfigOptions, iconManager: IconManager) {
+    public constructor(config: ConfigOptions) {
         this.plugins = [
-            new ProgramsPlugin(new ProgramFileRepository(config.applicationFolders, config.applicationFileExtensions)),
             new HomeFolderSearchPlugin(),
             new UeliCommandsSearchPlugin(),
-            new CustomCommandsPlugin(config.customCommands, iconManager.getCustomShortCutIcon()),
+            new CustomCommandsPlugin(config.customCommands),
         ];
+
+        config.applicationFolders.forEach((folder) => {
+            this.plugins.push(new ProgramsPlugin(new ProgramFileRepository(folder, config.applicationFileExtensions)));
+        });
 
         if (config.searchOperatingSystemSettings) {
             this.plugins.push(Injector.getOperatingSystemSettingsPlugin(platform()));

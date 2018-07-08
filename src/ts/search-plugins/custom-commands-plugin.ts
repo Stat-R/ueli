@@ -3,18 +3,17 @@ import { SearchResultItem } from "../search-result-item";
 import { CustomCommand } from "../custom-command";
 import { StringHelpers } from "../helpers/string-helpers";
 import { UeliHelpers } from "../helpers/ueli-helpers";
+import { Icons } from "../icon-manager/icon-manager";
 
 export class CustomCommandsPlugin implements SearchPlugin {
-    private items: SearchResultItem[];
-    private defaultIcon: string;
+    private customCommands: CustomCommand[];
 
-    constructor(customCommands: CustomCommand[], defaultIcon: string) {
-        this.defaultIcon = defaultIcon;
-        this.items = this.convertToSearchResultItems(customCommands);
+    constructor(customCommands: CustomCommand[]) {
+        this.customCommands = customCommands;
     }
 
-    public getAllItems(): SearchResultItem[] {
-        return this.items;
+    public async getAllItems(): Promise<SearchResultItem[]> {
+        return this.convertToSearchResultItems(this.customCommands);
     }
 
     private convertToSearchResultItems(customCommands: CustomCommand[]): SearchResultItem[] {
@@ -23,9 +22,7 @@ export class CustomCommandsPlugin implements SearchPlugin {
         for (const customCommand of customCommands) {
             result.push({
                 executionArgument: `${UeliHelpers.customCommandPrefix}${customCommand.executionArgument}`,
-                icon: StringHelpers.stringIsWhiteSpace(customCommand.icon)
-                    ? this.defaultIcon
-                    : customCommand.icon,
+                icon: customCommand.icon || Icons.CUSTOMSHORTCUT,
                 name: customCommand.name,
                 tags: [],
             });

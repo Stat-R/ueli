@@ -1,32 +1,26 @@
 import { Searcher } from "./searcher";
-import { ConfigOptions } from "../config-options";
-import { Injector } from "../injector";
 import { FilePathInputValidator } from "../input-validators/file-path-input-validator";
-import { SearchEngine } from "../search-engine";
 import { SearchResultItem } from "../search-result-item";
-import { platform } from "os";
 import { DirectorySeparator } from "../directory-separator";
+import { Icons } from "../icon-manager/icon-manager";
 
 export class VariableSearcher implements Searcher {
-    private config: ConfigOptions;
+    public readonly needSort = true;
     private collection: SearchResultItem[];
 
-    constructor(config: ConfigOptions) {
-        this.config = config;
+    constructor() {
         this.collection = [];
         const env = process.env as { [key: string]: string };
 
         const validator = new FilePathInputValidator();
-        const icon = Injector
-            .getIconManager(platform())
-            .getVariableIcon();
+
         for (const varName of Object.keys(env)) {
             const value = env[varName];
             if (validator.isValidForSearchResults(value)) {
                 this.collection.push({
                     breadCrumb: value.split(DirectorySeparator.WindowsDirectorySeparator),
                     executionArgument: value,
-                    icon,
+                    icon: Icons.VARIABLE,
                     name: `${varName}`,
                     tags: [],
                 });
@@ -34,12 +28,7 @@ export class VariableSearcher implements Searcher {
         }
     }
 
-    public getSearchResult(userInput: string): SearchResultItem[] {
-        return this.sortSearchResult(this.collection, userInput);
-    }
-
-    private sortSearchResult(searchResultItems: SearchResultItem[], searchTerm: string): SearchResultItem[] {
-        const searchEngine = new SearchEngine(searchResultItems, this.config.searchEngineThreshold);
-        return searchEngine.search(searchTerm);
+    public async getSearchResult(userInput: string): Promise<SearchResultItem[]> {
+        return this.collection;
     }
 }

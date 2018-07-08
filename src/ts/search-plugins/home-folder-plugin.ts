@@ -2,47 +2,44 @@ import * as fs from "fs";
 import * as os from "os";
 import * as path from "path";
 import { FileHelpers } from "../helpers/file-helpers";
-import { IconManager } from "../icon-manager/icon-manager";
-import { Injector } from "../injector";
 import { SearchResultItem } from "../search-result-item";
 import { SearchPlugin } from "./search-plugin";
-import { ConfigOptions } from "../config-options";
+import { Icons } from "../icon-manager/icon-manager";
 
 export class HomeFolderSearchPlugin implements SearchPlugin {
     private homeFolderPath = os.homedir();
-    private filesAndFolders: SearchResultItem[];
-    private iconManager: IconManager;
 
-    public constructor() {
-        this.iconManager = Injector.getIconManager(os.platform());
-        this.filesAndFolders = this.getFilesAndFolders();
+    public async getAllItems(): Promise<SearchResultItem[]> {
+        const allPromises = await this.getFilesAndFolders()
+                .then((promises) => promises.map((promise) => promise.catch(() => null)));
+
+        return (await Promise.all(allPromises)).filter((r): r is SearchResultItem => r !== null);
     }
 
-    public getAllItems(): SearchResultItem[] {
-        return this.filesAndFolders;
-    }
-
-    private getFilesAndFolders(): SearchResultItem[] {
-
-        const files = FileHelpers.getFilesFromFolder({
+    private async getFilesAndFolders(): Promise<Array<Promise<SearchResultItem>>> {
+        const filesPending = FileHelpers.getFilesFromFolder({
             breadCrumb: ["Home"],
             fullPath: this.homeFolderPath,
         });
 
-        const result = files.map((f): SearchResultItem => {
-            const stats = fs.lstatSync(f.fullPath);
-
-            return {
-                breadCrumb: f.breadCrumb,
-                executionArgument: f.fullPath,
-                icon: stats.isDirectory()
-                    ? this.iconManager.getFolderIcon()
-                    : this.iconManager.getFileIcon(),
-                name: path.basename(f.fullPath),
-                tags: [],
-            } as SearchResultItem;
-        });
-
-        return result;
+        return filesPending
+            .then((files) => files
+                .map((f) => new Promise<SearchResultItem>((resolve, reject) => {
+                    fs.lstat(f.fullPath, (error, stats) => {
+                        if (error) {
+                            reject(error);
+                            return;
+                        }
+                        resolve({
+                            breadCrumb: f.breadCrumb,
+                            executionArgument: f.fullPath,
+                            icon: stats.isDirectory()
+                                ? Icons.FOLDER
+                                : Icons.FILE,
+                            name: path.basename(f.fullPath),
+                            tags: [],
+                        } as SearchResultItem);
+                    });
+                })));
     }
 }

@@ -8,7 +8,7 @@ export class FakeProgramRepository implements ProgramRepository {
         this.programs = programs;
     }
 
-    public getPrograms(): Program[] {
+    public async getPrograms(): Promise<Program[]> {
         return this.programs;
     }
 }

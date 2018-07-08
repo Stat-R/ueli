@@ -1,5 +1,6 @@
 import { SearchResultItem } from "../search-result-item";
 
 export interface Searcher {
-    getSearchResult(userInput: string): SearchResultItem[];
+    needSort: boolean;
+    getSearchResult(userInput: string): Promise<SearchResultItem[]>;
 }

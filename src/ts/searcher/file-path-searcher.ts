@@ -1,43 +1,42 @@
 import * as fs from "fs";
 import * as path from "path";
 import { FileHelpers } from "../helpers/file-helpers";
-import { Injector } from "../injector";
 import { SearchEngine } from "../search-engine";
 import { SearchResultItem } from "../search-result-item";
 import { Searcher } from "./searcher";
-import { platform } from "os";
-import { ConfigOptions } from "../config-options";
 import { DirectorySeparator } from "../directory-separator";
+import { Icons } from "../icon-manager/icon-manager";
 
 export class FilePathSearcher implements Searcher {
-    private iconManager = Injector.getIconManager(platform());
-    private config: ConfigOptions;
+    public readonly needSort = false;
+    private sortThreshold: number;
 
-    constructor(config: ConfigOptions) {
-        this.config = config;
+    constructor(sortThreshold: number) {
+        this.sortThreshold = sortThreshold;
     }
 
-    public getSearchResult(userInput: string): SearchResultItem[] {
+    public async getSearchResult(userInput: string): Promise<SearchResultItem[]> {
         let filePath;
 
         if (fs.existsSync(userInput)) {
             filePath = userInput;
             const stats = fs.lstatSync(filePath);
             if (stats.isDirectory()) {
-                return this.getFolderSearchResult(filePath);
+                return await this.getFolderSearchResult(filePath);
             } else {
                 return this.getFileSearchResult(filePath);
             }
         } else if (fs.existsSync(path.dirname(userInput))) {
             filePath = path.dirname(userInput);
             const searchTerm = path.basename(userInput);
-            return this.getFolderSearchResult(filePath, searchTerm);
+
+            return await this.getFolderSearchResult(filePath, searchTerm, /[\*\?\[\]]/.test(searchTerm));
         }
 
         return [];
     }
 
-    private getFolderSearchResult(folderPath: string, searchTerm?: string): SearchResultItem[] {
+    private async getFolderSearchResult(folderPath: string, searchTerm?: string, wildCard = false): Promise<SearchResultItem[]> {
         const result = [] as SearchResultItem[];
 
         const crumbs = folderPath.split(DirectorySeparator.WindowsDirectorySeparator);
@@ -45,18 +44,19 @@ export class FilePathSearcher implements Searcher {
             crumbs.length = crumbs.length - 1;
         }
 
-        const files = FileHelpers.getFilesFromFolder({
+        const files = await FileHelpers.getFilesFromFolder({
             breadCrumb: crumbs,
             fullPath: folderPath,
         });
 
         for (const file of files) {
             result.push({
+                alternativePrefix: "Run As Administrator",
                 breadCrumb: file.breadCrumb,
                 executionArgument: file.fullPath,
                 icon: fs.lstatSync(file.fullPath).isDirectory()
-                    ? this.iconManager.getFolderIcon()
-                    : this.iconManager.getFileIcon(),
+                    ? Icons.FOLDER
+                    : Icons.FILE,
                 name: path.basename(file.fullPath),
                 tags: [],
             } as SearchResultItem);
@@ -64,12 +64,14 @@ export class FilePathSearcher implements Searcher {
 
         return searchTerm === undefined
             ? result
-            : this.sortSearchResult(result, searchTerm);
+            : (wildCard
+            ? this.filterWildcard(result, searchTerm)
+            : this.sortSearchResult(result, searchTerm));
     }
 
-    private sortSearchResult(searchResultItems: SearchResultItem[], searchTerm: string): SearchResultItem[] {
-        const searchEngine = new SearchEngine(searchResultItems, this.config.searchEngineThreshold);
-        return searchEngine.search(searchTerm);
+    private sortSearchResult(items: SearchResultItem[], searchTerm: string): SearchResultItem[] {
+        const searchEngine = new SearchEngine(this.sortThreshold);
+        return searchEngine.search(items, searchTerm);
     }
 
     private getFileSearchResult(filePath: string): SearchResultItem[] {
@@ -77,10 +79,19 @@ export class FilePathSearcher implements Searcher {
             {
                 breadCrumb: filePath.split(DirectorySeparator.WindowsDirectorySeparator),
                 executionArgument: filePath,
-                icon: this.iconManager.getFileIcon(),
+                icon: Icons.FILE,
                 name: path.basename(filePath),
                 tags: [],
             } as SearchResultItem,
         ];
+    }
+
+    private filterWildcard(items: SearchResultItem[], searchTerm: string): SearchResultItem[] {
+        searchTerm = `^${searchTerm.replace(/\./, "\\.").replace(/\*/g, ".*").replace(/\?/g, ".")}$`;
+        const regExp = new RegExp(searchTerm);
+        return items.filter((item) => {
+            const name = path.basename(item.executionArgument);
+            return regExp.test(name);
+        });
     }
 }

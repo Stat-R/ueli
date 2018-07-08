@@ -1,31 +1,24 @@
-import * as os from "os";
-import { IconManager } from "../icon-manager/icon-manager";
-import { Injector } from "../injector";
-import { Program } from "../programs-plugin/program";
+import { Icons } from "../icon-manager/icon-manager";
 import { ProgramRepository } from "../programs-plugin/program-repository";
 import { SearchResultItem } from "../search-result-item";
 import { SearchPlugin } from "./search-plugin";
-import { ConfigOptions } from "../config-options";
 
 export class ProgramsPlugin implements SearchPlugin {
-    private programs: Program[];
-    private iconManager: IconManager;
-    private dirSep: string;
+    private programRepository: ProgramRepository;
 
     public constructor(programRepository: ProgramRepository) {
-        this.iconManager = Injector.getIconManager(os.platform());
-        this.programs = programRepository.getPrograms();
+        this.programRepository = programRepository;
     }
 
-    public getAllItems(): SearchResultItem[] {
-        return this.programs.map((program): SearchResultItem => {
-            return {
+    public async getAllItems(): Promise<SearchResultItem[]> {
+        return (await this.programRepository.getPrograms())
+            .map((program) => ({
+                alternativePrefix: "Run as Admin",
                 breadCrumb: program.breadCrumb,
                 executionArgument: program.executionArgument,
-                icon: this.iconManager.getProgramIcon(),
+                icon: Icons.PROGRAM,
                 name: program.name,
                 tags: [],
-            } as SearchResultItem;
-        });
+            } as SearchResultItem));
     }
 }
