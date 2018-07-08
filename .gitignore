@@ -65,3 +65,7 @@ typings/
 # dotenv environment variables file
 .env
 
+native-util/
+bin/
+auto-top.gypi
+auto.gypi
