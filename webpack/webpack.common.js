@@ -1,11 +1,11 @@
 const path = require("path");
+const UglifyJsPlugin = require('uglifyjs-webpack-plugin');
 
 module.exports = {
   devtool: "source-map",
   node: false,
   mode: "development",
   output: {
-    filename: "renderer.js",
     path: path.resolve(__dirname, "../build")
   },
   resolve: {
@@ -53,6 +53,14 @@ module.exports = {
           }
         ]
       }
+    ]
+  },
+  optimization: {
+    minimize: true,
+    minimizer: [
+      new UglifyJsPlugin({
+        parallel: true
+      })
     ]
   }
 };
