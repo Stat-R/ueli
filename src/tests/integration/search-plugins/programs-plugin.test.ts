@@ -27,19 +27,19 @@ describe(ProgramFileRepository.name, (): void => {
         });
 
         it("should return programs correctly", (): void => {
-            const repo = new ProgramFileRepository([[applicationFolder, "test"]], [applicationFileExtension]);
-            const programs = repo.getPrograms();
-            expect(programs.length).toBe(applications.length);
+            const repo = new ProgramFileRepository([applicationFolder, "test"], [applicationFileExtension]);
+            repo.getPrograms()
+                .then((programs) => {
+                    for (const program of programs) {
+                        const application = applications.filter((a) => {
+                            return a === program.name;
+                        })[0];
 
-            for (const program of programs) {
-                const application = applications.filter((a) => {
-                    return a === program.name;
-                })[0];
-
-                expect(application).not.toBe(undefined);
-                expect(program.name).toBe(application);
-                expect(program.executionArgument).toBe(getFilePath(applicationFolder, application, applicationFileExtension));
-            }
+                        expect(application).not.toBe(undefined);
+                        expect(program.name).toBe(application);
+                        expect(program.executionArgument).toBe(getFilePath(applicationFolder, application, applicationFileExtension));
+                    }
+                });
         });
     });
 });

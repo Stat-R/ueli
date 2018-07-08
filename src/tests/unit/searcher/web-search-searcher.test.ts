@@ -28,10 +28,12 @@ describe(WebSearchSearcher.name, (): void => {
                 ];
 
                 for (const combination of combinations) {
-                    const actual = searcher.getSearchResult(combination.input);
-                    expect(actual.filter.length).toBe(1);
-                    expect(actual[0].name).toBe(combination.output.name);
-                    expect(actual[0].executionArgument).toBe(combination.output.executionArgument);
+                    searcher.getSearchResult(combination.input)
+                        .then((actual) => {
+                            expect(actual.filter.length).toBe(1);
+                            expect(actual[0].name).toBe(combination.output.name);
+                            expect(actual[0].executionArgument).toBe(combination.output.executionArgument);
+                        });
                 }
             });
 
@@ -44,16 +46,23 @@ describe(WebSearchSearcher.name, (): void => {
                 ];
 
                 let errorCounter = 0;
+                let pending = invalidUserInputs.length;
 
                 for (const invalidUserInput of invalidUserInputs) {
-                    try {
-                        searcher.getSearchResult(invalidUserInput);
-                    } catch (error) {
-                        errorCounter++;
-                    }
+                    searcher.getSearchResult(invalidUserInput)
+                        .then(() => {
+                            if (!--pending) {
+                                expect(errorCounter).toBe(invalidUserInputs.length);
+                            }
+                        })
+                        .catch(() => {
+                            errorCounter++;
+                            if (!--pending) {
+                                expect(errorCounter).toBe(invalidUserInputs.length);
+                            }
+                        });
                 }
 
-                expect(errorCounter).toBe(invalidUserInputs.length);
             });
         }
     });

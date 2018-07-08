@@ -67,7 +67,6 @@ export const invalidUrls = [
     "http://",
     "some-bullshit",
     "12340.12",
-    "darth.vader@empire.cc",
 ];
 
 export const dummyWebSearches = [

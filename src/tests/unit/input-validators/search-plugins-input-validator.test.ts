@@ -24,7 +24,6 @@ describe(SearchPluginsInputValidator.name, (): void => {
                 "",
                 " ",
                 "    ",
-                "> ipconfig",
             ];
 
             for (const invalidInput of invalidInputs) {

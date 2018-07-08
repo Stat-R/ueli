@@ -51,11 +51,13 @@ describe(FileHelpers.name, (): void => {
         createFile(hiddenFilePath, "some-text");
 
         it("should return only visible files", (): void => {
-            const actual = FileHelpers.getFilesFromFolder({
+            FileHelpers.getFilesFromFolder({
                 breadCrumb: [],
                 fullPath: testFolder,
-            });
-            expect(actual.length).toBe(testFiles.length);
+            })
+                .then((actual) => {
+                    expect(actual.length).toBe(testFiles.length);
+                });
         });
 
         afterAll((): void => {
@@ -74,11 +76,13 @@ describe(FileHelpers.name, (): void => {
         });
 
         it("should return only visible files", (): void => {
-            const actual = FileHelpers.getFilesFromFolderRecursively({
+            FileHelpers.getFilesFromFolderRecursively({
                 breadCrumb: [],
                 fullPath: testFolder,
-            });
-            expect(actual.length).toBeGreaterThan(0);
+            })
+                .then((actual) => {
+                    expect(actual.length).toBeGreaterThan(0);
+                });
         });
 
         afterAll((): void => {
@@ -95,24 +99,27 @@ describe(FileHelpers.name, (): void => {
         });
 
         it("should return some files", (): void => {
-            const actual = FileHelpers.getFilesFromFoldersRecursively(
+            Promise.all(FileHelpers.getFilesFromFoldersRecursively(
                 testFolders.map((folder) => ({
                     breadCrumb: [],
                     fullPath: folder,
                 })),
-            );
-            expect(actual.length).toBeGreaterThan(0);
+            ))
+                .then((actual) => {
+                    expect(actual.length).toBeGreaterThan(0);
+                });
         });
 
         it("should return an empty list when folder does not exist", (): void => {
             const testFolder = path.join(os.homedir(), "hopefully-this-folder-does-not-exist");
 
-            const actual = FileHelpers.getFilesFromFoldersRecursively([{
+            Promise.all(FileHelpers.getFilesFromFoldersRecursively([{
                 breadCrumb: [],
                 fullPath: testFolder,
-            }]);
-
-            expect(actual.length).toBe(0);
+            }]))
+                .then((actual) => {
+                    expect(actual.length).toBe(0);
+                });
         });
 
         afterAll((): void => {

@@ -25,20 +25,21 @@ describe("ProgramsPlugin", (): void => {
             const fakeProgramRepository = new FakeProgramRepository(fakePrograms);
             const programsPlugin = new ProgramsPlugin(fakeProgramRepository);
 
-            const actual = programsPlugin.getAllItems();
+            programsPlugin.getAllItems()
+                .then((actual) => {
+                    expect(actual.length).toBeGreaterThan(0);
 
-            expect(actual.length).toBeGreaterThan(0);
+                    for (const fakeProgram of fakePrograms) {
+                        const filtered = actual.filter((a): boolean => {
+                            return a.name === fakeProgram.name;
+                        });
 
-            for (const fakeProgram of fakePrograms) {
-                const filtered = actual.filter((a): boolean => {
-                    return a.name === fakeProgram.name;
+                        expect(filtered.length).toBe(1);
+                        expect(filtered[0].name).toBe(fakeProgram.name);
+                        expect(filtered[0].executionArgument).toBe(fakeProgram.executionArgument);
+                        expect(filtered[0].tags.length).toBe(0);
+                    }
                 });
-
-                expect(filtered.length).toBe(1);
-                expect(filtered[0].name).toBe(fakeProgram.name);
-                expect(filtered[0].executionArgument).toBe(fakeProgram.executionArgument);
-                expect(filtered[0].tags.length).toBe(0);
-            }
         });
     });
 });

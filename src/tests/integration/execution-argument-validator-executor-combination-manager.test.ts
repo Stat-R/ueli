@@ -7,13 +7,30 @@ import { MacOsSettingsExecutor } from "../../ts/executors/mac-os-settings-execut
 import { OperatingSystemHelpers } from "../../ts/helpers/operating-system-helpers";
 import { OperatingSystem } from "../../ts/operating-system";
 import { defaultConfig } from "../../ts/default-config";
+import * as LibTypes from "../../../node_modules/taskbar-node/lib-types";
+
+class Taskbar {
+    private instance: LibTypes.Taskbar;
+    constructor() {
+        this.instance = {
+            bringAppToTop: this.bringAppToTop,
+            getAllApps: this.getAllApps,
+        };
+    }
+    public getAllApps(group = false): any {
+        return [];
+    }
+    public bringAppToTop(hwnd: number): void {/* do nothing */}
+}
 
 describe(ExecutionArgumentValidatorExecutorCombinationManager.name, (): void => {
     it("should return the correct execution argument valiator executor combinations", (): void => {
         let counter = 0;
 
         const combinations = new ExecutionArgumentValidatorExecutorCombinationManager({
+            bringAppToTop: new Taskbar().bringAppToTop,
             config: defaultConfig,
+            getAllApps: new Taskbar().getAllApps,
             webSocketCommandSender: () => {/* do nothing */},
         }).getCombinations();
 

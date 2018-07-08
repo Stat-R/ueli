@@ -13,10 +13,12 @@ describe(WebUrlInputValidator.name, (): void => {
             }
         });
 
-        it("should return false when passing in an invalid argument", (): void => {
+        describe("should return false when passing in an invalid argument", (): void => {
             for (const invalidInput of invalidUrls) {
                 const actual = validator.isValidForSearchResults(invalidInput);
-                expect(actual).toBe(false);
+                it(invalidInput, (): void => {
+                    expect(actual).toBe(false);
+                });
             }
         });
     });

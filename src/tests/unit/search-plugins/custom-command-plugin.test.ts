@@ -1,6 +1,7 @@
 import { CustomCommandsPlugin } from "../../../ts/search-plugins/custom-commands-plugin";
 import { CustomCommand } from "../../../ts/custom-command";
 import { UeliHelpers } from "../../../ts/helpers/ueli-helpers";
+import { Icons } from "../../../ts/icon-manager/icon-manager";
 
 describe(CustomCommandsPlugin.name, (): void => {
     describe("getAllItems", (): void => {
@@ -16,23 +17,22 @@ describe(CustomCommandsPlugin.name, (): void => {
                 },
             ] as CustomCommand[];
 
-            const plugin = new CustomCommandsPlugin(customCommands, "");
+            const plugin = new CustomCommandsPlugin(customCommands);
 
-            const actual = plugin.getAllItems();
+            plugin.getAllItems()
+                .then((actual) => {
+                    for (const item of actual) {
+                        const customCommand = customCommands.filter((c: CustomCommand): boolean => {
+                            return c.name === item.name;
+                        })[0];
 
-            for (const item of actual) {
-                const customCommand = customCommands.filter((c: CustomCommand): boolean => {
-                    return c.name === item.name;
-                })[0];
-
-                expect(customCommand).not.toBe(undefined);
-                expect(item.executionArgument).toBe(`${UeliHelpers.customCommandPrefix}${customCommand.executionArgument}`);
-            }
+                        expect(customCommand).not.toBe(undefined);
+                        expect(item.executionArgument).toBe(`${UeliHelpers.customCommandPrefix}${customCommand.executionArgument}`);
+                    }
+                });
         });
 
         it("should set the deafult icon if no icon is specified", (): void => {
-            const defaultIcon = "this is the default icon";
-
             const customCommands = [
                 {
                     executionArgument: "execution-argument",
@@ -44,23 +44,22 @@ describe(CustomCommandsPlugin.name, (): void => {
                 },
             ] as CustomCommand[];
 
-            const plugin = new CustomCommandsPlugin(customCommands, defaultIcon);
+            const plugin = new CustomCommandsPlugin(customCommands);
 
-            const actual = plugin.getAllItems();
+            plugin.getAllItems()
+                .then((actual) => {
+                    for (const item of actual) {
+                        const customCommand = customCommands.filter((c: CustomCommand): boolean => {
+                            return c.name === item.name;
+                        })[0];
 
-            for (const item of actual) {
-                const customCommand = customCommands.filter((c: CustomCommand): boolean => {
-                    return c.name === item.name;
-                })[0];
-
-                expect(customCommand).not.toBe(undefined);
-                expect(item.icon).toBe(defaultIcon);
-            }
+                        expect(customCommand).not.toBe(undefined);
+                        expect(item.icon).toBe(Icons.CUSTOMSHORTCUT);
+                    }
+                });
         });
 
         it("should set the given icon if it is specified", (): void => {
-            const defaultIcon = "this is the default icon";
-
             const customCommands = [
                 {
                     executionArgument: "execution-argument",
@@ -74,18 +73,19 @@ describe(CustomCommandsPlugin.name, (): void => {
                 },
             ] as CustomCommand[];
 
-            const plugin = new CustomCommandsPlugin(customCommands, defaultIcon);
+            const plugin = new CustomCommandsPlugin(customCommands);
 
-            const actual = plugin.getAllItems();
+            plugin.getAllItems()
+                .then((actual) => {
+                    for (const item of actual) {
+                        const customCommand = customCommands.filter((c: CustomCommand): boolean => {
+                            return c.name === item.name;
+                        })[0];
 
-            for (const item of actual) {
-                const customCommand = customCommands.filter((c: CustomCommand): boolean => {
-                    return c.name === item.name;
-                })[0];
-
-                expect(customCommand).not.toBe(undefined);
-                expect(item.icon).toBe(customCommand.icon);
-            }
+                        expect(customCommand).not.toBe(undefined);
+                        expect(item.icon).toBe(customCommand.icon);
+                    }
+                });
         });
     });
 });
