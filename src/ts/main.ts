@@ -213,7 +213,7 @@ function registerGlobalShortCuts(): void {
     });
 }
 
-function changeModeWithHotkey(mode) {
+function changeModeWithHotkey(mode: number) {
     const isVisible = mainWindow.isVisible();
     if (isVisible && mode === currentInputMode) {
         hideMainWindow(true);
@@ -252,7 +252,6 @@ function toggleWindow(): void {
 }
 
 function showMainWindow(): void {
-
     getSearch("");
     let magickExecute = "cmd /C magick";
     if (config.imageMagickPath) {

@@ -1,20 +1,18 @@
 import * as Fuse from "fuse.js";
-import { SearchPlugin } from "./search-plugins/search-plugin";
 import { SearchResultItem } from "./search-result-item";
 import { CountManager } from "./count-manager";
-import { ConfigOptions } from "./config-options";
 
 export class SearchEngine {
-    private unsortedSearchResults: SearchResultItem[];
     private threshold: number;
+    private countManager: CountManager | undefined;
 
-    public constructor(unsortedSearchResults: SearchResultItem[], threshold: number) {
-        this.unsortedSearchResults = unsortedSearchResults;
+    public constructor(threshold: number, countManager?: CountManager) {
         this.threshold = threshold;
+        this.countManager = countManager;
     }
 
-    public search(searchTerm: string, countManager?: CountManager): SearchResultItem[] {
-        const fuse = new Fuse(this.unsortedSearchResults, {
+    public search(unsortedSearchResults: SearchResultItem[], searchTerm: string): SearchResultItem[] {
+        const fuse = new Fuse(unsortedSearchResults, {
             distance: 100,
             includeScore: true,
             keys: ["name", "tags"],
@@ -27,12 +25,14 @@ export class SearchEngine {
 
         let fuseResults = fuse.search(searchTerm) as any[];
 
-        if (countManager !== undefined) {
-            fuseResults = this.sortItemsByCount(fuseResults, countManager);
+        if (this.countManager !== undefined) {
+            fuseResults = this.sortItemsByCount(fuseResults, this.countManager);
         }
 
         const sortedResult = fuseResults.map((fuseResult): SearchResultItem => {
             return {
+                alternativeExecutionArgument: fuseResult.item.alternativeExecutionArgument,
+                alternativePrefix: fuseResult.item.alternativePrefix,
                 breadCrumb: fuseResult.item.breadCrumb,
                 executionArgument: fuseResult.item.executionArgument,
                 icon: fuseResult.item.icon,

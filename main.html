@@ -13,11 +13,15 @@
         <link rel="stylesheet" :href="stylesheetPath">
         <link rel="stylesheet" :href="customStyleSheet">
         <div class="container">
-            <div id="acrylic-container"><div id="acrylic" :style="{ 'background-image' : screenshotFile}"></div></div>
+            <div id="acrylic">
+                <img :src="screenshotFile"></img>
+            </div>
             <div class="user-input-container" :style="userInputContainerStyle()" :class="{ 'active': commandLineOutput.length !== 0 || searchResults.length !== 0 || playerConnectStatus }">
                 <input id="user-input" class="user-input" :style="userInputStyle()" type="text" v-model="userInput" :autofocus="{ 'autofocus' : autoFocus }"
                     v-on:keyDown="handleKeyPress">
-                <div class="search-icon-container" style="-webkit-app-region: drag;" :style="searchResultWidth()" v-html="searchIcon"></div>
+                <div class="search-icon-container" style="-webkit-app-region: drag;" :style="searchResultWidth()">
+                    <svg viewBox="0 0 32 32" v-html="searchIcon"></svg>
+                </div>
             </div>
 
             <div class="output-container" :style="outputContainerHeight()" :class="{ 'musicActive' : commandLineOutput.length === 0 && searchResults.length === 0 && playerConnectStatus }">
@@ -52,13 +56,20 @@
                     <div :id="searchResult.id" class="search-result" :style="searchResultHeight()" :class="{ 'active' : searchResult.active }"
                         v-for="(searchResult, searchIndex) in searchResults" v-on:mouseover="handleMouseOver(searchIndex)" v-on:click="handleClick(searchIndex)">
                         <div class="search-result-icon">
-                            <div class="search-result-icon-container" :style="searchResultIconStyle()" :class="{ 'active' : searchResult.active }" v-html="searchResult.icon"></div>
+                            <div class="search-result-icon-container" :style="searchResultIconStyle()" :class="{ 'active' : searchResult.active }">
+                                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 32 32" v-html="searchResult.icon"></svg>
+                            </div>
                         </div>
                         <div class="search-result-information">
-                            <span class="search-result-name" :style="searchResultNameStyle()" :class="{ 'active' : searchResult.active }">
-                                {{ searchResult.name }}
-                            </span>
-                            <span class="search-result-execution-argument sadasdasd" :style="searchResultExecutionArgumentStyle()" :class="{ 'active' : searchResult.active } ">
+                            <div class="search-result-header-container">
+                                <span class="search-result-alternative-prefix" :style="searchResultAlternativePrefixStyle()" :class="{ 'active' : searchResult.active && searchResult.alternativePrefix && showAlternativePrefix }">
+                                    {{ searchResult.alternativePrefix }}
+                                </span>
+                                <span class="search-result-name" :style="searchResultNameStyle()" :class="{ 'active' : searchResult.active }">
+                                    {{ searchResult.name }}
+                                </span>
+                            </div>
+                            <span class="search-result-execution-argument" :style="searchResultExecutionArgumentStyle()" :class="{ 'active' : searchResult.active } ">
                                 {{ searchResult.description || searchResult.executionArgument }}
                             </span>
                         </div>
