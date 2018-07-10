@@ -7,6 +7,7 @@ import { platform } from "os";
 import { ProgramFileRepository } from "./programs-plugin/program-file-repository";
 import { ConfigOptions } from "./config-options";
 import { CustomCommandsPlugin } from "./search-plugins/custom-commands-plugin";
+import { BrowserBookmark } from "./search-plugins/bookmark-plugin";
 
 export class SearchPluginManager {
     private plugins: SearchPlugin[];
@@ -16,6 +17,7 @@ export class SearchPluginManager {
             new HomeFolderSearchPlugin(),
             new UeliCommandsSearchPlugin(),
             new CustomCommandsPlugin(config.customCommands),
+            new BrowserBookmark(config.bookmarkFromBrowser, config.bookmarkProfileName),
         ];
 
         config.applicationFolders.forEach((folder) => {
