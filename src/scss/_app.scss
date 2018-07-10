@@ -14,7 +14,7 @@ $font-icon: "Segoe MDL2 Assets";
 body {
     margin: 0;
     padding: 0;
-    color: $text-color;
+    color: var(--text-color);
 }
 
 div.container {
@@ -41,7 +41,7 @@ div.container {
 div.user-input-container {
     display: flex;
     padding: 0 $side-padding;
-    background-color: rgba(var(--background-color), 0.5);
+    background-color: var(--input-container-background);
     z-index: 1;
     border-radius: 10px;
     &.active {
@@ -56,7 +56,7 @@ input.user-input {
     box-sizing: border-box;
     border: none;
     background: transparent;
-    color: $text-color;
+    color: var(--text-color);
     overflow: hidden;
 
     &:focus {
@@ -71,7 +71,7 @@ div.search-icon-container {
 
     svg {
         width: $icon-size;
-        fill: $text-color;
+        fill: var(--text-color);
     }
 }
 
@@ -80,7 +80,7 @@ div.output-container {
     overflow-y: auto;
     overflow-x: hidden;
     border-radius: 0 0 10px 10px;
-    background-color: rgba(var(--background-color), 0.4);
+    background-color: var(--output-container-background);
     z-index: 1;
 }
 
@@ -93,7 +93,7 @@ div.command-line-output-container {
 
     pre {
         font-family: $font-family-mono;
-        color: $mono-font-color;
+        color: var(--mono-text-color)r;
         margin: 0;
     }
 }
@@ -110,8 +110,8 @@ div.search-result {
     cursor: pointer;
 
     &.active {
-        background: $accent-color;
-        color: $accent-text-color;
+        background: var(--active-item-background);
+        color: var(--active-item-text-color);
     }
 }
 
@@ -128,12 +128,12 @@ div.search-result-icon-container {
 
     svg {
         width: $icon-size;
-        fill: $text-color;
+        fill: var(--text-color);
     }
 
     &.active {
         svg {
-            fill: $accent-text-color;
+            fill: var(--active-item-text-color);
         }
     }
 }
@@ -163,7 +163,7 @@ span {
     }
 
     &.search-result-alternative-prefix {
-        background-color: rgba(var(--background-color), 0.8);
+        background-color: var(--alternative-prefix-background);
         padding: 0;
         margin: 0;
         border-radius: 3px;
@@ -197,7 +197,7 @@ span {
 }
 
 ::-webkit-scrollbar-thumb {
-    background: $scrollbar-foreground-color;
+    background: var(--scrollbar-color);
     border-radius: 10px;
     margin: 0 2px 0 2px;
 }
@@ -231,14 +231,11 @@ span {
 #player-info {
     width: 100%;
     font-family: $player-font-family;
-
-    // position: absolute;
-    // bottom: 0;
 }
 
 #player-info .title {
     font-weight: 600;
-    color: $text-color;
+    color: var(--text-color);
     font-size: 40px;
     line-height: 55px;
     text-overflow: ellipsis;
@@ -249,7 +246,7 @@ span {
 #player-info .artist {
     font-weight: 100;
     font-kerning: 3px;
-    color: $text-color;
+    color: var(--text-color);
     opacity: 0.8;
     font-size: 20px;
     line-height: 35px;
@@ -293,7 +290,7 @@ span {
 }
 
 .icon:hover {
-    color: $accent-color;
+    color: var(--active-item-background);
     cursor: pointer;
 }
 
@@ -302,13 +299,13 @@ span {
     width: 70px;
     height: 70px;
     line-height: 70px;
-    box-shadow: inset 0 0 0 2px $text-color;
+    box-shadow: inset 0 0 0 2px var(--text-color);
     border-radius: 50%;
     text-align: center;
     margin-left: 20px;
 
     &:hover {
-        box-shadow: inset 0 0 0 2px $accent-color;
+        box-shadow: inset 0 0 0 2px var(--active-item-background);
         cursor: pointer;
     }
 }
@@ -328,7 +325,7 @@ span {
     text-align: center;
     font-family: $font-icon;
     font-size: 25px;
-    color: $mono-font-color;
+    color: var(--mono-text-color);
     position: absolute;
     bottom: 0px;
     opacity: 0;
@@ -357,7 +354,6 @@ span {
     top: 0px;
     transition: all 0.5s cubic-bezier(0.215, 0.610, 0.355, 1);
 }
-
 
 #like-track::before {
     content: "\E006";

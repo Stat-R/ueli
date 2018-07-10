@@ -1,0 +1,12 @@
+:root {
+    --background-color: 0,0,0;
+    --input-container-background: rgba(var(--background-color), 0.5);
+    --output-container-background: rgba(var(--background-color), 0.4);
+    --text-color: rgb(255,255,255);
+    --active-item-background: rgb(237,152,47);
+    --active-item-text-color: rgb(255,255,255);
+    --mono-text-color: rgb(242,242,242);
+    --scrollbar-color: rgb(68,68,68);
+    --alternative-prefix-background: rgba(var(--background-color), 0.8);
+}
+@import "app";
