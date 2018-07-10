@@ -10,9 +10,11 @@ import { Icons } from "../icon-manager/icon-manager";
 export class FilePathSearcher implements Searcher {
     public readonly needSort = false;
     private sortThreshold: number;
+    private textEditorName: string;
 
-    constructor(sortThreshold: number) {
+    constructor(sortThreshold: number, textEditorName: string) {
         this.sortThreshold = sortThreshold;
+        this.textEditorName = textEditorName;
     }
 
     public async getSearchResult(userInput: string): Promise<SearchResultItem[]> {
@@ -50,16 +52,32 @@ export class FilePathSearcher implements Searcher {
         });
 
         for (const file of files) {
-            result.push({
-                alternativePrefix: "Run As Administrator",
-                breadCrumb: file.breadCrumb,
-                executionArgument: file.fullPath,
-                icon: fs.lstatSync(file.fullPath).isDirectory()
-                    ? Icons.FOLDER
-                    : Icons.FILE,
-                name: path.basename(file.fullPath),
-                tags: [],
-            } as SearchResultItem);
+            let isDir: boolean;
+            try {
+                isDir = fs.lstatSync(file.fullPath).isDirectory();
+            } catch (_e) {
+                continue;
+            }
+
+            if (isDir) {
+                result.push({
+                    alternativePrefix: this.textEditorName && `Open in ${this.textEditorName}`,
+                    breadCrumb: file.breadCrumb,
+                    executionArgument: file.fullPath,
+                    icon: Icons.FOLDER,
+                    name: path.basename(file.fullPath),
+                    tags: [],
+                } as SearchResultItem);
+            } else {
+                result.push({
+                    alternativePrefix: "Run As Administrator",
+                    breadCrumb: file.breadCrumb,
+                    executionArgument: file.fullPath,
+                    icon: Icons.FILE,
+                    name: path.basename(file.fullPath),
+                    tags: [],
+                } as SearchResultItem);
+            }
         }
 
         return searchTerm === undefined

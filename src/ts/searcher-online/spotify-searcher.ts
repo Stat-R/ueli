@@ -20,7 +20,8 @@ export class SpotifySearcher implements SearcherOnline {
                         name: item.name,
                         tags: [],
                     } as SearchResultItem)));
-                });
+                })
+                .catch(() => resolve([]));
         });
     }
 }

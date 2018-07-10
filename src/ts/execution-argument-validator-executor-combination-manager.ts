@@ -34,7 +34,7 @@ export class ExecutionArgumentValidatorExecutorCombinationManager {
                 validator: new UeliCommandExecutionArgumentValidator(),
             },
             {
-                executor: new FilePathExecutor(),
+                executor: new FilePathExecutor(globalUELI.config.textEditor.path),
                 validator: new FilePathExecutionArgumentValidator(),
             },
             {
@@ -69,12 +69,14 @@ export class ExecutionArgumentValidatorExecutorCombinationManager {
                     executor: new WindowsSettingsExecutor(),
                     validator: new WindowsSettingsExecutionArgumentValidator(),
                 });
+                break;
             }
             case OperatingSystem.macOS: {
                 this.combinations.push({
                     executor: new MacOsSettingsExecutor(),
                     validator: new MacOsSettingsExecutionArgumentValidator(),
                 });
+                break;
             }
         }
     }

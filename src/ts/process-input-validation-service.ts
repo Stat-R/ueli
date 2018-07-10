@@ -1,6 +1,5 @@
 import { StringHelpers } from "./helpers/string-helpers";
 import { SearchResultItem } from "./search-result-item";
-import { Taskbar } from "taskbar-node";
 import { SearchEngine } from "./search-engine";
 import { Icons } from "./icon-manager/icon-manager";
 import { App } from "../../../taskbar-node/lib-types";

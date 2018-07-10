@@ -1,26 +1,23 @@
-import { IpcChannels } from "./ipc-channels";
-import { InfoSender, MusicInfoHandler } from "./music-info-handler";
+import { MusicInfoHandler } from "./music-info-handler";
 import { NowPlaying, PlayerName } from "nowplaying-node";
+import { MusicPlayer } from "./music-player";
 
-export const NowPlayingPlayerName = PlayerName;
-
-export class MusicPlayerNowPlaying {
+export class MusicPlayerNowPlaying implements MusicPlayer {
     public artist: MusicInfoHandler<string>;
     public connectStatus: MusicInfoHandler<boolean>;
     public cover: MusicInfoHandler<string>;
-    public sender: InfoSender;
     public state: MusicInfoHandler<boolean>;
     public rating: MusicInfoHandler<number>;
     public title: MusicInfoHandler<string>;
     private nowplaying: NowPlaying;
 
-    constructor(playerName: PlayerName, sender: InfoSender) {
-        this.title = new MusicInfoHandler(sender, IpcChannels.playerTrack);
-        this.artist = new MusicInfoHandler(sender, IpcChannels.playerArtist);
-        this.cover = new MusicInfoHandler(sender, IpcChannels.playerAlbumCover);
-        this.state = new MusicInfoHandler(sender, IpcChannels.playerState);
-        this.rating = new MusicInfoHandler(sender, IpcChannels.playerLikeTrack);
-        this.connectStatus = new MusicInfoHandler(sender, IpcChannels.playerConnectStatus);
+    constructor(playerName: PlayerName) {
+        this.title = new MusicInfoHandler();
+        this.artist = new MusicInfoHandler();
+        this.cover = new MusicInfoHandler();
+        this.state = new MusicInfoHandler();
+        this.rating = new MusicInfoHandler();
+        this.connectStatus = new MusicInfoHandler();
 
         this.nowplaying = new NowPlaying({
             fetchCover: true,

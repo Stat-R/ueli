@@ -1,5 +1,4 @@
 import { Executor } from "./executor";
-import { Taskbar } from "taskbar-node";
 
 export class ProcessExecutor implements Executor {
     public readonly hideAfterExecution = true;

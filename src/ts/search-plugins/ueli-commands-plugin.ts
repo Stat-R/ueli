@@ -1,4 +1,3 @@
-import * as path from "path";
 import { SearchResultItem } from "../search-result-item";
 import { SearchPlugin } from "./search-plugin";
 import { IpcChannels } from "../ipc-channels";

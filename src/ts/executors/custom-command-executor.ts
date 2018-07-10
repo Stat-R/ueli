@@ -9,7 +9,7 @@ export class CustomCommandExecutor implements Executor {
 
     public execute(executionArgument: string): void {
         executionArgument = executionArgument.replace(UeliHelpers.customCommandPrefix, "");
-        exec(executionArgument, (err: Error, stout: string, sterr: string): void => {
+        exec(executionArgument, (err: Error): void => {
             if (err) {
                 throw err;
             }

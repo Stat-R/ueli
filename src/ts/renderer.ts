@@ -1,4 +1,3 @@
-import { ColorThemeLoader } from "./color-theme-loader";
 import { ConfigFileRepository } from "./config-file-repository";
 import { defaultConfig } from "./default-config";
 import { UeliHelpers } from "./helpers/ueli-helpers";
@@ -10,7 +9,19 @@ import Vue from "vue";
 import { Injector } from "./injector";
 import * as os from "os";
 import { Hotkey } from "./hotkey";
-const colorThemeLoader = new ColorThemeLoader();
+import { WindowsIconManager } from "./icon-manager/windows-icon-manager";
+import { MacOsIconManager } from "./icon-manager/mac-os-icon-manager";
+import * as defaultCSS from "../scss/default.scss";
+import { statSync, writeFileSync, lstatSync } from "fs";
+import { PlayerName } from "nowplaying-node";
+import { MusicPlayerWebSocket } from "./music-player-websocket";
+import { MusicPlayerNowPlaying } from "./music-player-nowplaying";
+import { MusicPlayer } from "./music-player";
+import { FilePathExecutionArgumentValidator } from "./execution-argument-validators/file-path-execution-argument-validator";
+import { FilePathExecutor } from "./executors/file-path-executor";
+
+ipcRenderer.send(IpcChannels.rendererInit);
+
 const config = new ConfigFileRepository(defaultConfig, UeliHelpers.configFilePath).getConfig();
 
 document.addEventListener("keyup", handleGlobalKeyPress);
@@ -22,17 +33,16 @@ const vue = new Vue({
         artist: "",
         autoFocus: true,
         commandLineOutput: [] as string[],
-        customStyleSheet: `${homedir()}\\ueli.custom.css`,
+        customStyleSheet: `${homedir()}/ueli.custom.css`,
         isMouseMoving: false,
         liked: false,
-        mode: "",
         playerConnectStatus: false,
         screenshotFile: "",
         searchIcon: "",
         searchResults: [] as SearchResultItemViewModel[],
         showAlternativePrefix: false,
         state: false,
-        stylesheetPath: `./build/${config.colorTheme}.css`,
+        stylesheetPath: `./build/${defaultCSS && "default"}.css`,
         track: "",
         userInput: "",
     },
@@ -115,21 +125,107 @@ const vue = new Vue({
     },
 });
 
-ipcRenderer.on(IpcChannels.getSearchResponse, (event: Electron.Event, arg: SearchResultItemViewModel[]): void => {
+// Check custom css file availability
+try {
+    statSync(`${homedir()}/ueli.custom.css`);
+} catch (_e) {
+    writeFileSync(`${homedir()}/ueli.custom.css`, `
+:root {
+    --background-color: 0,0,0;
+    --input-container-background: rgba(var(--background-color), 0.5);
+    --output-container-background: rgba(var(--background-color), 0.4);
+    --text-color: rgb(255,255,255);
+    --active-item-background: rgb(237,152,47);
+    --active-item-text-color: rgb(255,255,255);
+    --mono-text-color: rgb(242,242,242);
+    --scrollbar-color: rgb(68,68,68);
+    --alternative-prefix-background: rgba(var(--background-color), 0.8);
+}
+`, "utf-8");
+}
+
+const playerType = config.musicPlayerType.toLowerCase();
+
+let musicInfoCrawler: MusicPlayer | undefined;
+
+if (playerType === "local") {
+    let player = 0;
+    const name = config.musicPlayerLocalName.toLowerCase();
+    if (name === "aimp") {
+        player = PlayerName.AIMP;
+    } else if (name === "cad") {
+        player = PlayerName.CAD;
+    } else if (name === "foobar") {
+        player = PlayerName.FOOBAR;
+    } else if (name === "itunes") {
+        player = PlayerName.ITUNES;
+    } else if (name === "mediamonkey") {
+        player = PlayerName.MEDIAMONKEY;
+    } else if (name === "spotify") {
+        player = PlayerName.SPOTIFY;
+    } else if (name === "winamp") {
+        player = PlayerName.WINAMP;
+    } else if (name === "wmp") {
+        player = PlayerName.WMP;
+    }
+    musicInfoCrawler = new MusicPlayerNowPlaying(player);
+} else if (playerType === "websocket") {
+    musicInfoCrawler = new MusicPlayerWebSocket(config.musicPlayerWebSocketPort);
+} else {
+    musicInfoCrawler = undefined;
+}
+
+if (musicInfoCrawler !== undefined) {
+    musicInfoCrawler.artist.onChange = (info) => vue.artist = info;
+    musicInfoCrawler.cover.onChange = (info) => {
+        try {
+            const url = new URL(info);
+            vue.albumCover = "url(" + url.href + ")";
+        } catch (e) {
+            // nah
+        }
+    };
+    musicInfoCrawler.state.onChange = (info) => vue.state = info;
+    musicInfoCrawler.rating.onChange = (info) => vue.liked = info >= 3;
+    musicInfoCrawler.title.onChange = (info) => vue.track = info;
+    musicInfoCrawler.connectStatus.onChange = (info) => {
+        vue.playerConnectStatus = info;
+        ipcRenderer.send(IpcChannels.playerConnectStatus, info);
+    };
+}
+
+ipcRenderer.on(IpcChannels.searchWebsocket, (_event: Electron.Event, query: string): void => {
+    const crawler = (musicInfoCrawler as MusicPlayerWebSocket);
+    if (query && crawler.sendCommand) {
+        crawler.sendCommand("search " + query);
+        let counter = 0;
+        const interval = setInterval(() => {
+            if (crawler.searchResult !== null && ++counter <= 200) {
+                ipcRenderer.send(IpcChannels.getWebsocketSearchResponse, crawler.searchResult);
+                crawler.searchResult = null;
+                clearInterval(interval);
+            }
+        }, 50);
+    } else {
+        ipcRenderer.send(IpcChannels.getWebsocketSearchResponse, []);
+    }
+});
+
+ipcRenderer.on(IpcChannels.getSearchResponse, (_event: Electron.Event, arg: SearchResultItemViewModel[]): void => {
     updateSearchResults(arg);
 });
 
 ipcRenderer.send(IpcChannels.getSearchIcon);
 
-ipcRenderer.on(IpcChannels.getSearchIconResponse, (event: Electron.Event, arg: string): void => {
-    vue.searchIcon = iconManager[arg].call();
+ipcRenderer.on(IpcChannels.getSearchIconResponse, (_event: Electron.Event, arg: string): void => {
+    vue.searchIcon = iconManager[arg as keyof WindowsIconManager & keyof MacOsIconManager].call(iconManager);
 });
 
-ipcRenderer.on(IpcChannels.autoCompleteResponse, (event: Electron.Event, arg: string): void => {
+ipcRenderer.on(IpcChannels.autoCompleteResponse, (_event: Electron.Event, arg: string): void => {
     vue.userInput = arg;
 });
 
-ipcRenderer.on(IpcChannels.commandLineOutput, (event: Electron.Event, arg: string): void => {
+ipcRenderer.on(IpcChannels.commandLineOutput, (_event: Electron.Event, arg: string): void => {
     vue.commandLineOutput.push(arg);
 });
 
@@ -144,8 +240,8 @@ function updateSearchResults(searchResults: SearchResultItemViewModel[]): void {
         if (searchResultItem.breadCrumb) {
             searchResultItem.description = searchResultItem.breadCrumb.join(config.directorySeparator);
         }
-        if (iconManager[searchResultItem.icon]) {
-            searchResultItem.icon = iconManager[searchResultItem.icon].call();
+        if (iconManager[searchResultItem.icon as keyof WindowsIconManager & keyof MacOsIconManager]) {
+            searchResultItem.icon = iconManager[searchResultItem.icon as keyof WindowsIconManager & keyof MacOsIconManager].call(iconManager);
         }
     });
 
@@ -221,7 +317,10 @@ function handleOpenFileLocation(): void {
     const activeItem = getActiveItem();
 
     if (activeItem !== undefined) {
-        ipcRenderer.send(IpcChannels.openFileLocation, activeItem.executionArgument);
+        const filePath = activeItem.executionArgument;
+        if (new FilePathExecutionArgumentValidator().isValidForExecution(filePath)) {
+            FilePathExecutor.openFileLocation(filePath);
+        }
     }
 }
 
@@ -229,7 +328,13 @@ function handleAutoCompletion(): void {
     const activeItem = getActiveItem();
 
     if (activeItem !== undefined) {
-        ipcRenderer.send(IpcChannels.autoComplete, [vue.userInput, activeItem.executionArgument]);
+        const dirSeparator = Injector.getDirectorySeparator(platform());
+        const arg = activeItem.executionArgument;
+        if (new FilePathExecutionArgumentValidator().isValidForExecution(arg)) {
+            if (!activeItem.executionArgument.endsWith(dirSeparator) && lstatSync(arg).isDirectory()) {
+                vue.userInput = `${arg}${dirSeparator}`;
+            }
+        }
     }
 }
 
@@ -287,50 +392,32 @@ function focusOnInput(): void {
     }
 }
 
-ipcRenderer.on(IpcChannels.playerTrack, (event: Electron.Event, arg: string): void => {
-    vue.track = arg;
-});
-
-ipcRenderer.on(IpcChannels.playerArtist, (event: Electron.Event, arg: string): void => {
-    vue.artist = arg;
-});
-
-ipcRenderer.on(IpcChannels.playerAlbumCover, (event: Electron.Event, arg: string): void => {
-    try {
-        const url = new URL(arg);
-        vue.albumCover = "url(" + url.href + ")";
-    } catch (e) {
-        // nah
-    }
-});
-
-ipcRenderer.on(IpcChannels.playerState, (event: Electron.Event, arg: boolean): void => {
-    vue.state = arg;
-});
-
-ipcRenderer.on(IpcChannels.playerLikeTrack, (event: Electron.Event, arg: number): void => {
-    vue.liked = arg > 3;
-});
-
-ipcRenderer.on(IpcChannels.playerConnectStatus, (event: Electron.Event, arg: boolean): void => {
-    vue.playerConnectStatus = arg;
-    ipcRenderer.send(IpcChannels.playerConnectStatus, arg);
-});
-
 function previousTrack() {
-    ipcRenderer.send(IpcChannels.playerPrevTrack);
+    if (musicInfoCrawler) {
+        musicInfoCrawler.prevTrack();
+    }
 }
 function nextTrack() {
-    ipcRenderer.send(IpcChannels.playerNextTrack);
+    if (musicInfoCrawler) {
+        musicInfoCrawler.nextTrack();
+    }
 }
 function playPauseTrack() {
-    ipcRenderer.send(IpcChannels.playerPlayPause);
+    if (musicInfoCrawler) {
+        musicInfoCrawler.playPause();
+    }
 }
 function likeTrack() {
-    ipcRenderer.send(IpcChannels.playerLikeTrack);
+    if (musicInfoCrawler) {
+        if (musicInfoCrawler.rating.value >= 3) {
+            musicInfoCrawler.setRating(0);
+        } else {
+            musicInfoCrawler.setRating(5);
+        }
+    }
 }
 
-ipcRenderer.on(IpcChannels.tookScreenshot, (event: Electron.Event, arg: string): void => {
+ipcRenderer.on(IpcChannels.tookScreenshot, (_event: Electron.Event, arg: string): void => {
     vue.screenshotFile = new URL(`${arg}?${Date.now()}`).href;
 });
 
@@ -338,12 +425,12 @@ function rotateMode(direction: -1 | 0 | 1) {
     ipcRenderer.send(IpcChannels.rotateMode, direction);
 }
 
-ipcRenderer.on(IpcChannels.moveX, (event: Electron.Event, arg: number): void => {
+ipcRenderer.on(IpcChannels.moveX, (_event: Electron.Event, arg: number): void => {
     const ele = document.querySelectorAll("#acrylic img")[0] as HTMLElement;
     ele.style.left = `${-arg}px`;
 });
 
-ipcRenderer.on(IpcChannels.moveY, (event: Electron.Event, arg: number): void => {
+ipcRenderer.on(IpcChannels.moveY, (_event: Electron.Event, arg: number): void => {
     const ele = document.querySelectorAll("#acrylic img")[0] as HTMLElement;
     ele.style.top = `${-arg}px`;
 });
@@ -361,3 +448,14 @@ function showAlternativePrefix() {
 function hideAlternativePrefix() {
     vue.showAlternativePrefix = false;
 }
+
+ipcRenderer.on(IpcChannels.mainShow, () => {
+    focusOnInput();
+});
+
+ipcRenderer.on(IpcChannels.websocketPlayURL, (_event: Event, arg: string) => {
+    const player = musicInfoCrawler as MusicPlayerWebSocket;
+    if (player && player.playURL) {
+        player.playURL(arg);
+    }
+});

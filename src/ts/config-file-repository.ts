@@ -1,6 +1,4 @@
 import * as fs from "fs";
-import * as os from "os";
-import * as path from "path";
 import { ConfigOptions } from "./config-options";
 
 export class ConfigFileRepository {
@@ -26,7 +24,7 @@ export class ConfigFileRepository {
             let needRewrite = false;
 
             // Merge
-            Object.keys(this.defaultConfig).forEach((option) => {
+            Object.keys(this.defaultConfig).forEach((option: keyof ConfigOptions) => {
                 if (mergedConfig[option] === undefined) {
                     mergedConfig[option] = this.defaultConfig[option];
                     needRewrite = true;

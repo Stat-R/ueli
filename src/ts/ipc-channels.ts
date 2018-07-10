@@ -30,6 +30,9 @@ export class IpcChannels {
     public static readonly playerNextTrack = "player-prevtrack";
     public static readonly playerPlayPause = "player-playpause";
     public static readonly playerLikeTrack = "player-liketrack";
+    public static readonly getWebsocketSearchResponse = "get-websocket-search-response";
+    public static readonly searchWebsocket = "search-websocket";
+    public static readonly websocketPlayURL = "web-socket-playurl";
 
     public static readonly tookScreenshot = "took-screenshot";
 
@@ -41,4 +44,7 @@ export class IpcChannels {
     public static readonly moveY = "move-y";
 
     public static readonly elevatedExecute = "elevate-execute";
+
+    public static readonly rendererInit = "renderer-init";
+    public static readonly mainShow = "main-show";
 }

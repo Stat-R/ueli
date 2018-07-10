@@ -1,7 +1,6 @@
 import { SearchPlugin } from "./search-plugin";
 import { SearchResultItem } from "../search-result-item";
 import { CustomCommand } from "../custom-command";
-import { StringHelpers } from "../helpers/string-helpers";
 import { UeliHelpers } from "../helpers/ueli-helpers";
 import { Icons } from "../icon-manager/icon-manager";
 

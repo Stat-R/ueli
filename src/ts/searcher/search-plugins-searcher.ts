@@ -2,12 +2,10 @@ import { SearchPluginManager } from "../search-plugin-manager";
 import { SearchResultItem } from "../search-result-item";
 import { Searcher } from "./searcher";
 import { ConfigOptions } from "../config-options";
-import { CountManager } from "../count-manager";
 
 export class SearchPluginsSearcher implements Searcher {
     public readonly needSort = true;
     private items: SearchResultItem[];
-    private countManager: CountManager;
     private config: ConfigOptions;
 
     constructor(config: ConfigOptions) {
@@ -21,7 +19,7 @@ export class SearchPluginsSearcher implements Searcher {
         this.loadSearchPluginItems(this.config);
     }
 
-    public async getSearchResult(userInput: string): Promise<SearchResultItem[]> {
+    public async getSearchResult(): Promise<SearchResultItem[]> {
         return this.items;
     }
 

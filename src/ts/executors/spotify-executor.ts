@@ -11,10 +11,10 @@ export class SpotifyExecutor implements Executor {
         this.sender = sender;
     }
 
-    public execute(executionArgument: string, alternative: boolean): void {
-        if (alternative) {
-            executionArgument = `${executionArgument}:QUEUE`;
-        }
+    public execute(executionArgument: string): void {
+        // if (alternative) {
+        //     executionArgument = `${executionArgument}:QUEUE`;
+        // }
         this.sender(executionArgument);
     }
 }

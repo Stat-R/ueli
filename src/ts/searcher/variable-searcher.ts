@@ -28,7 +28,7 @@ export class VariableSearcher implements Searcher {
         }
     }
 
-    public async getSearchResult(userInput: string): Promise<SearchResultItem[]> {
+    public async getSearchResult(): Promise<SearchResultItem[]> {
         return this.collection;
     }
 }

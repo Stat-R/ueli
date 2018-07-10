@@ -1,6 +1,5 @@
 import * as fs from "fs";
 import * as path from "path";
-import * as ulit from "util";
 
 export interface FancyFile {
     fullPath: string;
@@ -9,7 +8,7 @@ export interface FancyFile {
 
 export class FileHelpers {
     public static getFilesFromFolderRecursively(folderPath: FancyFile): Promise<FancyFile[]> {
-        return new Promise((resolve, reject) => {
+        return new Promise((resolve, _reject) => {
             let result = [] as FancyFile[];
 
             FileHelpers.getFileNamesFromFolder(folderPath.fullPath)
@@ -77,7 +76,7 @@ export class FileHelpers {
                         resolve(result);
                     }
 
-                    fancifiedPaths.forEach((f) => {
+                    fancifiedPaths.forEach((f: FancyFile) => {
                         // Check file accessibilty
                         fs.lstat(f.fullPath, (error) => {
                             if (!error) {
@@ -90,7 +89,8 @@ export class FileHelpers {
                         });
 
                     });
-                });
+                })
+                .catch(() => reject());
         });
     }
 
@@ -107,13 +107,18 @@ export class FileHelpers {
             fs.readdir(folderPath, (error, files) => {
                 if (error) {
                     reject(error);
+                    return;
                 }
-
-                files = files.filter((fileName) => !fileName.startsWith("."));
-                if (files.length === 0) {
+                if (files && files.length > 0) {
+                    files = files.filter((fileName) => !fileName.startsWith("."));
+                    if (files.length === 0) {
+                        reject();
+                        return;
+                    }
+                    resolve(files);
+                } else {
                     reject();
                 }
-                resolve(files);
             });
         });
     }

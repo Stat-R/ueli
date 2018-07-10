@@ -1,8 +1,4 @@
 import { ConfigOptions } from "./config-options";
-import { CountFileRepository } from "./count-file-repository";
-import { CountManager } from "./count-manager";
-import { UeliHelpers } from "./helpers/ueli-helpers";
-import { Injector } from "./injector";
 import { InputValidatorSearcherCombination } from "./input-validator-searcher-combination";
 import { CalculatorInputValidator } from "./input-validators/calculator-input-validator";
 import { FilePathInputValidator } from "./input-validators/file-path-input-validator";
@@ -16,7 +12,6 @@ import { SearchPluginsSearcher } from "./searcher/search-plugins-searcher";
 import { VariableSearcher } from "./searcher/variable-searcher";
 import { WebSearchSearcher } from "./searcher/web-search-searcher";
 import { WebUrlSearcher } from "./searcher/web-url-searcher";
-import { platform } from "os";
 import { CommandLineSearcher } from "./searcher/command-line-searcher";
 import { CommandLineInputValidator } from "./input-validators/command-line-input-validator";
 
@@ -34,7 +29,7 @@ export class InputValidatorSearcherCombinationManager {
                 validator: new VariableInputValidator(),
             },
             {
-                searcher: new FilePathSearcher(config.searchEngineThreshold),
+                searcher: new FilePathSearcher(config.searchEngineThreshold, config.textEditor.name),
                 validator: new FilePathInputValidator(),
             },
             {

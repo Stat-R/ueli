@@ -1,6 +1,6 @@
-import { IpcChannels } from "./ipc-channels";
-import { InfoSender, MusicInfoHandler } from "./music-info-handler";
+import { MusicInfoHandler } from "./music-info-handler";
 import * as ws from "ws";
+import { MusicPlayer } from "./music-player";
 
 export interface WebSocketSearchResult {
     name: string;
@@ -11,10 +11,9 @@ export interface WebSocketSearchResult {
 
 export type WebSocketSearcher = (query: string) => Promise<WebSocketSearchResult[]>;
 
-export class MusicPlayerWebSocket {
+export class MusicPlayerWebSocket implements MusicPlayer {
     public artist: MusicInfoHandler<string>;
     public cover: MusicInfoHandler<string>;
-    public sender: InfoSender;
     public state: MusicInfoHandler<boolean>;
     public rating: MusicInfoHandler<number>;
     public title: MusicInfoHandler<string>;
@@ -24,36 +23,36 @@ export class MusicPlayerWebSocket {
     private server: ws.Server;
     private port: number;
 
-    constructor(port: number, sender: InfoSender) {
-        this.title = new MusicInfoHandler(sender, IpcChannels.playerTrack);
-        this.artist = new MusicInfoHandler(sender, IpcChannels.playerArtist);
-        this.cover = new MusicInfoHandler(sender, IpcChannels.playerAlbumCover);
-        this.state = new MusicInfoHandler(sender, IpcChannels.playerState);
-        this.rating = new MusicInfoHandler(sender, IpcChannels.playerLikeTrack);
-        this.connectStatus = new MusicInfoHandler(sender, IpcChannels.playerConnectStatus);
+    constructor(port: number) {
+        this.title = new MusicInfoHandler();
+        this.artist = new MusicInfoHandler();
+        this.cover = new MusicInfoHandler();
+        this.state = new MusicInfoHandler();
+        this.rating = new MusicInfoHandler();
+        this.connectStatus = new MusicInfoHandler();
         this.searchResult = null;
         this.port = port;
         this.attemptConnect();
     }
 
-    public sendCommand(command: string) {
-        this.socket.send(command);
+    public nextTrack() {
+        this.socket.send("next");
     }
 
-    public search: WebSocketSearcher = (query: string) => {
-        if (query) {
-            return new Promise<WebSocketSearchResult[]>((resolve) => {
-                this.sendCommand("search " + query);
-                const interval = setInterval(() => {
-                    if (this.searchResult !== null) {
-                        resolve(this.searchResult);
-                        this.searchResult = null;
-                        clearInterval(interval);
-                    }
-                }, 50);
-            });
-        }
-        return new Promise<WebSocketSearchResult[]>((resolve) => resolve([]));
+    public prevTrack() {
+        this.socket.send("previous");
+    }
+
+    public playPause() {
+        this.socket.send("playpause");
+    }
+
+    public setRating(rating: number): void {
+        this.socket.send(`setrating ${rating}`);
+    }
+
+    public sendCommand(command: string) {
+        this.socket.send(command);
     }
 
     public playURL(url: string): void {
@@ -73,7 +72,7 @@ export class MusicPlayerWebSocket {
                 this.formatMessage(message);
             });
 
-            websocket.onclose = (event: any) => {
+            websocket.onclose = () => {
                 this.connectStatus.value = false;
             };
         });

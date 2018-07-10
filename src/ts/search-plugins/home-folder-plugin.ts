@@ -12,8 +12,11 @@ export class HomeFolderSearchPlugin implements SearchPlugin {
     public async getAllItems(): Promise<SearchResultItem[]> {
         const allPromises = await this.getFilesAndFolders()
                 .then((promises) => promises.map((promise) => promise.catch(() => null)));
-
-        return (await Promise.all(allPromises)).filter((r): r is SearchResultItem => r !== null);
+        const results = await Promise.all(allPromises);
+        if (results && results.length > 0) {
+            return results.filter((r): r is SearchResultItem => r !== null);
+        }
+        return [];
     }
 
     private async getFilesAndFolders(): Promise<Array<Promise<SearchResultItem>>> {

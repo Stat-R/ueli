@@ -1,15 +1,7 @@
-export type InfoSender = (channel: string, value: any) => void;
-
 export class MusicInfoHandler<T> {
+    public onChange: (info: T) => void;
     private cur: T;
     private old: T;
-    private sender: InfoSender;
-    private channel: string;
-
-    constructor(sender: InfoSender, ipcChannel: string) {
-        this.sender = sender;
-        this.channel = ipcChannel;
-    }
 
     get value() {
         return this.cur;
@@ -17,9 +9,9 @@ export class MusicInfoHandler<T> {
 
     set value(x) {
         this.cur = x;
-        if (this.cur !== this.old) {
+        if (this.cur !== this.old && this.onChange) {
             this.old = this.cur;
-            this.sender(this.channel, this.cur);
+            this.onChange(this.cur);
         }
     }
 }

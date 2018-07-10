@@ -10,7 +10,7 @@ export class MacOsSettingsExecutor implements Executor {
     public execute(executionArgument: string): void {
         const command = this.replacePrefix(executionArgument);
 
-        exec(command, (err, stdout, sterr): void => {
+        exec(command, (err): void => {
             if (err) {
                 throw err;
             }

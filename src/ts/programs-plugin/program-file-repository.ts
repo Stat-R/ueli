@@ -1,5 +1,5 @@
 import * as path from "path";
-import { FileHelpers, FancyFile } from "../helpers/file-helpers";
+import { FileHelpers } from "../helpers/file-helpers";
 import { Program } from "./program";
 import { ProgramRepository } from "./program-repository";
 
@@ -32,7 +32,8 @@ export class ProgramFileRepository implements ProgramRepository {
                         }
                     }
                     resolve(result);
-                });
+                })
+                .catch(() => reject());
         });
     }
 }

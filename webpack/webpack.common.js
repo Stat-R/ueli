@@ -1,5 +1,6 @@
 const path = require("path");
 const UglifyJsPlugin = require('uglifyjs-webpack-plugin');
+const PrepackWebpackPlugin = require('prepack-webpack-plugin').default;
 
 module.exports = {
   devtool: "source-map",
@@ -56,7 +57,7 @@ module.exports = {
     ]
   },
   optimization: {
-    minimize: true,
+    minimize: false,
     minimizer: [
       new UglifyJsPlugin({
         parallel: true

@@ -2,7 +2,6 @@ import { SearcherOnline } from "./searcher";
 import { SearchResultItem } from "../search-result-item";
 import * as cheerio from "cheerio";
 import * as fetch from "node-fetch";
-import * as fs from "fs";
 
 export class YoutubeSearcher implements SearcherOnline {
     public getSearchResult(userInput: string): Promise<SearchResultItem[]> {
@@ -14,11 +13,11 @@ export class YoutubeSearcher implements SearcherOnline {
                     const $ = cheerio.load(response);
 
                     const results = $(".yt-lockup-video")
-                        .filter((i, e) => !("data-ad-impressions" in e.attribs));
+                        .filter((_i, e) => !("data-ad-impressions" in e.attribs));
 
                     const items = [] as SearchResultItem[];
 
-                    $(results).each((i, el) => {
+                    $(results).each((_i, el) => {
                         const title = $(el).find("h3.yt-lockup-title a");
                         const link = title.attr("href");
                         const channel = $(el).find("div.yt-lockup-byline a");
@@ -40,7 +39,8 @@ export class YoutubeSearcher implements SearcherOnline {
                     });
 
                     resolve(items);
-                });
+                })
+                .catch(() => resolve([]));
         });
     }
 }

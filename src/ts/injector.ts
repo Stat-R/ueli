@@ -1,4 +1,3 @@
-import { IconManager } from "./icon-manager/icon-manager";
 import { MacOsIconManager } from "./icon-manager/mac-os-icon-manager";
 import { WindowsIconManager } from "./icon-manager/windows-icon-manager";
 import { OperatingSystem } from "./operating-system";
@@ -10,7 +9,6 @@ import { FileExecutionCommandBuilder } from "./builders/file-execution-command-b
 import { FileLocationExecutionCommandBuilder } from "./builders/file-location-execution-command-builder";
 import { FilePathRegex } from "./file-path-regex";
 import { OpenUrlWithDefaultBrowserCommandBuilder } from "./builders/open-url-with-default-browser-command-builder";
-import { StylesheetPath } from "./builders/stylesheet-path-builder";
 import { TrayIconPathBuilder } from "./builders/tray-icon-path-builder";
 import { OperatingSystemHelpers } from "./helpers/operating-system-helpers";
 
@@ -80,13 +78,6 @@ export class Injector {
     switch (OperatingSystemHelpers.getOperatingSystemFromString(platform)) {
       case OperatingSystem.Windows: return new Windows10SettingsSearchPlugin();
       case OperatingSystem.macOS: return new MacOsSettingsPlugin();
-    }
-  }
-
-  public static getStyleSheetPath(platform: string): string {
-    switch (OperatingSystemHelpers.getOperatingSystemFromString(platform)) {
-      case OperatingSystem.Windows: return StylesheetPath.Windows;
-      case OperatingSystem.macOS: return StylesheetPath.MacOs;
     }
   }
 }

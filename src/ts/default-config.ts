@@ -5,7 +5,6 @@ import { WebSearch } from "./web-search";
 import { homedir, platform } from "os";
 
 export const defaultConfig: ConfigOptions = {
-    alwaysShowOnPrimaryDisplay: true,
     applicationFileExtensions: OperatingSystemHelpers.getOperatingSystemFromString(platform()) === OperatingSystem.Windows
         ? [".lnk", ".appref-ms", ".url", ".exe"]
         : [".app"],
@@ -17,6 +16,8 @@ export const defaultConfig: ConfigOptions = {
         ]
         : [["/Applications", "Applications"]],
     autoStartApp: true,
+    bookmarkFromBrowser: "",
+    bookmarkProfileName: "",
     colorTheme: "dark",
     customCommands: [],
     directorySeparator: " \u23F5 ",
@@ -40,6 +41,10 @@ export const defaultConfig: ConfigOptions = {
     searchResultExecutionArgumentFontSize: 14,
     searchResultHeight: 60,
     searchResultNameFontSize: 20,
+    textEditor: {
+        name: "Code",
+        path: "C:/Program Files/Microsoft VS Code/Code.exe",
+    },
     userInputFontSize: 36,
     userInputHeight: 80,
     webSearches: [
@@ -80,5 +85,5 @@ export const defaultConfig: ConfigOptions = {
             url: "https://www.youtube.com/results?search_query=",
         },
     ] as WebSearch[],
-    windowWith: 860,
+    windowWidth: 860,
 };
