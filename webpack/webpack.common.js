@@ -1,11 +1,11 @@
 const path = require("path");
 const UglifyJsPlugin = require('uglifyjs-webpack-plugin');
-const PrepackWebpackPlugin = require('prepack-webpack-plugin').default;
 
 module.exports = {
   devtool: "source-map",
   node: false,
   mode: "development",
+  stats: "minimal",
   output: {
     path: path.resolve(__dirname, "../build")
   },
@@ -57,7 +57,7 @@ module.exports = {
     ]
   },
   optimization: {
-    minimize: false,
+    minimize: true,
     minimizer: [
       new UglifyJsPlugin({
         parallel: true

@@ -11,12 +11,14 @@
             "src/cpp/native-util.cpp",
           ],
           "include_dirs": [
-            "node_modules\\nan",
+            "node_modules/nan",
             "<(module_root_dir)",
+            "<(module_root_dir)/src/cpp/EverythingSDK/",
           ],
-          "libraries": ["Mincore.lib", "gdiplus.lib","Shlwapi.lib","Dwmapi.lib", "Version.lib"],
+          "libraries": [],
           "defines": [
-            "NTDDI_VERSION=NTDDI_WIN7"
+            "NTDDI_VERSION=NTDDI_WIN7",
+            "UNICODE"
           ],
         }],
       ],

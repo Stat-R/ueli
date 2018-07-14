@@ -21,7 +21,8 @@
             "ban-keywords",
             "check-format",
             "allow-leading-underscore"
-        ]
+        ],
+        "no-var-requires": false,
     },
     "rulesDirectory": []
 }

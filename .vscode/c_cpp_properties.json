@@ -5,9 +5,29 @@
             "includePath": [
                 "${workspaceFolder}/src/cpp",
                 "${workspaceFolder}/node_modules/nbind/include",
-                "{env.CompilerPath}"
+                "{env.CompilerPath}",
+                "C:/Users/xuank/.node-gyp/10.4.0/include/node",
+                "C:/Users/xuank/.node-gyp/10.4.0/src",
+                "C:/Users/xuank/.node-gyp/10.4.0/deps/openssl/config",
+                "C:/Users/xuank/.node-gyp/10.4.0/deps/openssl/openssl/include",
+                "C:/Users/xuank/.node-gyp/10.4.0/deps/uv/include",
+                "C:/Users/xuank/.node-gyp/10.4.0/deps/zlib",
+                "C:/Users/xuank/.node-gyp/10.4.0/deps/v8/include",
+                "${workspaceFolder}/node_modules/nan",
+                "${workspaceFolder}/node_modules/nbind/include"
             ],
             "defines": [
+                "NODE_GYP_MODULE_NAME=nbind",
+                "USING_UV_SHARED=1",
+                "USING_V8_SHARED=1",
+                "V8_DEPRECATION_WARNINGS=1",
+                "WIN32",
+                "_CRT_SECURE_NO_DEPRECATE",
+                "_CRT_NONSTDC_NO_DEPRECATE",
+                "_HAS_EXCEPTIONS=0",
+                "NTDDI_VERSION=NTDDI_WIN7",
+                "BUILDING_NODE_EXTENSION",
+                "UNICODE"
             ],
             "intelliSenseMode": "msvc-x64",
             "compilerPath": "E:/VisualStudio/VC/Tools/MSVC/14.14.26428/bin/Hostx64/x64/cl.exe",
