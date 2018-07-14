@@ -8,5 +8,6 @@
     --mono-text-color: rgb(242,242,242);
     --scrollbar-color: rgb(68,68,68);
     --alternative-prefix-background: rgba(var(--background-color), 0.8);
+    --noise-amount: 0.3;
 }
 @import "app";
