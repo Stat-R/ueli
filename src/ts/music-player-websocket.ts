@@ -36,23 +36,25 @@ export class MusicPlayerWebSocket implements MusicPlayer {
     }
 
     public nextTrack() {
-        this.socket.send("next");
+        this.sendCommand("next");
     }
 
     public prevTrack() {
-        this.socket.send("previous");
+        this.sendCommand("previous");
     }
 
     public playPause() {
-        this.socket.send("playpause");
+        this.sendCommand("playpause");
     }
 
     public setRating(rating: number): void {
-        this.socket.send(`setrating ${rating}`);
+        this.sendCommand(`setrating ${rating}`);
     }
 
     public sendCommand(command: string) {
-        this.socket.send(command);
+        if (this.socket && this.socket.readyState === 1) {
+            this.socket.send(command);
+        }
     }
 
     public playURL(url: string): void {

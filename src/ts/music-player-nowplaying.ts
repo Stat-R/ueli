@@ -11,7 +11,7 @@ export class MusicPlayerNowPlaying implements MusicPlayer {
     public title: MusicInfoHandler<string>;
     private nowplaying: NowPlaying;
 
-    constructor(playerName: PlayerName) {
+    constructor(name: string) {
         this.title = new MusicInfoHandler();
         this.artist = new MusicInfoHandler();
         this.cover = new MusicInfoHandler();
@@ -19,9 +19,28 @@ export class MusicPlayerNowPlaying implements MusicPlayer {
         this.rating = new MusicInfoHandler();
         this.connectStatus = new MusicInfoHandler();
 
+        let player: PlayerName = PlayerName.AIMP;
+        if (name === "aimp") {
+            player = PlayerName.AIMP;
+        } else if (name === "cad") {
+            player = PlayerName.CAD;
+        } else if (name === "foobar") {
+            player = PlayerName.FOOBAR;
+        } else if (name === "itunes") {
+            player = PlayerName.ITUNES;
+        } else if (name === "mediamonkey") {
+            player = PlayerName.MEDIAMONKEY;
+        } else if (name === "spotify") {
+            player = PlayerName.SPOTIFY;
+        } else if (name === "winamp") {
+            player = PlayerName.WINAMP;
+        } else if (name === "wmp") {
+            player = PlayerName.WMP;
+        }
+
         this.nowplaying = new NowPlaying({
             fetchCover: true,
-            player: playerName,
+            player,
         }) as NowPlaying;
 
         if (this.nowplaying !== undefined) {
@@ -40,22 +59,30 @@ export class MusicPlayerNowPlaying implements MusicPlayer {
     }
 
     public nextTrack() {
-        this.nowplaying.next();
+        if (this.nowplaying) {
+            this.nowplaying.next();
+        }
     }
 
     public prevTrack() {
-        this.nowplaying.previous();
+        if (this.nowplaying) {
+            this.nowplaying.previous();
+        }
     }
 
     public playPause() {
-        if (this.nowplaying.getState()) {
-            this.nowplaying.pause();
-        } else {
-            this.nowplaying.play();
+        if (this.nowplaying) {
+            if (this.nowplaying.getState()) {
+                this.nowplaying.pause();
+            } else {
+                this.nowplaying.play();
+            }
         }
     }
 
     public setRating(rating: number): void {
-        this.nowplaying.setRating(rating);
+        if (this.nowplaying) {
+            this.nowplaying.setRating(rating);
+        }
     }
 }
