@@ -2,14 +2,13 @@ import { StringHelpers } from "./helpers/string-helpers";
 import { SearchResultItem } from "./search-result-item";
 import { SearchEngine } from "./search-engine";
 import { Icons } from "./icon-manager/icon-manager";
-import { App } from "../../../taskbar-node/lib-types";
+import { Taskbar, App } from "taskbar-node";
 
 export class ProcessInputValidationService {
-    private getAllApps: () => App[];
+    public taskbar: Taskbar | undefined;
     private sortThreshold: number;
 
-    constructor(getAllApps: () => App[], sortThreshold: number) {
-        this.getAllApps = getAllApps;
+    constructor(sortThreshold: number) {
         this.sortThreshold = sortThreshold;
     }
 
@@ -17,15 +16,19 @@ export class ProcessInputValidationService {
         let result = [] as SearchResultItem[];
         userInput = StringHelpers.trimAndReplaceMultipleWhiteSpacesWithOne(userInput);
 
-        const allApps = this.getAllApps();
+        if (!this.taskbar) {
+            return [];
+        }
 
-        result = allApps.map((app) => ({
+        const allApps = this.taskbar.getAllApps();
+
+        result = allApps.map((app: App) => ({
             breadCrumb: [app.getProgramDescription()],
             executionArgument: `HWND:${app.getHWND()}`,
             icon: Icons.PROGRAM,
-            name: app.getWindowTitle() || app.getProgramDescription(),
+            name: app.getWindowTitle() || app.getProcessName(),
             tags: [app.getProcessName(), app.getWindowClass()],
-        }) as SearchResultItem);
+        } as SearchResultItem));
 
         if (!userInput) {
             return result;
