@@ -40,8 +40,7 @@ export class IpcChannels {
 
     public static readonly rotateMode = "rotate-mode";
     public static readonly switchMode = "switch-mode";
-    public static readonly moveX = "move-x";
-    public static readonly moveY = "move-y";
+    public static readonly onMove = "on-move";
 
     public static readonly elevatedExecute = "elevate-execute";
 

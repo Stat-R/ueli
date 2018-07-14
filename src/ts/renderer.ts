@@ -1,24 +1,23 @@
 import { ConfigFileRepository } from "./config-file-repository";
 import { defaultConfig } from "./default-config";
-import { UeliHelpers } from "./helpers/ueli-helpers";
-import { IpcChannels } from "./ipc-channels";
-import { SearchResultItemViewModel } from "./search-result-item-view-model";
-import { ipcRenderer } from "electron";
-import { homedir, platform } from "os";
-import Vue from "vue";
-import { Injector } from "./injector";
-import * as os from "os";
-import { Hotkey } from "./hotkey";
-import { WindowsIconManager } from "./icon-manager/windows-icon-manager";
-import { MacOsIconManager } from "./icon-manager/mac-os-icon-manager";
-import * as defaultCSS from "../scss/default.scss";
-import { statSync, writeFileSync, lstatSync } from "fs";
-import { PlayerName } from "nowplaying-node";
-import { MusicPlayerWebSocket } from "./music-player-websocket";
-import { MusicPlayerNowPlaying } from "./music-player-nowplaying";
-import { MusicPlayer } from "./music-player";
 import { FilePathExecutionArgumentValidator } from "./execution-argument-validators/file-path-execution-argument-validator";
 import { FilePathExecutor } from "./executors/file-path-executor";
+import { UeliHelpers } from "./helpers/ueli-helpers";
+import { Hotkey } from "./hotkey";
+import { MacOsIconManager } from "./icon-manager/mac-os-icon-manager";
+import { WindowsIconManager } from "./icon-manager/windows-icon-manager";
+import { Injector } from "./injector";
+import { IpcChannels } from "./ipc-channels";
+import { MusicPlayer } from "./music-player";
+import { MusicPlayerNowPlaying } from "./music-player-nowplaying";
+import { MusicPlayerWebSocket } from "./music-player-websocket";
+import { SearchResultItemViewModel } from "./search-result-item-view-model";
+import * as defaultCSS from "../scss/default.scss";
+import { ipcRenderer } from "electron";
+import { lstatSync, statSync, writeFileSync } from "fs";
+import * as os from "os";
+import { homedir, platform } from "os";
+import Vue from "vue";
 
 ipcRenderer.send(IpcChannels.rendererInit);
 
@@ -29,21 +28,23 @@ document.addEventListener("keydown", handleHoldingKey);
 
 const vue = new Vue({
     data: {
-        albumCover: "",
-        artist: "",
         autoFocus: true,
         commandLineOutput: [] as string[],
         customStyleSheet: `${homedir()}/ueli.custom.css`,
         isMouseMoving: false,
-        liked: false,
-        playerConnectStatus: false,
+        musicPlayer: {
+            albumCover: "",
+            artist: "",
+            liked: false,
+            playerConnectStatus: false,
+            state: false,
+            track: "",
+        },
         screenshotFile: "",
         searchIcon: "",
         searchResults: [] as SearchResultItemViewModel[],
         showAlternativePrefix: false,
-        state: false,
         stylesheetPath: `./build/${defaultCSS && "default"}.css`,
-        track: "",
         userInput: "",
     },
     el: "#vue-root",
@@ -62,7 +63,7 @@ const vue = new Vue({
             } else if (event.key === "ArrowDown" || event.key === "ArrowUp") {
                 event.preventDefault();
                 vue.isMouseMoving = false;
-                const direction = event.key === "ArrowDown" ? "next" : "prev";
+                const direction = event.key === "ArrowDown" ? 1 : -1;
                 changeActiveItem(direction);
             } else if (event.key === "Tab") {
                 event.preventDefault();
@@ -88,7 +89,7 @@ const vue = new Vue({
         likeTrack,
         nextTrack,
         outputContainerHeight: (): string => {
-            return `height: calc(100vh - ${config.userInputHeight}px);`;
+            return `height: calc(100vh - ${config.userInputHeight}px - 40px);`;
         },
         playPauseTrack,
         previousTrack,
@@ -129,8 +130,7 @@ const vue = new Vue({
 try {
     statSync(`${homedir()}/ueli.custom.css`);
 } catch (_e) {
-    writeFileSync(`${homedir()}/ueli.custom.css`, `
-:root {
+    writeFileSync(`${homedir()}/ueli.custom.css`, `:root {
     --background-color: 0,0,0;
     --input-container-background: rgba(var(--background-color), 0.5);
     --output-container-background: rgba(var(--background-color), 0.4);
@@ -140,8 +140,8 @@ try {
     --mono-text-color: rgb(242,242,242);
     --scrollbar-color: rgb(68,68,68);
     --alternative-prefix-background: rgba(var(--background-color), 0.8);
-}
-`, "utf-8");
+    --noise-amount: 0.3;
+}`, "utf-8");
 }
 
 const playerType = config.musicPlayerType.toLowerCase();
@@ -149,26 +149,7 @@ const playerType = config.musicPlayerType.toLowerCase();
 let musicInfoCrawler: MusicPlayer | undefined;
 
 if (playerType === "local") {
-    let player = 0;
-    const name = config.musicPlayerLocalName.toLowerCase();
-    if (name === "aimp") {
-        player = PlayerName.AIMP;
-    } else if (name === "cad") {
-        player = PlayerName.CAD;
-    } else if (name === "foobar") {
-        player = PlayerName.FOOBAR;
-    } else if (name === "itunes") {
-        player = PlayerName.ITUNES;
-    } else if (name === "mediamonkey") {
-        player = PlayerName.MEDIAMONKEY;
-    } else if (name === "spotify") {
-        player = PlayerName.SPOTIFY;
-    } else if (name === "winamp") {
-        player = PlayerName.WINAMP;
-    } else if (name === "wmp") {
-        player = PlayerName.WMP;
-    }
-    musicInfoCrawler = new MusicPlayerNowPlaying(player);
+    musicInfoCrawler = new MusicPlayerNowPlaying(config.musicPlayerLocalName.toLowerCase());
 } else if (playerType === "websocket") {
     musicInfoCrawler = new MusicPlayerWebSocket(config.musicPlayerWebSocketPort);
 } else {
@@ -176,62 +157,33 @@ if (playerType === "local") {
 }
 
 if (musicInfoCrawler !== undefined) {
-    musicInfoCrawler.artist.onChange = (info) => vue.artist = info;
+    musicInfoCrawler.artist.onChange = (info) => vue.musicPlayer.artist = info;
     musicInfoCrawler.cover.onChange = (info) => {
         try {
             const url = new URL(info);
-            vue.albumCover = "url(" + url.href + ")";
+            vue.musicPlayer.albumCover = "url(" + url.href + ")";
         } catch (e) {
             // nah
         }
     };
-    musicInfoCrawler.state.onChange = (info) => vue.state = info;
-    musicInfoCrawler.rating.onChange = (info) => vue.liked = info >= 3;
-    musicInfoCrawler.title.onChange = (info) => vue.track = info;
+    musicInfoCrawler.state.onChange = (info) => vue.musicPlayer.state = info;
+    musicInfoCrawler.rating.onChange = (info) => vue.musicPlayer.liked = info >= 3;
+    musicInfoCrawler.title.onChange = (info) => vue.musicPlayer.track = info;
     musicInfoCrawler.connectStatus.onChange = (info) => {
-        vue.playerConnectStatus = info;
+        vue.musicPlayer.playerConnectStatus = info;
         ipcRenderer.send(IpcChannels.playerConnectStatus, info);
     };
 }
 
-ipcRenderer.on(IpcChannels.searchWebsocket, (_event: Electron.Event, query: string): void => {
-    const crawler = (musicInfoCrawler as MusicPlayerWebSocket);
-    if (query && crawler.sendCommand) {
-        crawler.sendCommand("search " + query);
-        let counter = 0;
-        const interval = setInterval(() => {
-            if (crawler.searchResult !== null && ++counter <= 200) {
-                ipcRenderer.send(IpcChannels.getWebsocketSearchResponse, crawler.searchResult);
-                crawler.searchResult = null;
-                clearInterval(interval);
-            }
-        }, 50);
-    } else {
-        ipcRenderer.send(IpcChannels.getWebsocketSearchResponse, []);
-    }
-});
-
-ipcRenderer.on(IpcChannels.getSearchResponse, (_event: Electron.Event, arg: SearchResultItemViewModel[]): void => {
-    updateSearchResults(arg);
-});
-
 ipcRenderer.send(IpcChannels.getSearchIcon);
 
-ipcRenderer.on(IpcChannels.getSearchIconResponse, (_event: Electron.Event, arg: string): void => {
-    vue.searchIcon = iconManager[arg as keyof WindowsIconManager & keyof MacOsIconManager].call(iconManager);
-});
-
-ipcRenderer.on(IpcChannels.autoCompleteResponse, (_event: Electron.Event, arg: string): void => {
-    vue.userInput = arg;
-});
-
-ipcRenderer.on(IpcChannels.commandLineOutput, (_event: Electron.Event, arg: string): void => {
-    vue.commandLineOutput.push(arg);
-});
-
-ipcRenderer.on(IpcChannels.resetUserInput, resetUserInput);
-
 const iconManager = Injector.getIconManager(os.platform());
+const coverContainerElement = document.getElementById("cover-container");
+
+const nextHotKey = new Hotkey(config.musicPlayerHotkeyNext);
+const backHotKey = new Hotkey(config.musicPlayerHotkeyBack);
+const playPauseHotKey = new Hotkey(config.musicPlayerHotkeyPlayPause);
+const likeHotKey = new Hotkey(config.musicPlayerHotkeyLike);
 
 function updateSearchResults(searchResults: SearchResultItemViewModel[]): void {
     searchResults.forEach((searchResultItem: SearchResultItemViewModel, index: number): void => {
@@ -256,7 +208,7 @@ function updateSearchResults(searchResults: SearchResultItemViewModel[]): void {
     }
 }
 
-function changeActiveItem(direction: string): void {
+function changeActiveItem(direction: -1 | 1): void {
     if (vue.searchResults.length === 0) {
         vue.isMouseMoving = false;
         return;
@@ -266,9 +218,8 @@ function changeActiveItem(direction: string): void {
 
     for (let i = 0; i < vue.searchResults.length; i++) {
         if (vue.searchResults[i].active) {
-            nextIndex = direction === "next"
-                ? i + 1
-                : i - 1;
+            nextIndex = i + direction;
+            break;
         }
     }
 
@@ -351,11 +302,6 @@ function resetUserInput(): void {
     vue.userInput = "";
 }
 
-const nextHotKey = new Hotkey(config.musicPlayerHotkeyNext);
-const backHotKey = new Hotkey(config.musicPlayerHotkeyBack);
-const playPauseHotKey = new Hotkey(config.musicPlayerHotkeyPlayPause);
-const likeHotKey = new Hotkey(config.musicPlayerHotkeyLike);
-
 function handleGlobalKeyPress(event: KeyboardEvent): void {
     const key = event.key.toLowerCase();
     if (event.keyCode === 18) {
@@ -371,11 +317,10 @@ function handleGlobalKeyPress(event: KeyboardEvent): void {
         playPauseTrack();
     } else if (likeHotKey.validateWithEvent(event)) {
         likeTrack();
-        const cover = document.getElementById("cover-container");
-        if (cover) {
-            cover.classList.add("hover");
+        if (coverContainerElement) {
+            coverContainerElement.classList.add("hover");
             setTimeout(() => {
-                cover.classList.remove("hover");
+                coverContainerElement.classList.remove("hover");
             }, 2000);
         }
     } else if (key === "tab" && event.ctrlKey && event.shiftKey) {
@@ -417,23 +362,9 @@ function likeTrack() {
     }
 }
 
-ipcRenderer.on(IpcChannels.tookScreenshot, (_event: Electron.Event, arg: string): void => {
-    vue.screenshotFile = new URL(`${arg}?${Date.now()}`).href;
-});
-
 function rotateMode(direction: -1 | 0 | 1) {
     ipcRenderer.send(IpcChannels.rotateMode, direction);
 }
-
-ipcRenderer.on(IpcChannels.moveX, (_event: Electron.Event, arg: number): void => {
-    const ele = document.querySelectorAll("#acrylic img")[0] as HTMLElement;
-    ele.style.left = `${-arg}px`;
-});
-
-ipcRenderer.on(IpcChannels.moveY, (_event: Electron.Event, arg: number): void => {
-    const ele = document.querySelectorAll("#acrylic img")[0] as HTMLElement;
-    ele.style.top = `${-arg}px`;
-});
 
 function handleHoldingKey(event: KeyboardEvent) {
     if (event.altKey) {
@@ -449,8 +380,35 @@ function hideAlternativePrefix() {
     vue.showAlternativePrefix = false;
 }
 
+ipcRenderer.on(IpcChannels.getSearchIconResponse, (_event: Electron.Event, arg: string): void => {
+    vue.searchIcon = iconManager[arg as keyof WindowsIconManager & keyof MacOsIconManager].call(iconManager);
+});
+
+ipcRenderer.on(IpcChannels.autoCompleteResponse, (_event: Electron.Event, arg: string): void => {
+    vue.userInput = arg;
+});
+
+ipcRenderer.on(IpcChannels.commandLineOutput, (_event: Electron.Event, arg: string): void => {
+    vue.commandLineOutput.push(arg);
+});
+
+ipcRenderer.on(IpcChannels.resetUserInput, resetUserInput);
+
+ipcRenderer.on(IpcChannels.tookScreenshot, (_event: Electron.Event, arg: string): void => {
+    vue.screenshotFile = new URL(`${arg}?${Date.now()}`).href;
+});
+
+ipcRenderer.on(IpcChannels.onMove, (_event: Electron.Event, arg: [number, number]): void => {
+    const ele = document.querySelectorAll("#acrylic img")[0] as HTMLElement;
+    ele.style.left = `${-arg[0] - 20}px`;
+    ele.style.top = `${-arg[1] - 20}px`;
+});
+
 ipcRenderer.on(IpcChannels.mainShow, () => {
     focusOnInput();
+    if (coverContainerElement) {
+        coverContainerElement.classList.remove("hover");
+    }
 });
 
 ipcRenderer.on(IpcChannels.websocketPlayURL, (_event: Event, arg: string) => {
@@ -458,4 +416,25 @@ ipcRenderer.on(IpcChannels.websocketPlayURL, (_event: Event, arg: string) => {
     if (player && player.playURL) {
         player.playURL(arg);
     }
+});
+
+ipcRenderer.on(IpcChannels.searchWebsocket, (_event: Electron.Event, query: string): void => {
+    const crawler = (musicInfoCrawler as MusicPlayerWebSocket);
+    if (query && crawler.sendCommand) {
+        crawler.sendCommand("search " + query);
+        let counter = 0;
+        const interval = setInterval(() => {
+            if (crawler.searchResult !== null && ++counter <= 200) {
+                ipcRenderer.send(IpcChannels.getWebsocketSearchResponse, crawler.searchResult);
+                crawler.searchResult = null;
+                clearInterval(interval);
+            }
+        }, 50);
+    } else {
+        ipcRenderer.send(IpcChannels.getWebsocketSearchResponse, []);
+    }
+});
+
+ipcRenderer.on(IpcChannels.getSearchResponse, (_event: Electron.Event, arg: SearchResultItemViewModel[]): void => {
+    updateSearchResults(arg);
 });

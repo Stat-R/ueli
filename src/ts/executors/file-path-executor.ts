@@ -2,7 +2,7 @@ import * as childProcess from "child_process";
 import { Injector } from "../injector";
 import { Executor } from "./executor";
 import { platform } from "os";
-import { ipcMain } from "electron";
+import { ipcMain, dialog } from "electron";
 import { IpcChannels } from "../ipc-channels";
 import { statSync } from "fs";
 
@@ -15,7 +15,7 @@ export class FilePathExecutor implements Executor {
     private static handleExecution(command: string): void {
         childProcess.exec(command, (err) => {
             if (err) {
-                throw err;
+                dialog.showErrorBox("Execute file/folde path", err.stack || err.message);
             }
         });
     }
