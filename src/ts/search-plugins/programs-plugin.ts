@@ -18,7 +18,6 @@ export class ProgramsPlugin implements SearchPlugin {
                 executionArgument: program.executionArgument,
                 icon: Icons.PROGRAM,
                 name: program.name,
-                tags: [],
             } as SearchResultItem));
     }
 }

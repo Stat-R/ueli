@@ -40,7 +40,6 @@ export class HomeFolderSearchPlugin implements SearchPlugin {
                                 ? Icons.FOLDER
                                 : Icons.FILE,
                             name: path.basename(f.fullPath),
-                            tags: [],
                         } as SearchResultItem);
                     });
                 })));

@@ -637,7 +637,6 @@ export class Windows10SettingsSearchPlugin implements SearchPlugin {
                 executionArgument: `${WindowsSettingsHelpers.windowsSettingsPrefix}rundll32 user32.dll,LockWorkStation`,
                 icon: IconsWindowsSetting.LOCKCOMPUTER,
                 name: "Lock computer",
-                tags: [],
             },
             {
                 executionArgument: `${WindowsSettingsHelpers.windowsSettingsPrefix}winver`,

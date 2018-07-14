@@ -33,7 +33,6 @@ export class UeliCommandsSearchPlugin implements SearchPlugin {
             executionArgument: i.executionArgument,
             icon: Icons.UELI,
             name: i.name,
-            tags: [],
         } as SearchResultItem));
     }
 }

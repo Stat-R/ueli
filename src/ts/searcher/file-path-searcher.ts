@@ -11,10 +11,12 @@ export class FilePathSearcher implements Searcher {
     public readonly needSort = false;
     private sortThreshold: number;
     private textEditorName: string;
+    private executableExtension: string[];
 
-    constructor(sortThreshold: number, textEditorName: string) {
+    constructor(sortThreshold: number, executableExtension: string[], textEditorName: string) {
         this.sortThreshold = sortThreshold;
         this.textEditorName = textEditorName;
+        this.executableExtension = executableExtension.map((ext) => ext.toLowerCase());
     }
 
     public async getSearchResult(userInput: string): Promise<SearchResultItem[]> {
@@ -66,16 +68,19 @@ export class FilePathSearcher implements Searcher {
                     executionArgument: file.fullPath,
                     icon: Icons.FOLDER,
                     name: path.basename(file.fullPath),
-                    tags: [],
                 } as SearchResultItem);
             } else {
+                let prefix = "";
+                const fileExt = path.extname(file.fullPath).toLowerCase();
+                if (this.executableExtension.indexOf(fileExt) !== -1) {
+                    prefix = "Run As Administrator";
+                }
                 result.push({
-                    alternativePrefix: "Run As Administrator",
+                    alternativePrefix: prefix,
                     breadCrumb: file.breadCrumb,
                     executionArgument: file.fullPath,
                     icon: Icons.FILE,
                     name: path.basename(file.fullPath),
-                    tags: [],
                 } as SearchResultItem);
             }
         }
@@ -99,7 +104,6 @@ export class FilePathSearcher implements Searcher {
                 executionArgument: filePath,
                 icon: Icons.FILE,
                 name: path.basename(filePath),
-                tags: [],
             } as SearchResultItem,
         ];
     }

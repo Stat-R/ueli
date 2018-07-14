@@ -26,7 +26,6 @@ export class WebSearchSearcher implements Searcher {
                         executionArgument: this.createExecutionUrl(userInput, webSearch),
                         icon: webSearch.icon,
                         name: searchResultItemName,
-                        tags: [],
                     } as SearchResultItem,
                 ];
             }

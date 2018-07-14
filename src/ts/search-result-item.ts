@@ -5,5 +5,5 @@ export class SearchResultItem {
     public executionArgument: string;
     public breadCrumb?: string[];
     public icon: string;
-    public tags: string[];
+    public tags?: string[];
 }

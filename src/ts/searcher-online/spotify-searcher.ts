@@ -18,7 +18,6 @@ export class SpotifySearcher implements SearcherOnline {
                         executionArgument: item.url,
                         icon: `<image xlink:href="${item.image}" width="32" height="32"/>`,
                         name: item.name,
-                        tags: [],
                     } as SearchResultItem)));
                 })
                 .catch(() => resolve([]));

@@ -13,7 +13,6 @@ export class CalculatorSearcher implements Searcher {
                 executionArgument: "",
                 icon: Icons.CALCULATOR,
                 name: `= ${result}`,
-                tags: [],
             } as SearchResultItem,
         ];
     }

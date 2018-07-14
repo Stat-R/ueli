@@ -37,7 +37,6 @@ export class SearchEngine {
                 executionArgument: fuseResult.item.executionArgument,
                 icon: fuseResult.item.icon,
                 name: fuseResult.item.name,
-                tags: fuseResult.item.tags,
             } as SearchResultItem;
         });
 

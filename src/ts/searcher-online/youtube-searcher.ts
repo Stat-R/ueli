@@ -29,12 +29,13 @@ export class YoutubeSearcher implements SearcherOnline {
                             thumbLink = thumbEl.attr("data-thumb");
                         }
 
+                        thumbLink = thumbLink.substring(0, thumbLink.indexOf(".jpg") + 4);
+
                         items.push({
                             breadCrumb: [channel.text()],
                             executionArgument: `https://youtube.com${link}`,
-                            icon: `<image xlink:href="${thumbLink}" width="32" height="32"/>`,
+                            icon: `<image href="${thumbLink}" x="0" y="0" width="32" height="32"/>`,
                             name: title.text(),
-                            tags: [],
                         } as SearchResultItem);
                     });
 

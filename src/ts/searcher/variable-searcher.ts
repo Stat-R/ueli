@@ -22,7 +22,6 @@ export class VariableSearcher implements Searcher {
                     executionArgument: value,
                     icon: Icons.VARIABLE,
                     name: `${varName}`,
-                    tags: [],
                 });
             }
         }

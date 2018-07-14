@@ -23,7 +23,6 @@ export class CustomCommandsPlugin implements SearchPlugin {
                 executionArgument: `${UeliHelpers.customCommandPrefix}${customCommand.executionArgument}`,
                 icon: customCommand.icon || Icons.CUSTOMSHORTCUT,
                 name: customCommand.name,
-                tags: [],
             });
         }
 
