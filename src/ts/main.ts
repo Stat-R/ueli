@@ -1,18 +1,29 @@
 import { ConfigFileRepository } from "./config-file-repository";
+import { ConfigOptions } from "./config-options";
 import { CountFileRepository } from "./count-file-repository";
 import { CountManager } from "./count-manager";
 import { defaultConfig } from "./default-config";
+import { EverythingInputValidationService } from "./everything-validation-service";
 import { ExecutionArgumentValidatorExecutorCombinationManager } from "./execution-argument-validator-executor-combination-manager";
 import { ExecutionService } from "./execution-service";
 import { UeliHelpers } from "./helpers/ueli-helpers";
 import { WindowHelpers } from "./helpers/winow-helpers";
+import { Icons, IconsWindowsSetting } from "./icon-manager/icon-manager";
 import { Injector } from "./injector";
 import { InputValidationService } from "./input-validation-service";
 import { InputValidatorSearcherCombinationManager } from "./input-validator-searcher-combination-manager";
 import { IpcChannels } from "./ipc-channels";
+import { WebSocketSearchResult } from "./music-player-websocket";
+import { OnlineInputValidationService } from "./online-input-validation-service";
+import { OnlineInputValidatorSearcherCombinationManager } from "./online-input-validator-searcher-combination-manager";
+import { ProcessInputValidationService } from "./process-input-validation-service";
+import { SearchResultItem } from "./search-result-item";
+import { NativeUtil } from "../../native-util/native-util";
+import * as childProcess from "child_process";
 import * as isInDevelopment from "electron-is-dev";
-import { platform, homedir } from "os";
+import { homedir, platform } from "os";
 import * as path from "path";
+import { Taskbar } from "taskbar-node";
 import {
     app,
     BrowserWindow,
@@ -22,29 +33,17 @@ import {
     Menu,
     Tray,
 } from "electron";
-import * as childProcess from "child_process";
-import { OnlineInputValidationService } from "./online-input-validation-service";
-import { OnlineInputValidatorSearcherCombinationManager } from "./online-input-validator-searcher-combination-manager";
-import { SearchResultItem } from "./search-result-item";
-import { ConfigOptions } from "./config-options";
-import { ProcessInputValidationService } from "./process-input-validation-service";
-import { Icons } from "./icon-manager/icon-manager";
-import { Taskbar } from "taskbar-node";
-import { App } from "../../../taskbar-node/lib-types";
-import { NativeUtil } from "../../native-util/native-util";
-import { WebSocketSearchResult } from "./music-player-websocket";
 
 export interface GlobalUELI {
     config: ConfigOptions;
     webSocketCommandSender: (command: string) => void;
-    bringAppToTop: (hwnd: number) => void;
-    getAllApps: () => App[];
 }
 
 export enum InputMode {
     RUN,
     ONLINE,
     WINDOWS,
+    EVERYTHING,
     TOTALMODE, // Number of modes
 }
 
@@ -52,16 +51,14 @@ let mainWindow: BrowserWindow;
 let trayIcon: Tray;
 const delayWhenHidingCommandlineOutputInMs = 25;
 
-let nativeUtil: NativeUtil;
+let nativeUtil = new NativeUtil();
 
 let config = new ConfigFileRepository(defaultConfig, UeliHelpers.configFilePath).getConfig();
 
-const taskbar = new Taskbar();
+let taskbar: Taskbar | undefined;
 
 const globalUELI: GlobalUELI = {
-    bringAppToTop: taskbar.bringAppToTop.bind(taskbar),
     config,
-    getAllApps: taskbar.getAllApps.bind(taskbar),
     webSocketCommandSender: (url: string) => {
         mainWindow.webContents.send(IpcChannels.websocketPlayURL, url);
     },
@@ -85,7 +82,9 @@ let inputValidationService = new InputValidationService(
 const onlineInputValidationService = new OnlineInputValidationService(
     new OnlineInputValidatorSearcherCombinationManager(webSocketSearch).getCombinations());
 
-const processInputValidationService = new ProcessInputValidationService(globalUELI.getAllApps, config.searchEngineThreshold);
+const processInputValidationService = new ProcessInputValidationService(config.searchEngineThreshold);
+
+const everythingInputValidationService  = new EverythingInputValidationService(nativeUtil, config.everythingMaxResults, config.everythingFilterFilePath);
 
 let executionService = new ExecutionService(
     new ExecutionArgumentValidatorExecutorCombinationManager(globalUELI).getCombinations(),
@@ -104,13 +103,14 @@ function createMainWindow(): void {
         center: true,
         frame: false,
         height: WindowHelpers.calculateMaxWindowHeight(config.userInputHeight, config.maxSearchResultCount, config.searchResultHeight),
+        maximizable: false,
         show: false,
         skipTaskbar: true,
         transparent: true,
         width: config.windowWidth,
     });
 
-    nativeUtil = new NativeUtil(mainWindow.getNativeWindowHandle().readUInt8(0));
+    nativeUtil.storeBrowserHwnd(mainWindow.getNativeWindowHandle().readUInt8(0));
 
     mainWindow.loadURL(`file://${__dirname}/../main.html`);
     mainWindow.setSize(config.windowWidth, config.userInputHeight);
@@ -120,7 +120,7 @@ function createMainWindow(): void {
 
     mainWindow.on("move", moveWindow);
     mainWindow.on("show", () => {
-        setTimeout(() => mainWindow.setOpacity(1), 100);
+        setTimeout(() => mainWindow.setOpacity(1), 50);
     });
     moveWindow();
 
@@ -132,10 +132,9 @@ function createMainWindow(): void {
     }
 }
 
-function moveWindow() {
+function moveWindow(): void {
     const newPos = mainWindow.getPosition();
-    mainWindow.webContents.send(IpcChannels.moveX, newPos[0]);
-    mainWindow.webContents.send(IpcChannels.moveY, newPos[1]);
+    mainWindow.webContents.send(IpcChannels.onMove, newPos);
 }
 
 function createTrayIcon(): void {
@@ -154,15 +153,26 @@ function createTrayIcon(): void {
 }
 
 function registerGlobalShortCuts(): void {
-    globalShortcut.register(config.hotkeyRunMode, () => {
-        changeModeWithHotkey(InputMode.RUN);
-    });
-    globalShortcut.register(config.hotkeyWindowsMode, () => {
-        changeModeWithHotkey(InputMode.WINDOWS);
-    });
-    globalShortcut.register(config.hotkeyOnlineMode, () => {
-        changeModeWithHotkey(InputMode.ONLINE);
-    });
+    if (config.hotkeyRunMode) {
+        globalShortcut.register(config.hotkeyRunMode, () => {
+            changeModeWithHotkey(InputMode.RUN);
+        });
+    }
+    if (config.hotkeyWindowsMode) {
+        globalShortcut.register(config.hotkeyWindowsMode, () => {
+            changeModeWithHotkey(InputMode.WINDOWS);
+        });
+    }
+    if (config.hotkeyOnlineMode) {
+        globalShortcut.register(config.hotkeyOnlineMode, () => {
+            changeModeWithHotkey(InputMode.ONLINE);
+        });
+    }
+    if (config.hotkeyEverythingMode) {
+        globalShortcut.register(config.hotkeyEverythingMode, () => {
+            changeModeWithHotkey(InputMode.EVERYTHING);
+        });
+    }
 }
 
 function changeModeWithHotkey(mode: number) {
@@ -241,6 +251,11 @@ function hideMainWindow(focusLastActiveWindow = false): void {
     mainWindow.webContents.send(IpcChannels.resetCommandlineOutput);
     mainWindow.webContents.send(IpcChannels.resetUserInput);
 
+    if (taskbar !== undefined) {
+        taskbar.destruct();
+        taskbar = undefined;
+    }
+
     setTimeout(() => {
         if (mainWindow !== null && mainWindow !== undefined && mainWindow.isVisible()) {
             updateWindowSize(0);
@@ -274,6 +289,9 @@ function resetWindowToDefaultSizeAndPosition(): void {
 }
 
 function quitApp(): void {
+    if (taskbar !== undefined) {
+        taskbar.destruct();
+    }
     trayIcon.destroy();
     globalShortcut.unregisterAll();
     app.quit();
@@ -319,9 +337,23 @@ function getSearch(userInput: string): void {
             break;
         }
         case InputMode.WINDOWS: {
+            if (taskbar === undefined) {
+                taskbar = new Taskbar();
+            }
+            processInputValidationService.taskbar = taskbar;
             result = processInputValidationService.getSearchResult(userInput);
             updateWindowSize(result.length);
             mainWindow.webContents.send(IpcChannels.getSearchResponse, result);
+            break;
+        }
+        case InputMode.EVERYTHING: {
+            setLoadingIcon();
+            everythingInputValidationService.getSearchResult(userInput)
+                .then((allResults) => {
+                    updateWindowSize(allResults.length);
+                    mainWindow.webContents.send(IpcChannels.getSearchResponse, allResults);
+                    setSearchIcon();
+                });
             break;
         }
     }
@@ -363,6 +395,9 @@ function setSearchIcon(): void {
             break;
         case InputMode.WINDOWS:
             mainWindow.webContents.send(IpcChannels.getSearchIconResponse, Icons.WINDOWS);
+            break;
+        case InputMode.EVERYTHING:
+            mainWindow.webContents.send(IpcChannels.getSearchIconResponse, IconsWindowsSetting.DATAUSAGE);
             break;
     }
 }

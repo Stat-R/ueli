@@ -58,7 +58,7 @@ export class ExecutionArgumentValidatorExecutorCombinationManager {
                 validator: new SpotifyExecutionArgumentValidator(),
             },
             {
-                executor: new ProcessExecutor(globalUELI.bringAppToTop),
+                executor: new ProcessExecutor(),
                 validator: new ProcessExecutionArgumentValidator(),
             },
         ];

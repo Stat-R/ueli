@@ -7,9 +7,11 @@ export interface ConfigOptions {
     autoStartApp: boolean;
     bookmarkFromBrowser: string;
     bookmarkProfileName: string;
-    colorTheme: string;
     customCommands: CustomCommand[];
     directorySeparator: string;
+    everythingMaxResults: number;
+    everythingFilterFilePath: string;
+    hotkeyEverythingMode: string;
     hotkeyOnlineMode: string;
     hotkeyRunMode: string;
     hotkeyWindowsMode: string;
@@ -24,7 +26,6 @@ export interface ConfigOptions {
     musicPlayerHotkeyBack: string;
     musicPlayerHotkeyLike: string;
     musicPlayerHotkeyMute: string;
-    rescanInterval: number;
     searchEngineThreshold: number;
     searchOperatingSystemSettings: boolean;
     searchResultExecutionArgumentFontSize: number;
