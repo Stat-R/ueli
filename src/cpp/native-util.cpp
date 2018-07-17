@@ -4,9 +4,11 @@
 #include <locale>
 #include <codecvt>
 #include "EverythingSDK/everything_ipc.h"
+#include <Shlobj.h>
+#include <wrl/client.h>
 
 #define COPYDATA_QUERYCOMPLETE 0
-#define GETDATA(data) (wchar_t *)(data+sizeof(DWORD))
+#define GETDATA(data) (wchar_t *)(data + sizeof(DWORD))
 using convert_typeX = std::codecvt_utf8<wchar_t>;
 std::wstring StrToWStr(const std::string &str);
 std::string WStrToStr(const std::wstring &wstr);
@@ -14,6 +16,8 @@ LRESULT CALLBACK window_proc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
 
 std::vector<std::vector<std::string>> ipcResultList;
 bool ipcGotResult = false;
+
+bool ShowContextMenu(HWND hwnd, std::string &path);
 
 class NativeUtil
 {
@@ -23,19 +27,20 @@ class NativeUtil
         CreateEverythingIPCWindow();
     }
 
-    ~NativeUtil(){
+    ~NativeUtil()
+    {
         DestroyWindow(ipcHwnd);
     };
 
-    void storeBrowserHwnd(UINT hwnd)
+    void storeBrowserHwnd()
     {
-        browserHwnd = hwnd;
+        browserHwnd = FindWindow(NULL, L"ueli");
     }
 
     void storeForegroundHwnd()
     {
         const HWND hwnd = GetForegroundWindow();
-        if ((UINT)hwnd != browserHwnd)
+        if (hwnd != browserHwnd)
         {
             lastActiveHwnd = hwnd;
         }
@@ -51,7 +56,7 @@ class NativeUtil
     {
         LPCWSTR appName = StrToWStr(arg).c_str();
         SHELLEXECUTEINFO Shex;
-        ZeroMemory(&Shex, sizeof(SHELLEXECUTEINFO));
+        SecureZeroMemory(&Shex, sizeof(SHELLEXECUTEINFO));
         Shex.cbSize = sizeof(SHELLEXECUTEINFO);
         Shex.fMask = SEE_MASK_FLAG_NO_UI | SEE_MASK_NOCLOSEPROCESS;
         Shex.lpVerb = L"runas";
@@ -69,6 +74,60 @@ class NativeUtil
         }
 
         _ASSERTE(Shex.hProcess);
+    }
+
+    void activateContextMenu(std::string filePath)
+    {
+        LPCWSTR pathW = StrToWStr(filePath).c_str();
+        POINT pos;
+        GetCursorPos(&pos);
+
+        ITEMIDLIST *id = nullptr;
+        HRESULT result = SHParseDisplayName(pathW, nullptr, &id, 0, nullptr);
+        if (!SUCCEEDED(result) || !id)
+        {
+            return;
+        }
+
+        Microsoft::WRL::ComPtr<IShellFolder> iFolder = nullptr;
+        LPCITEMIDLIST idChild = nullptr;
+        result = SHBindToParent(id, IID_IShellFolder, (void **)&iFolder, &idChild);
+        if (!SUCCEEDED(result) || !iFolder)
+        {
+            return;
+        }
+
+        Microsoft::WRL::ComPtr<IContextMenu> iMenu = nullptr;
+        result = iFolder->GetUIObjectOf(browserHwnd, 1, (const ITEMIDLIST **)&idChild, IID_IContextMenu, nullptr, (void **)&iMenu);
+        if (!SUCCEEDED(result) || !iFolder)
+        {
+            return;
+        }
+
+        HMENU hMenu = CreatePopupMenu();
+        if (!hMenu)
+        {
+            return;
+        }
+
+        if (SUCCEEDED(iMenu->QueryContextMenu(hMenu, 0, 1, 0x7FFF, CMF_NORMAL)))
+        {
+            int iCmd = TrackPopupMenuEx(hMenu, TPM_RETURNCMD, pos.x, pos.y, browserHwnd, NULL);
+            if (iCmd > 0)
+            {
+                CMINVOKECOMMANDINFOEX info = {0};
+                info.cbSize = sizeof(info);
+                info.fMask = CMIC_MASK_UNICODE | CMIC_MASK_ASYNCOK;
+                info.hwnd = browserHwnd;
+                info.lpVerb = MAKEINTRESOURCEA(iCmd - 1);
+                info.lpVerbW = MAKEINTRESOURCEW(iCmd - 1);
+                info.nShow = SW_SHOWNORMAL;
+
+                iMenu->InvokeCommand((LPCMINVOKECOMMANDINFO)&info);
+            }
+        }
+
+        DestroyMenu(hMenu);
     }
 
     void queryEverything(std::string queryInput, int maxResults, int matchOptions)
@@ -173,7 +232,7 @@ class NativeUtil
             return;
         }
     }
-    UINT browserHwnd;
+    HWND browserHwnd;
     HWND lastActiveHwnd;
     HWND ipcHwnd;
 };
@@ -187,6 +246,7 @@ NBIND_CLASS(NativeUtil)
     method(elevateExecute);
     method(queryEverything);
     method(resolveEverything);
+    method(activateContextMenu);
 }
 
 std::wstring StrToWStr(const std::string &str)

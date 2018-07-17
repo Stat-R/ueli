@@ -12,8 +12,8 @@ export class NativeUtil {
         this.instance = new lib.NativeUtil();
     }
 
-    public storeBrowserHwnd(hwnd: number): void {
-        this.instance.storeBrowserHwnd(hwnd);
+    public storeBrowserHwnd(): void {
+        this.instance.storeBrowserHwnd();
     }
 
     public storeForegroundHwnd(): void {
@@ -34,5 +34,9 @@ export class NativeUtil {
 
     public resolveEverything(): Array<string[]> {
         return this.instance.resolveEverything();
+    }
+
+    public activateContextMenu(filePath: string): void {
+        this.instance.activateContextMenu(filePath);
     }
 }

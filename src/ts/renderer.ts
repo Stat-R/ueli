@@ -86,6 +86,12 @@ const vue = new Vue({
                 vue.searchResults[index].active = true;
             }
         },
+        handleRightClick: (index: number): void => {
+            const arg = vue.searchResults[index].executionArgument;
+            if (new FilePathExecutionArgumentValidator().isValidForExecution(arg)) {
+                ipcRenderer.send(IpcChannels.activateContextMenu, arg);
+            }
+        },
         likeTrack,
         nextTrack,
         outputContainerHeight: (): string => {

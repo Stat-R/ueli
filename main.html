@@ -90,7 +90,8 @@
                         :style="searchResultHeight()"
                         v-for="(searchResult, searchIndex) in searchResults"
                         v-on:mouseover="handleMouseOver(searchIndex)"
-                        v-on:click="handleClick(searchIndex)"
+                        v-on:click="handleClick"
+                        @contextmenu.prevent="handleRightClick(searchIndex)"
                     >
                         <div class="search-result-icon">
                             <div

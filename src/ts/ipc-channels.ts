@@ -46,4 +46,6 @@ export class IpcChannels {
 
     public static readonly rendererInit = "renderer-init";
     public static readonly mainShow = "main-show";
+
+    public static readonly activateContextMenu = "activate-context-menu";
 }

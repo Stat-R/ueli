@@ -6,8 +6,8 @@ export class NativeUtil extends NBindBase {
 	/** NativeUtil(); */
 	constructor();
 
-	/** void storeBrowserHwnd(uint32_t); */
-	storeBrowserHwnd(p0: number): void;
+	/** void storeBrowserHwnd(); */
+	storeBrowserHwnd(): void;
 
 	/** void storeForegroundHwnd(); */
 	storeForegroundHwnd(): void;
@@ -23,4 +23,7 @@ export class NativeUtil extends NBindBase {
 
 	/** std::vector<std::vector<std::string>> resolveEverything(); */
 	resolveEverything(): (string[])[];
+
+	/** void activateContextMenu(std::string); */
+	activateContextMenu(p0: string): void;
 }

@@ -110,7 +110,7 @@ function createMainWindow(): void {
         width: config.windowWidth,
     });
 
-    nativeUtil.storeBrowserHwnd(mainWindow.getNativeWindowHandle().readUInt8(0));
+    nativeUtil.storeBrowserHwnd();
 
     mainWindow.loadURL(`file://${__dirname}/../main.html`);
     mainWindow.setSize(config.windowWidth, config.userInputHeight);
@@ -428,4 +428,8 @@ ipcMain.on(IpcChannels.elevatedExecute, (arg: string): void => {
 ipcMain.on(IpcChannels.rendererInit, (): void => {
     moveWindow();
     mainWindow.webContents.send(IpcChannels.tookScreenshot, screenshotFile);
+});
+
+ipcMain.on(IpcChannels.activateContextMenu, (_event: Event, arg: string) => {
+    nativeUtil.activateContextMenu(arg);
 });
