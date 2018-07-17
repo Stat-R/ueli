@@ -5,11 +5,12 @@ Original repo: https://github.com/oliverschwendener/ueli
 This repo contains personal modification, only supports Windows 10. Some requirements are needed to run correctly:
 
 - ImageMagick (https://www.imagemagick.org/script/download.php) for blurry background.
-- Spiceitfy (https://github.com/khanhas/spicetify) for Spotify search.
+- Spiceitfy (https://github.com/khanhas/spicetify) for Spotify search and control player.
+- Everything (https://www.voidtools.com/) to search all files in all drives in split of second.
 
-![musicplayer](https://i.imgur.com/eIvCyih.png)
+![musicplayer](https://i.imgur.com/QS0hbaP.png)
 
-![ueli screenshot](https://i.imgur.com/hFRUMHv.png)
+![ueli screenshot](https://i.imgur.com/puqLKub.png)
 
 ## Table of contents
 
@@ -53,13 +54,11 @@ All settings are stored in `~/ueli.config.json`. You can modify this file to cha
 * `applicationFileExtensions` Array of string - Represents the file extensions which are used to find applications in the specified folders
 * `applicationFolders` Array of string - Represents the folders which are scanned for applications
 * `autoStartApp` Boolean - If the app should be started automatically when you log in
-* `colorTheme` String - Defines the [color theme](#color-themes).
 * `customCommands` Arraay of customCommand objects - A list of [custom commands](#custom-commands)
     * `executionArgument` String - Represents the execution argument for the custom command
     * `name` String - Represents the displayed name for the custom command
     * `icon` String - (Optional) Represents the svg icon for the custom command. If no icon is set default icon is used.
 * `maxSearchResultCount` Number - Maximum number of search results to be displayed
-* `rescanInterval` Number - Interval in seconds to rescan the application folders
 * `searchOperatingSystemSettings` Boolean - If operting system settings and commands should appear in the search results
 * `searchResultExecutionArgumentFontSize` Number - Represents the font size of the search result execution argument in pixels
 * `searchResultHeight` Number - Represents the height of a search result box in pixels
@@ -72,17 +71,9 @@ All settings are stored in `~/ueli.config.json`. You can modify this file to cha
         * `name` String - Represents the name of the web search engine
         * `prefix` String - Represents the prefix for your web search engine. For example if the prefix is `g` you can type in `g?{your search term}` to search
         * `url` String - Represents the url for the search engine to which the search term is appended to. For example `https://google.com/search?q=`
-* `windowWith`: Number - Represents the width of the main window in pixels
+* `windowWidth`: Number - Represents the width of the main window in pixels
 
-### Color themes
-
-![Color themes](/img/doc/color-themes.png)
-
-* `atom-one-dark`
-* `dark`
-* `dark-mono`
-* `light`
-* `light-mono`
+## Development
 
 ### Requirements
 
