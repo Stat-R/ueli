@@ -1,7 +1,7 @@
 {
   "name": "ueli",
   "productName": "ueli",
-  "version": "4.2.9",
+  "version": "4.3.0",
   "author": {
     "name": "Oliver Schwendener",
     "email": "oliver.schwendener@hotmail.com",
@@ -12,19 +12,20 @@
   "scripts": {
     "build": "webpack --progress",
     "build:watch": "webpack -w --progress",
-    "start": "./node_modules/.bin/electron . --enable-logging",
-    "lint": "./node_modules/.bin/tslint src/**/*.ts",
-    "test:unit": "./node_modules/.bin/jest --silent ./src/tests/unit",
-    "test:integration": "./node_modules/.bin/jest --silent ./src/tests/integration",
-    "test:all": "./node_modules/.bin/jest --silent ./src/tests",
-    "coverage": "./node_modules/.bin/coveralls < ./coverage/lcov.info",
-    "package:publish": "./node_modules/.bin/electron-builder --config electron-builder-config.yml --publish onTag",
-    "package": "./node_modules/.bin/electron-builder --dir --config electron-builder-config.yml --publish never",
+    "build:publish": "webpack --progress -p",
+    "start": "electron . --enable-logging",
+    "lint": "tslint src/**/*.ts",
+    "test:unit": "jest --silent ./src/tests/unit",
+    "test:integration": "jest --silent ./src/tests/integration",
+    "test:all": "jest --silent ./src/tests",
+    "coverage": "coveralls < ./coverage/lcov.info",
+    "package:publish": "yarn clean & yarn build:publish && electron-builder --config electron-builder-config.yml --publish onTag",
+    "package": "electron-builder --dir --config electron-builder-config.yml --publish never",
     "link:taskbar": "mklink /J \"D:/ueli/node_modules/taskbar-node\" \"D:/taskbar-node/\"",
     "clean": "rmdir \"./build\" \"./dist\" /S /Q",
     "build:util": "node-gyp configure build && ndts . > \"./native-util/lib-types.d.ts\"",
     "el": "electron-rebuild",
-    "elf": "rmdir \"./build\" /S /Q && yarn el && yarn build && yarn noti && yarn start",
+    "elf": "rmdir \"./build\" /S /Q & yarn el && yarn build && yarn noti && yarn start",
     "noti": "C:/SnoreToast.exe -t \"Build Done\" -m \"VSCode\""
   },
   "husky": {
