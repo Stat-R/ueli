@@ -1,19 +1,19 @@
 import { ConfigOptions } from "./config-options";
 import { InputValidatorSearcherCombination } from "./input-validator-searcher-combination";
 import { CalculatorInputValidator } from "./input-validators/calculator-input-validator";
+import { CommandLineInputValidator } from "./input-validators/command-line-input-validator";
 import { FilePathInputValidator } from "./input-validators/file-path-input-validator";
+import { PrefixInputValidator } from "./input-validators/prefix-input-validator";
 import { SearchPluginsInputValidator } from "./input-validators/search-plugins-input-validator";
-import { VariableInputValidator } from "./input-validators/variable-input-validator";
 import { WebSearchInputValidator } from "./input-validators/web-search-input-validator";
 import { WebUrlInputValidator } from "./input-validators/web-url-input-validator";
 import { CalculatorSearcher } from "./searcher/calculator-searcher";
+import { CommandLineSearcher } from "./searcher/command-line-searcher";
 import { FilePathSearcher } from "./searcher/file-path-searcher";
 import { SearchPluginsSearcher } from "./searcher/search-plugins-searcher";
 import { VariableSearcher } from "./searcher/variable-searcher";
 import { WebSearchSearcher } from "./searcher/web-search-searcher";
 import { WebUrlSearcher } from "./searcher/web-url-searcher";
-import { CommandLineSearcher } from "./searcher/command-line-searcher";
-import { CommandLineInputValidator } from "./input-validators/command-line-input-validator";
 
 export class InputValidatorSearcherCombinationManager {
     private combinations: InputValidatorSearcherCombination[];
@@ -26,7 +26,7 @@ export class InputValidatorSearcherCombinationManager {
             },
             {
                 searcher: new VariableSearcher(),
-                validator: new VariableInputValidator(),
+                validator: new PrefixInputValidator("$"),
             },
             {
                 searcher: new FilePathSearcher(config.searchEngineThreshold, config.applicationFileExtensions, config.textEditor.name),

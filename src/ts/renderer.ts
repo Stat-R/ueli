@@ -1,5 +1,6 @@
 import { ConfigFileRepository } from "./config-file-repository";
 import { defaultConfig } from "./default-config";
+import { CommandLineExecutionArgumentValidator } from "./execution-argument-validators/command-line-execution-argument-validator";
 import { FilePathExecutionArgumentValidator } from "./execution-argument-validators/file-path-execution-argument-validator";
 import { FilePathExecutor } from "./executors/file-path-executor";
 import { UeliHelpers } from "./helpers/ueli-helpers";
@@ -181,7 +182,7 @@ if (musicInfoCrawler !== undefined) {
     };
 }
 
-ipcRenderer.send(IpcChannels.getSearchIcon);
+ipcRenderer.send(IpcChannels.setModeIcon);
 
 const iconManager = Injector.getIconManager(os.platform());
 const coverContainerElement = document.getElementById("cover-container");
@@ -291,6 +292,8 @@ function handleAutoCompletion(): void {
             if (!activeItem.executionArgument.endsWith(dirSeparator) && lstatSync(arg).isDirectory()) {
                 vue.userInput = `${arg}${dirSeparator}`;
             }
+        } else if (new CommandLineExecutionArgumentValidator().isValidForExecution(arg)) {
+            vue.userInput = `${arg} `;
         }
     }
 }

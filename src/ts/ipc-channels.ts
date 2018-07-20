@@ -7,7 +7,7 @@ export class IpcChannels {
     public static readonly getSearch = "get-search";
     public static readonly getSearchResponse = "get-search-response";
     public static readonly openFileLocation = "open-file-location";
-    public static readonly getSearchIcon = "get-search-icon";
+    public static readonly setModeIcon = "set-mode-icon";
     public static readonly getSearchIconResponse = "get-search-icon-response";
     public static readonly autoComplete = "auto-complete";
     public static readonly autoCompleteResponse = "auto-complete-response";
@@ -48,4 +48,6 @@ export class IpcChannels {
     public static readonly mainShow = "main-show";
 
     public static readonly activateContextMenu = "activate-context-menu";
+
+    public static readonly setLoadingIcon = "set-loading-icon";
 }

@@ -1,6 +1,6 @@
-import * as Fuse from "fuse.js";
-import { SearchResultItem } from "./search-result-item";
 import { CountManager } from "./count-manager";
+import { SearchResultItem } from "./search-result-item";
+import * as Fuse from "fuse.js";
 
 export class SearchEngine {
     private threshold: number;
@@ -23,22 +23,16 @@ export class SearchEngine {
             threshold: this.threshold,
         });
 
-        let fuseResults = fuse.search(searchTerm) as any[];
+        let fuseResults = fuse.search<{
+            item: SearchResultItem;
+            score: number;
+        }>(searchTerm);
 
         if (this.countManager !== undefined) {
             fuseResults = this.sortItemsByCount(fuseResults, this.countManager);
         }
 
-        const sortedResult = fuseResults.map((fuseResult): SearchResultItem => {
-            return {
-                alternativeExecutionArgument: fuseResult.item.alternativeExecutionArgument,
-                alternativePrefix: fuseResult.item.alternativePrefix,
-                breadCrumb: fuseResult.item.breadCrumb,
-                executionArgument: fuseResult.item.executionArgument,
-                icon: fuseResult.item.icon,
-                name: fuseResult.item.name,
-            } as SearchResultItem;
-        });
+        const sortedResult = fuseResults.map((fuseResult) => fuseResult.item);
 
         return sortedResult;
     }

@@ -37,6 +37,7 @@ import {
 export interface GlobalUELI {
     config: ConfigOptions;
     webSocketCommandSender: (command: string) => void;
+    webSocketSearch: (input: string) => Promise<WebSocketSearchResult[]>;
 }
 
 export enum InputMode {
@@ -62,10 +63,12 @@ const globalUELI: GlobalUELI = {
     webSocketCommandSender: (url: string) => {
         mainWindow.webContents.send(IpcChannels.websocketPlayURL, url);
     },
+    webSocketSearch,
 };
 
 let currentInputMode = 0;
 let currentInputString = "";
+let onlineInputTimeout: NodeJS.Timer | undefined;
 
 function webSocketSearch(userInput: string): Promise<WebSocketSearchResult[]> {
     return new Promise((resolve) => {
@@ -79,12 +82,12 @@ function webSocketSearch(userInput: string): Promise<WebSocketSearchResult[]> {
 let inputValidationService = new InputValidationService(
     new InputValidatorSearcherCombinationManager(config).getCombinations(), config.searchEngineThreshold);
 
-const onlineInputValidationService = new OnlineInputValidationService(
-    new OnlineInputValidatorSearcherCombinationManager(webSocketSearch).getCombinations());
+let onlineInputValidationService = new OnlineInputValidationService(
+    new OnlineInputValidatorSearcherCombinationManager(globalUELI).getCombinations());
 
-const processInputValidationService = new ProcessInputValidationService(config.searchEngineThreshold);
+let processInputValidationService = new ProcessInputValidationService(config.searchEngineThreshold);
 
-const everythingInputValidationService  = new EverythingInputValidationService(nativeUtil, config.everythingMaxResults, config.everythingFilterFilePath);
+let everythingInputValidationService = new EverythingInputValidationService(nativeUtil, config.everythingMaxResults, config.everythingFilterFilePath);
 
 let executionService = new ExecutionService(
     new ExecutionArgumentValidatorExecutorCombinationManager(globalUELI).getCombinations(),
@@ -251,10 +254,7 @@ function hideMainWindow(focusLastActiveWindow = false): void {
     mainWindow.webContents.send(IpcChannels.resetCommandlineOutput);
     mainWindow.webContents.send(IpcChannels.resetUserInput);
 
-    if (taskbar !== undefined) {
-        taskbar.destruct();
-        taskbar = undefined;
-    }
+    destructTaskbar()
 
     setTimeout(() => {
         if (mainWindow !== null && mainWindow !== undefined && mainWindow.isVisible()) {
@@ -278,6 +278,15 @@ function reloadApp(): void {
     inputValidationService = new InputValidationService(
         new InputValidatorSearcherCombinationManager(config).getCombinations(), config.searchEngineThreshold);
 
+    onlineInputValidationService = new OnlineInputValidationService(
+        new OnlineInputValidatorSearcherCombinationManager(globalUELI).getCombinations());
+
+    processInputValidationService = new ProcessInputValidationService(config.searchEngineThreshold);
+
+    everythingInputValidationService = new EverythingInputValidationService(nativeUtil, config.everythingMaxResults, config.everythingFilterFilePath);
+
+    destructTaskbar();
+
     mainWindow.reload();
     resetWindowToDefaultSizeAndPosition();
 }
@@ -289,19 +298,11 @@ function resetWindowToDefaultSizeAndPosition(): void {
 }
 
 function quitApp(): void {
-    if (taskbar !== undefined) {
-        taskbar.destruct();
-    }
+    destructTaskbar();
     trayIcon.destroy();
     globalShortcut.unregisterAll();
     app.quit();
 }
-
-ipcMain.on(IpcChannels.hideWindow, (_event: Event, arg: boolean) => hideMainWindow(arg));
-ipcMain.on(IpcChannels.ueliReload, reloadApp);
-ipcMain.on(IpcChannels.ueliExit, quitApp);
-
-ipcMain.on(IpcChannels.getSearch, (_event: Event, arg: string) => getSearch(arg));
 
 function getSearch(userInput: string): void {
     currentInputString = userInput;
@@ -321,8 +322,12 @@ function getSearch(userInput: string): void {
             break;
         }
         case InputMode.ONLINE: {
-            setLoadingIcon();
-            Promise.all(onlineInputValidationService.getSearchResult(userInput))
+            if (onlineInputTimeout !== undefined) {
+                clearTimeout(onlineInputTimeout);
+            }
+            onlineInputTimeout = setTimeout(() => {
+                setLoadingIcon();
+                Promise.all(onlineInputValidationService.getSearchResult(userInput))
                 .then((allResults) => {
                     allResults.forEach((field) => {
                         result.push(...field);
@@ -332,8 +337,10 @@ function getSearch(userInput: string): void {
                     if (result.length > 0) {
                         mainWindow.webContents.send(IpcChannels.getSearchResponse, result);
                     }
-                    setSearchIcon();
+                    setModeIcon();
+                    onlineInputTimeout = undefined;
                 });
+            }, 500);
             break;
         }
         case InputMode.WINDOWS: {
@@ -352,18 +359,33 @@ function getSearch(userInput: string): void {
                 .then((allResults) => {
                     updateWindowSize(allResults.length);
                     mainWindow.webContents.send(IpcChannels.getSearchResponse, allResults);
-                    setSearchIcon();
+                    setModeIcon();
                 });
             break;
         }
     }
 }
 
+function destructTaskbar() {
+    if (taskbar !== undefined) {
+        taskbar.destruct();
+        taskbar = undefined;
+    }
+}
+
+ipcMain.on(IpcChannels.hideWindow, (_event: Event, arg: boolean) => hideMainWindow(arg));
+ipcMain.on(IpcChannels.ueliReload, reloadApp);
+ipcMain.on(IpcChannels.ueliExit, quitApp);
+
+ipcMain.on(IpcChannels.getSearch, (_event: Event, arg: string) => getSearch(arg));
+
 ipcMain.on(IpcChannels.execute, (_event: Event, arg: string, alternative: boolean): void => {
     executionService.execute(arg, alternative);
 });
 
-ipcMain.on(IpcChannels.getSearchIcon, setSearchIcon);
+ipcMain.on(IpcChannels.setModeIcon, setModeIcon);
+
+ipcMain.on(IpcChannels.setLoadingIcon, setLoadingIcon);
 
 ipcMain.on(IpcChannels.commandLineExecution, (arg: string): void => {
     mainWindow.webContents.send(IpcChannels.commandLineOutput, arg);
@@ -385,7 +407,7 @@ function setLoadingIcon(): void {
     mainWindow.webContents.send(IpcChannels.getSearchIconResponse, Icons.LOADING);
 }
 
-function setSearchIcon(): void {
+function setModeIcon(): void {
     switch (currentInputMode) {
         case InputMode.RUN:
             mainWindow.webContents.send(IpcChannels.getSearchIconResponse, Icons.SEARCH);
@@ -408,7 +430,7 @@ function switchMode(mode: number, userInput = "") {
     mainWindow.webContents.send(IpcChannels.getSearchResponse, []);
     currentInputMode = mode;
     getSearch(userInput);
-    setSearchIcon();
+    setModeIcon();
 }
 
 ipcMain.on(IpcChannels.rotateMode, (_event: Event, arg: number, currentInput: string): void => {
