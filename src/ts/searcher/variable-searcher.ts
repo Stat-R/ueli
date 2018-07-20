@@ -1,11 +1,13 @@
 import { Searcher } from "./searcher";
-import { FilePathInputValidator } from "../input-validators/file-path-input-validator";
-import { SearchResultItem } from "../search-result-item";
 import { DirectorySeparator } from "../directory-separator";
 import { Icons } from "../icon-manager/icon-manager";
+import { FilePathInputValidator } from "../input-validators/file-path-input-validator";
+import { SearchResultItem } from "../search-result-item";
 
 export class VariableSearcher implements Searcher {
     public readonly needSort = true;
+    public readonly shouldIsolate = true;
+
     private collection: SearchResultItem[];
 
     constructor() {

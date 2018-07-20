@@ -1,10 +1,12 @@
-import { SearchPluginManager } from "../search-plugin-manager";
-import { SearchResultItem } from "../search-result-item";
 import { Searcher } from "./searcher";
 import { ConfigOptions } from "../config-options";
+import { SearchPluginManager } from "../search-plugin-manager";
+import { SearchResultItem } from "../search-result-item";
 
 export class SearchPluginsSearcher implements Searcher {
     public readonly needSort = true;
+    public readonly shouldIsolate = false;
+
     private items: SearchResultItem[];
     private config: ConfigOptions;
 

@@ -1,10 +1,10 @@
+import { CountFileRepository } from "./count-file-repository";
+import { CountManager } from "./count-manager";
 import { StringHelpers } from "./helpers/string-helpers";
-import { SearchResultItem } from "./search-result-item";
+import { UeliHelpers } from "./helpers/ueli-helpers";
 import { InputValidatorSearcherCombination } from "./input-validator-searcher-combination";
 import { SearchEngine } from "./search-engine";
-import { CountManager } from "./count-manager";
-import { UeliHelpers } from "./helpers/ueli-helpers";
-import { CountFileRepository } from "./count-file-repository";
+import { SearchResultItem } from "./search-result-item";
 
 export class InputValidationService {
     private combs: InputValidatorSearcherCombination[];
@@ -26,7 +26,7 @@ export class InputValidationService {
 
         for (const combination of this.combs) {
             if (combination.validator.isValidForSearchResults(userInput)) {
-                result.push(new Promise((resolve) => {
+                const getResults = new Promise<SearchResultItem[]>((resolve) => {
                     combination.searcher.getSearchResult(userInput)
                         .then((collection) => {
                             if (combination.searcher.needSort) {
@@ -35,7 +35,15 @@ export class InputValidationService {
                             resolve(collection);
                         })
                         .catch(() => resolve([]));
-                }));
+                });
+
+                if (combination.searcher.shouldIsolate) {
+                    result.length = 0;
+                    result.push(getResults);
+                    break;
+                } else {
+                    result.push(getResults);
+                }
             }
         }
 

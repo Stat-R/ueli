@@ -7,6 +7,8 @@ import { exec, execSync } from "child_process";
 
 export class CommandLineSearcher implements Searcher {
     public readonly needSort = false;
+    public readonly shouldIsolate = true;
+
     private programList: string[];
     private cachedParameters: { [key: string]: string[] };
 

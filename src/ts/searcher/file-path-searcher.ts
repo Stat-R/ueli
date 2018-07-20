@@ -1,14 +1,16 @@
-import * as fs from "fs";
-import * as path from "path";
-import { FileHelpers } from "../helpers/file-helpers";
-import { SearchEngine } from "../search-engine";
-import { SearchResultItem } from "../search-result-item";
 import { Searcher } from "./searcher";
 import { DirectorySeparator } from "../directory-separator";
+import { FileHelpers } from "../helpers/file-helpers";
 import { Icons } from "../icon-manager/icon-manager";
+import { SearchEngine } from "../search-engine";
+import { SearchResultItem } from "../search-result-item";
+import * as fs from "fs";
+import * as path from "path";
 
 export class FilePathSearcher implements Searcher {
     public readonly needSort = false;
+    public readonly shouldIsolate = false;
+
     private sortThreshold: number;
     private textEditorName: string;
     private executableExtension: string[];

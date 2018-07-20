@@ -29,16 +29,16 @@ export class InputValidatorSearcherCombinationManager {
                 validator: new PrefixInputValidator("$"),
             },
             {
-                searcher: new FilePathSearcher(config.searchEngineThreshold, config.applicationFileExtensions, config.textEditor.name),
-                validator: new FilePathInputValidator(),
-            },
-            {
                 searcher: new CommandLineSearcher(),
                 validator: new CommandLineInputValidator(),
             },
             {
                 searcher: new WebSearchSearcher(config.webSearches),
                 validator: new WebSearchInputValidator(config.webSearches),
+            },
+            {
+                searcher: new FilePathSearcher(config.searchEngineThreshold, config.applicationFileExtensions, config.textEditor.name),
+                validator: new FilePathInputValidator(),
             },
             {
                 searcher: new WebUrlSearcher(),
