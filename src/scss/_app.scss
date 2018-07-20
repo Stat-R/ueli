@@ -106,6 +106,7 @@ div.command-line-output-container {
         font-family: $font-family-mono;
         color: var(--mono-text-color)r;
         margin: 0;
+        white-space: pre-wrap;
     }
 }
 
