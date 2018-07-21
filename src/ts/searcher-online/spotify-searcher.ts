@@ -1,6 +1,6 @@
 import { SearcherOnline } from "./searcher";
+import { WebSocketSearcher } from "../music-player/music-player-websocket";
 import { SearchResultItem } from "../search-result-item";
-import { WebSocketSearcher } from "../music-player-websocket";
 
 export class SpotifySearcher implements SearcherOnline {
     private searcher: WebSocketSearcher;

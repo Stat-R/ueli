@@ -22,6 +22,7 @@ export const defaultConfig: ConfigOptions = {
     directorySeparator: " \u23F5 ",
     everythingFilterFilePath: `${homedir()}\\AppData\\Roaming\\Everything\\Filters.csv`,
     everythingMaxResults: 100,
+    externalPlugins: [],
     hotkeyEverythingMode: "alt+f",
     hotkeyOnlineMode: "alt+s",
     hotkeyRunMode: "alt+space",

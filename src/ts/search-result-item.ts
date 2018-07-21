@@ -1,9 +1,15 @@
-export class SearchResultItem {
-    public alternativeExecutionArgument?: string;
-    public alternativePrefix?: string;
-    public name: string;
-    public executionArgument: string;
-    public breadCrumb?: string[];
-    public icon: string;
-    public tags?: string[];
+export interface SearchResultItem {
+    alternativeExecutionArgument?: string;
+    alternativePrefix?: string;
+    breadCrumb?: string[];
+    executionArgument: string;
+    icon: string;
+    name: string;
+    tags?: string[];
+}
+
+export interface SearchResultItemViewModel extends SearchResultItem {
+    id: string;
+    active: boolean;
+    description?: string;
 }

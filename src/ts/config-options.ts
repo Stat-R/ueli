@@ -1,5 +1,5 @@
-import { WebSearch } from "./web-search";
 import { CustomCommand } from "./custom-command";
+import { WebSearch } from "./web-search";
 
 export interface ConfigOptions {
     applicationFileExtensions: string[];
@@ -11,6 +11,7 @@ export interface ConfigOptions {
     directorySeparator: string;
     everythingMaxResults: number;
     everythingFilterFilePath: string;
+    externalPlugins: string[];
     hotkeyEverythingMode: string;
     hotkeyOnlineMode: string;
     hotkeyRunMode: string;

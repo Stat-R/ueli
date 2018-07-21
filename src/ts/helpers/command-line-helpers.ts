@@ -1,5 +1,9 @@
 import { StringHelpers } from "./string-helpers";
-import { CommandLineProgram } from "../command-line-program";
+
+export interface CommandLineProgram {
+    args: string[];
+    name: string;
+}
 
 export class CommandLineHelpers {
     public static readonly commandLinePrefix = ">";

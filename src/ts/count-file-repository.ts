@@ -1,6 +1,5 @@
-import { CountRepository } from "./count-repository";
-import { Count } from "./count";
-import { readFileSync, writeFileSync, existsSync } from "fs";
+import { Count, CountRepository } from "./count-manager";
+import { existsSync, readFileSync, writeFileSync } from "fs";
 
 export class CountFileRepository implements CountRepository {
     private countFilePath: string;

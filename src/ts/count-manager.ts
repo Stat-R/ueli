@@ -1,5 +1,11 @@
-import { CountRepository } from "./count-repository";
-import { Count } from "./count";
+export interface CountRepository {
+    getCount(): Count;
+    updateCount(count: Count): void;
+}
+
+export interface Count {
+    [key: string]: number;
+}
 
 export class CountManager {
     private countRepository: CountRepository;

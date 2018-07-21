@@ -1,4 +1,4 @@
-import { StringHelpers } from "./helpers/string-helpers";
+import { StringHelpers } from "./string-helpers";
 
 export class Hotkey {
     private ctrl: boolean = false;

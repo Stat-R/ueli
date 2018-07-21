@@ -1,16 +1,16 @@
+import { FileExecutionCommandBuilder } from "./builders/file-execution-command-builder";
+import { FileLocationExecutionCommandBuilder } from "./builders/file-location-execution-command-builder";
+import { OpenUrlWithDefaultBrowserCommandBuilder } from "./builders/open-url-with-default-browser-command-builder";
+import { TrayIconPathBuilder } from "./builders/tray-icon-path-builder";
+import { DirectorySeparator } from "./directory-separator";
+import { FilePathRegex } from "./helpers/file-path-regex";
+import { OperatingSystemHelpers } from "./helpers/operating-system-helpers";
 import { MacOsIconManager } from "./icon-manager/mac-os-icon-manager";
 import { WindowsIconManager } from "./icon-manager/windows-icon-manager";
 import { OperatingSystem } from "./operating-system";
 import { MacOsSettingsPlugin } from "./search-plugins/mac-os-settings-plugin";
 import { SearchPlugin } from "./search-plugins/search-plugin";
 import { Windows10SettingsSearchPlugin } from "./search-plugins/windows-10-settings-plugin";
-import { DirectorySeparator } from "./directory-separator";
-import { FileExecutionCommandBuilder } from "./builders/file-execution-command-builder";
-import { FileLocationExecutionCommandBuilder } from "./builders/file-location-execution-command-builder";
-import { FilePathRegex } from "./file-path-regex";
-import { OpenUrlWithDefaultBrowserCommandBuilder } from "./builders/open-url-with-default-browser-command-builder";
-import { TrayIconPathBuilder } from "./builders/tray-icon-path-builder";
-import { OperatingSystemHelpers } from "./helpers/operating-system-helpers";
 
 export class Injector {
   public static getWebUrlRegExp(): RegExp {

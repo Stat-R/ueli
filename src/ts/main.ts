@@ -13,14 +13,13 @@ import { Injector } from "./injector";
 import { InputValidationService } from "./input-validation-service";
 import { InputValidatorSearcherCombinationManager } from "./input-validator-searcher-combination-manager";
 import { IpcChannels } from "./ipc-channels";
-import { WebSocketSearchResult } from "./music-player-websocket";
+import { WebSocketSearchResult } from "./music-player/music-player-websocket";
 import { OnlineInputValidationService } from "./online-input-validation-service";
 import { OnlineInputValidatorSearcherCombinationManager } from "./online-input-validator-searcher-combination-manager";
 import { ProcessInputValidationService } from "./process-input-validation-service";
 import { SearchResultItem } from "./search-result-item";
 import { NativeUtil } from "../../native-util/native-util";
 import * as childProcess from "child_process";
-import * as isInDevelopment from "electron-is-dev";
 import { homedir, platform } from "os";
 import * as path from "path";
 import { Taskbar } from "taskbar-node";
@@ -130,7 +129,7 @@ function createMainWindow(): void {
     createTrayIcon();
     registerGlobalShortCuts();
 
-    if (!isInDevelopment) {
+    if (process.env.NODE_ENV !== "production") {
         setAutostartSettings();
     }
 }
