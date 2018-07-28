@@ -1,8 +1,8 @@
-import { SearchResultItem } from "../search-result-item";
 import { SearchPlugin } from "./search-plugin";
-import { IpcChannels } from "../ipc-channels";
 import { UeliHelpers } from "../helpers/ueli-helpers";
 import { Icons } from "../icon-manager/icon-manager";
+import { IpcChannels } from "../ipc-channels";
+import { SearchResultItem } from "../search-result-item";
 
 export class UeliCommandsSearchPlugin implements SearchPlugin {
     private items: UeliCommand[];
@@ -22,8 +22,8 @@ export class UeliCommandsSearchPlugin implements SearchPlugin {
                 name: "Edit configuration file",
             },
             {
-                executionArgument: IpcChannels.ueliRescan,
-                name: "Rescan plugins",
+                executionArgument: UeliHelpers.cssFilePath,
+                name: "Edit custom CSS",
             },
         ];
     }
