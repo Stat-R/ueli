@@ -1,13 +1,13 @@
+import { ConfigOptions } from "./config-options";
 import { Injector } from "./injector";
-import { UeliCommandsSearchPlugin } from "./search-plugins/ueli-commands-plugin";
+import { ProgramFileRepository } from "./programs-plugin/program-file-repository";
+import { BrowserBookmark } from "./search-plugins/bookmark-plugin";
+import { CustomCommandsPlugin } from "./search-plugins/custom-commands-plugin";
 import { HomeFolderSearchPlugin } from "./search-plugins/home-folder-plugin";
 import { ProgramsPlugin } from "./search-plugins/programs-plugin";
 import { SearchPlugin } from "./search-plugins/search-plugin";
+import { UeliCommandsSearchPlugin } from "./search-plugins/ueli-commands-plugin";
 import { platform } from "os";
-import { ProgramFileRepository } from "./programs-plugin/program-file-repository";
-import { ConfigOptions } from "./config-options";
-import { CustomCommandsPlugin } from "./search-plugins/custom-commands-plugin";
-import { BrowserBookmark } from "./search-plugins/bookmark-plugin";
 
 export class SearchPluginManager {
     private plugins: SearchPlugin[];

@@ -25,7 +25,9 @@ export class CommandLineSearcher implements Searcher {
 
     public async getSearchResult(userInput: string): Promise<SearchResultItem[]> {
         const command = userInput.replace(CommandLineHelpers.commandLinePrefix, "");
-
+        if (command.length === 0) {
+            return [];
+        }
         // Search available commands
         const matched = this.programList
             .filter((item) => item.toLowerCase().startsWith(command.toLowerCase()));

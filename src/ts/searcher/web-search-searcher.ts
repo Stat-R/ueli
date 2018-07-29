@@ -20,8 +20,8 @@ export class WebSearchSearcher implements Searcher {
             if (userInput.startsWith(prefix)) {
                 const searchTerm = this.createSearchTerm(userInput, webSearch);
                 const searchResultItemName = searchTerm.length > 0
-                    ? `Search ${webSearch.name} for '${searchTerm}'`
-                    : `Search ${webSearch.name}`;
+                    ? `Search '${searchTerm}'`
+                    : `Search`;
 
                 return [
                     {
