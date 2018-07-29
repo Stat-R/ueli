@@ -50,4 +50,6 @@ export class IpcChannels {
     public static readonly activateContextMenu = "activate-context-menu";
 
     public static readonly setLoadingIcon = "set-loading-icon";
+
+    public static readonly getScopes = "get-scopes";
 }

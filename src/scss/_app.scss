@@ -167,6 +167,7 @@ div.search-result-header-container {
 }
 
 span {
+    text-overflow: ellipsis;
     white-space: nowrap;
     font-family: $font-family;
 
@@ -383,4 +384,20 @@ span {
 #like-track.liked:hover::before {
     content: "\E00C";
     color: #FF213F;
+}
+
+#scopes-container {
+    font-size: 20px;
+    color: var(--text-color);
+    align-items: center;
+    display: flex;
+    padding-right: 20px;
+    @include transitions();
+
+    & .scope {
+        padding: 8px 10px;
+        border: solid 2px var(--text-color);
+        border-radius: 3px;
+        @include transitions();
+    }
 }

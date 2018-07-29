@@ -11,11 +11,11 @@ export class OnlineInputValidatorSearcherCombinationManager {
         this.combinations = [
             {
                 searcher: new SpotifySearcher(globalUELI.webSocketSearch),
-                validator: new PrefixInputValidator("s!"),
+                validator: new PrefixInputValidator("s!", "Spotify"),
             },
             {
                 searcher: new YoutubeSearcher(),
-                validator: new PrefixInputValidator("y!"),
+                validator: new PrefixInputValidator("y!", "Youtube"),
             },
         ];
     }

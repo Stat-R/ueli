@@ -19,4 +19,15 @@ export class WebSearchInputValidator implements InputValidator {
 
         return false;
     }
+
+    public getScopes(userInput: string): string[] {
+        for (const webSearch of this.webSearches) {
+            const prefix = `${webSearch.prefix}${WebSearchHelpers.webSearchSeparator}`;
+            if (userInput.startsWith(prefix)) {
+                const trimmed = userInput.substr(prefix.length);
+                return [prefix, trimmed, webSearch.name];
+            }
+        }
+        return [];
+    }
 }

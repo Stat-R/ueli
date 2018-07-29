@@ -338,6 +338,11 @@ function getSearch(userInput: string): void {
     let result: SearchResultItem[] = [];
     switch (currentInputMode) {
         case InputMode.RUN: {
+            mainWindow.webContents.send(
+                IpcChannels.getScopes,
+                inputValidationService.getScopes(userInput)
+            );
+
             Promise.all(inputValidationService.getSearchResult(userInput))
                 .then((resultsArray) => {
                     result = resultsArray.reduce((acc, curr) => {
@@ -354,6 +359,12 @@ function getSearch(userInput: string): void {
             if (onlineInputTimeout !== undefined) {
                 clearTimeout(onlineInputTimeout);
             }
+
+            mainWindow.webContents.send(
+                IpcChannels.getScopes,
+                onlineInputValidationService.getScopes(userInput)
+            );
+
             onlineInputTimeout = setTimeout(() => {
                 setLoadingIcon();
                 Promise.all(onlineInputValidationService.getSearchResult(userInput))
@@ -383,6 +394,10 @@ function getSearch(userInput: string): void {
             break;
         }
         case InputMode.EVERYTHING: {
+            mainWindow.webContents.send(
+                IpcChannels.getScopes,
+                everythingInputValidationService.getScopes(userInput)
+            );
             setLoadingIcon();
             everythingInputValidationService.getSearchResult(userInput)
                 .then((allResults) => {

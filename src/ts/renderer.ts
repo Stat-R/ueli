@@ -26,7 +26,7 @@ const config = new ConfigFileRepository(defaultConfig, UeliHelpers.configFilePat
 
 document.addEventListener("keyup", handleGlobalKeyPress);
 document.addEventListener("keydown", handleHoldingKey);
-
+let prefix = "";
 const vue = new Vue({
     data: {
         autoFocus: true,
@@ -41,6 +41,7 @@ const vue = new Vue({
             state: false,
             track: "",
         },
+        scopes: [] as string[],
         screenshotFile: "",
         searchIcon: "",
         searchResults: [] as SearchResultItemViewModel[],
@@ -71,6 +72,12 @@ const vue = new Vue({
                 handleAutoCompletion();
             } else if (event.key === "Escape") {
                 ipcRenderer.send(IpcChannels.hideWindow, true);
+            } else if (event.key === "Backspace" && vue.userInput.length === 0) {
+                if (prefix) {
+                    vue.userInput = prefix.slice(0, prefix.length - 1);
+                    prefix = "";
+                    onChangeUserInput(vue.userInput);
+                }
             }
         },
         handleMouseMove: (event: MouseEvent): void => {
@@ -116,7 +123,7 @@ const vue = new Vue({
             return `font-size: ${config.searchResultNameFontSize}px;`;
         },
         searchResultWidth: (): string => {
-            return `width: ${config.searchResultHeight}px;`;
+            return `width: ${config.searchResultHeight}px; min-width: ${config.searchResultHeight}px;`;
         },
         userInputContainerStyle: (): string => {
             return `height: ${config.userInputHeight}px;`;
@@ -126,10 +133,7 @@ const vue = new Vue({
         },
     },
     watch: {
-        userInput: (val: string): void => {
-            vue.commandLineOutput = [] as string[];
-            ipcRenderer.send(IpcChannels.getSearch, val);
-        },
+        userInput: onChangeUserInput,
     },
 });
 
@@ -191,6 +195,15 @@ const nextHotKey = new Hotkey(config.musicPlayerHotkeyNext);
 const backHotKey = new Hotkey(config.musicPlayerHotkeyBack);
 const playPauseHotKey = new Hotkey(config.musicPlayerHotkeyPlayPause);
 const likeHotKey = new Hotkey(config.musicPlayerHotkeyLike);
+
+function onChangeUserInput(val: string): void {
+    vue.commandLineOutput = [] as string[];
+    if (prefix) {
+        ipcRenderer.send(IpcChannels.getSearch, prefix + val);
+    } else {
+        ipcRenderer.send(IpcChannels.getSearch, val);
+    }
+}
 
 function updateSearchResults(searchResults: SearchResultItemViewModel[]): void {
     searchResults.forEach((searchResultItem: SearchResultItemViewModel, index: number): void => {
@@ -290,9 +303,11 @@ function handleAutoCompletion(): void {
         const arg = activeItem.executionArgument;
         if (new FilePathExecutionArgumentValidator().isValidForExecution(arg)) {
             if (!activeItem.executionArgument.endsWith(dirSeparator) && lstatSync(arg).isDirectory()) {
+                prefix = ""
                 vue.userInput = `${arg}${dirSeparator}`;
             }
         } else if (new CommandLineExecutionArgumentValidator().isValidForExecution(arg)) {
+            prefix = ""
             vue.userInput = `${arg} `;
         }
     }
@@ -309,6 +324,7 @@ function execute(executionArgument: string, alternative: boolean): void {
 
 function resetUserInput(): void {
     vue.userInput = "";
+    prefix = "";
 }
 
 function handleGlobalKeyPress(event: KeyboardEvent): void {
@@ -393,10 +409,6 @@ ipcRenderer.on(IpcChannels.getSearchIconResponse, (_event: Electron.Event, arg: 
     vue.searchIcon = iconManager[arg as keyof WindowsIconManager & keyof MacOsIconManager].call(iconManager);
 });
 
-ipcRenderer.on(IpcChannels.autoCompleteResponse, (_event: Electron.Event, arg: string): void => {
-    vue.userInput = arg;
-});
-
 ipcRenderer.on(IpcChannels.commandLineOutput, (_event: Electron.Event, arg: string): void => {
     vue.commandLineOutput.push(arg);
 });
@@ -447,3 +459,13 @@ ipcRenderer.on(IpcChannels.searchWebsocket, (_event: Electron.Event, query: stri
 ipcRenderer.on(IpcChannels.getSearchResponse, (_event: Electron.Event, arg: SearchResultItemViewModel[]): void => {
     updateSearchResults(arg);
 });
+
+ipcRenderer.on(IpcChannels.getScopes, (_event: Event, arg: string[]): void => {
+    if (arg.length > 1) {
+        prefix = arg[0];
+        vue.userInput = arg[1];
+        vue.scopes = arg.slice(2);
+    } else {
+        vue.scopes = [];
+    }
+})

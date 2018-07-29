@@ -1,13 +1,14 @@
 import { StringHelpers } from "./helpers/string-helpers";
-import { SearchResultItem } from "./search-result-item";
 import { Icons } from "./icon-manager/icon-manager";
+import { SearchResultItem } from "./search-result-item";
 import { NativeUtil } from "../../native-util/native-util";
 import { readFileSync } from "fs";
 
 interface EverythingFilter {
     [key: string]: {
-        prefix: string;
         matchOptions: number;
+        name: string;
+        prefix: string;
     }
 }
 
@@ -48,33 +49,29 @@ export class EverythingInputValidationService {
             let matchAccents: boolean | null = null;
             let regExp: boolean | null = null;
 
-            let matchPrefix = userInput.match(/^(.+?)\!/);
-            if (matchPrefix) {
-                const prefix = matchPrefix[1];
-                let char = 0;
-                while (prefix[char] !== undefined) {
-                    switch(prefix[char]) {
-                        case "c": matchCase = true; break;
-                        case "C": matchCase = false; break;
-                        case "w": matchWholeWord = true; break;
-                        case "W": matchWholeWord = false; break;
-                        case "p": matchPath = true; break;
-                        case "P": matchPath = false; break;
-                        case "a": matchAccents = true; break;
-                        case "A": matchAccents = false; break;
-                        case "r": regExp = true; break;
-                    }
-                    char++;
+            let prefix = userInput.match(/^([cCwWpPaAr])\!/);
+            while (prefix && prefix[1]) {
+                switch (prefix[1]) {
+                    case "c": matchCase = true; break;
+                    case "C": matchCase = false; break;
+                    case "w": matchWholeWord = true; break;
+                    case "W": matchWholeWord = false; break;
+                    case "p": matchPath = true; break;
+                    case "P": matchPath = false; break;
+                    case "a": matchAccents = true; break;
+                    case "A": matchAccents = false; break;
+                    case "r": regExp = true; break;
                 }
-                userInput = userInput.replace(/^(.+?)\!/, "");
+                userInput = userInput.replace(/^([cCwWpPaAr])\!/, "");
+                prefix = userInput.match(/^([cCwWpPaAr])\!/);
             }
 
             let matchOptions = 0;
 
             let filterPrefix = userInput.match(/^(.+?)\:/);
             if (filterPrefix
-             && this.filters
-             && this.filters[filterPrefix[1]]) {
+                && this.filters
+                && this.filters[filterPrefix[1]]) {
                 const filter = this.filters[filterPrefix[1]];
                 userInput = userInput.replace(/^.+?\:/, "");
                 userInput = `${filter.prefix} ${userInput}`;
@@ -111,6 +108,43 @@ export class EverythingInputValidationService {
         });
     }
 
+    public getScopes(userInput: string): string[] {
+        const scopes = [] as string[];
+        let prefix = userInput.match(/^([cCwWpPaAr])\!/);
+        let storedPrefix = ""
+        while (prefix && prefix[1]) {
+            switch (prefix[1]) {
+                case "c": this.addScope(scopes, "Case"); break;
+                case "C": this.addScope(scopes, "No case"); break;
+                case "w": this.addScope(scopes, "Whole word"); break;
+                case "W": this.addScope(scopes, "No whole word"); break;
+                case "p": this.addScope(scopes, "Path"); break;
+                case "P": this.addScope(scopes, "No path"); break;
+                case "a": this.addScope(scopes, "Accents"); break;
+                case "A": this.addScope(scopes, "No accents"); break;
+                case "r": this.addScope(scopes, "RegExp"); break;
+            }
+            storedPrefix += prefix[1] + "!";
+            userInput = userInput.replace(/^([cCwWpPaAr])\!/, "");
+            prefix = userInput.match(/^([cCwWpPaAr])\!/);
+        }
+        let filterPrefix = userInput.match(/^(.+?)\:/);
+        if (filterPrefix
+         && this.filters
+         && this.filters[filterPrefix[1]]) {
+            scopes.push(`Filter: ${this.filters[filterPrefix[1]].name || filterPrefix[1]}`)
+            storedPrefix += filterPrefix[1] + ":"
+            userInput = userInput.replace(/^.+?\:/, "");
+        }
+        return [storedPrefix, userInput, ...scopes];
+    }
+
+    private addScope(scopeContainer: string[], detail: string) {
+        if (scopeContainer.findIndex((value) => value === detail) === -1) {
+            scopeContainer.push(detail)
+        }
+    }
+
     private parseFilterCSV(filePath: string): EverythingFilter | undefined {
         let filter: EverythingFilter = {};
         let raw: string;
@@ -140,8 +174,9 @@ export class EverythingInputValidationService {
                 const matchAccents = line[5] === "1" ? EverythingMatchOptions.ACCENTS : 0;
 
                 filter[macro] = {
-                    prefix: line[7].replace(/\"/g, ""),
                     matchOptions: matchCase | matchWholeWord | matchPath | matchAccents,
+                    name: line[1].replace(/\"/g, ""),
+                    prefix: line[7].replace(/\"/g, ""),
                 }
             }
         }

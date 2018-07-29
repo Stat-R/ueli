@@ -49,4 +49,15 @@ export class InputValidationService {
 
         return result;
     }
+
+    public getScopes(userInput: string): string[] {
+        for (const combination of this.combs) {
+            if (combination.searcher.shouldIsolate
+             && combination.validator.isValidForSearchResults(userInput)
+             && combination.validator.getScopes) {
+                return combination.validator.getScopes(userInput);
+            }
+        }
+        return [];
+    }
 }

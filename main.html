@@ -21,13 +21,23 @@
                 :style="userInputContainerStyle()"
                 :class="{ 'active': commandLineOutput.length !== 0 || searchResults.length !== 0 || musicPlayer.playerConnectStatus }"
             >
+                <div
+                    id="scopes-container"
+                    v-for="scope in scopes"
+                >
+                    <span
+                        class="scope"
+                    >
+                        {{ scope }}
+                    </span>
+                </div>
                 <input
                     id="user-input"
                     class="user-input" :style="userInputStyle()"
                     type="text" v-model="userInput"
                     :autofocus="{ 'autofocus' : autoFocus }"
                     v-on:keyDown="handleKeyPress"
-                >
+                ></input>
                 <div
                     class="search-icon-container"
                     style="-webkit-app-region: drag;"

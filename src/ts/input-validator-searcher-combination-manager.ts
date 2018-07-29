@@ -26,7 +26,7 @@ export class InputValidatorSearcherCombinationManager {
             },
             {
                 searcher: new VariableSearcher(),
-                validator: new PrefixInputValidator("$"),
+                validator: new PrefixInputValidator("$", "Variable"),
             },
             {
                 searcher: new CommandLineSearcher(),
