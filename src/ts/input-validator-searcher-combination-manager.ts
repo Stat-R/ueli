@@ -1,4 +1,3 @@
-import { ConfigOptions } from "./config-options";
 import { InputValidatorSearcherCombination } from "./input-validator-searcher-combination";
 import { CalculatorInputValidator } from "./input-validators/calculator-input-validator";
 import { CommandLineInputValidator } from "./input-validators/command-line-input-validator";
@@ -7,6 +6,7 @@ import { PrefixInputValidator } from "./input-validators/prefix-input-validator"
 import { SearchPluginsInputValidator } from "./input-validators/search-plugins-input-validator";
 import { WebSearchInputValidator } from "./input-validators/web-search-input-validator";
 import { WebUrlInputValidator } from "./input-validators/web-url-input-validator";
+import { GlobalUELI } from "./main";
 import { CalculatorSearcher } from "./searcher/calculator-searcher";
 import { CommandLineSearcher } from "./searcher/command-line-searcher";
 import { FilePathSearcher } from "./searcher/file-path-searcher";
@@ -18,7 +18,7 @@ import { WebUrlSearcher } from "./searcher/web-url-searcher";
 export class InputValidatorSearcherCombinationManager {
     private combinations: InputValidatorSearcherCombination[];
 
-    constructor(config: ConfigOptions) {
+    constructor(globalUELI: GlobalUELI) {
         this.combinations = [
             {
                 searcher: new CalculatorSearcher(),
@@ -33,11 +33,11 @@ export class InputValidatorSearcherCombinationManager {
                 validator: new CommandLineInputValidator(),
             },
             {
-                searcher: new WebSearchSearcher(config.webSearches),
-                validator: new WebSearchInputValidator(config.webSearches),
+                searcher: new WebSearchSearcher(globalUELI.config.webSearches),
+                validator: new WebSearchInputValidator(globalUELI.config.webSearches),
             },
             {
-                searcher: new FilePathSearcher(config.searchEngineThreshold, config.applicationFileExtensions, config.textEditor.name),
+                searcher: new FilePathSearcher(globalUELI.config.searchEngineThreshold, globalUELI.config.applicationFileExtensions, globalUELI.config.textEditor.name),
                 validator: new FilePathInputValidator(),
             },
             {
@@ -45,10 +45,17 @@ export class InputValidatorSearcherCombinationManager {
                 validator: new WebUrlInputValidator(),
             },
             {
-                searcher: new SearchPluginsSearcher(config),
+                searcher: new SearchPluginsSearcher(globalUELI.config),
                 validator: new SearchPluginsInputValidator(),
             },
         ];
+
+        for (const plugin of globalUELI.externalPluginCollection) {
+            this.combinations.push({
+                searcher: new plugin.searcher(),
+                validator: new plugin.inputValidator(),
+            });
+        }
     }
 
     public getCombinations(): InputValidatorSearcherCombination[] {

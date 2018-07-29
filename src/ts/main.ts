@@ -20,6 +20,7 @@ import { ProcessInputValidationService } from "./process-input-validation-servic
 import { SearchResultItem } from "./search-result-item";
 import { NativeUtil } from "../../native-util/native-util";
 import * as childProcess from "child_process";
+import { existsSync, mkdirSync, readdirSync } from "fs";
 import { homedir, platform } from "os";
 import * as path from "path";
 import { Taskbar } from "taskbar-node";
@@ -35,6 +36,7 @@ import {
 
 export interface GlobalUELI {
     config: ConfigOptions;
+    externalPluginCollection: any[];
     webSocketCommandSender: (command: string) => void;
     webSocketSearch: (input: string) => Promise<WebSocketSearchResult[]>;
 }
@@ -59,11 +61,36 @@ let taskbar: Taskbar | undefined;
 
 const globalUELI: GlobalUELI = {
     config,
+    externalPluginCollection: [],
     webSocketCommandSender: (url: string) => {
         mainWindow.webContents.send(IpcChannels.websocketPlayURL, url);
     },
     webSocketSearch,
 };
+
+const externalPluginFolderPath = path.join(homedir(), ".ueli/extensions");
+function getExternalPlugins() {
+    const collection = [];
+    if (existsSync(externalPluginFolderPath)) {
+        try {
+            const pluginNameCollection = readdirSync(externalPluginFolderPath);
+            for (const pluginName of pluginNameCollection) {
+                const pluginFullPath = path.join(externalPluginFolderPath, pluginName);
+                const obj = __non_webpack_require__(pluginFullPath);
+                if (obj.searcher && obj.inputValidator) {
+                    collection.push(obj);
+                }
+            }
+        } catch {
+            // Nah
+        }
+    } else {
+        mkdirSync(externalPluginFolderPath);
+    }
+
+    return collection;
+}
+globalUELI.externalPluginCollection = getExternalPlugins();
 
 let currentInputMode = 0;
 let currentInputString = "";
@@ -79,7 +106,7 @@ function webSocketSearch(userInput: string): Promise<WebSocketSearchResult[]> {
 }
 
 let inputValidationService = new InputValidationService(
-    new InputValidatorSearcherCombinationManager(config).getCombinations(), config.searchEngineThreshold);
+    new InputValidatorSearcherCombinationManager(globalUELI).getCombinations(), config.searchEngineThreshold);
 
 let onlineInputValidationService = new OnlineInputValidationService(
     new OnlineInputValidatorSearcherCombinationManager(globalUELI).getCombinations());
@@ -270,12 +297,15 @@ function hideMainWindow(focusLastActiveWindow = false): void {
 function reloadApp(): void {
     config = new ConfigFileRepository(defaultConfig, UeliHelpers.configFilePath).getConfig();
     globalUELI.config = config;
+    globalUELI.externalPluginCollection.length = 0;
+    globalUELI.externalPluginCollection = getExternalPlugins();
+
     executionService = new ExecutionService(
         new ExecutionArgumentValidatorExecutorCombinationManager(globalUELI).getCombinations(),
         new CountManager(new CountFileRepository(UeliHelpers.countFilePath)));
 
     inputValidationService = new InputValidationService(
-        new InputValidatorSearcherCombinationManager(config).getCombinations(), config.searchEngineThreshold);
+        new InputValidatorSearcherCombinationManager(globalUELI).getCombinations(), config.searchEngineThreshold);
 
     onlineInputValidationService = new OnlineInputValidationService(
         new OnlineInputValidatorSearcherCombinationManager(globalUELI).getCombinations());
@@ -327,18 +357,18 @@ function getSearch(userInput: string): void {
             onlineInputTimeout = setTimeout(() => {
                 setLoadingIcon();
                 Promise.all(onlineInputValidationService.getSearchResult(userInput))
-                .then((allResults) => {
-                    allResults.forEach((field) => {
-                        result.push(...field);
-                    });
+                    .then((allResults) => {
+                        allResults.forEach((field) => {
+                            result.push(...field);
+                        });
 
-                    updateWindowSize(result.length);
-                    if (result.length > 0) {
-                        mainWindow.webContents.send(IpcChannels.getSearchResponse, result);
-                    }
-                    setModeIcon();
-                    onlineInputTimeout = undefined;
-                });
+                        updateWindowSize(result.length);
+                        if (result.length > 0) {
+                            mainWindow.webContents.send(IpcChannels.getSearchResponse, result);
+                        }
+                        setModeIcon();
+                        onlineInputTimeout = undefined;
+                    });
             }, 500);
             break;
         }

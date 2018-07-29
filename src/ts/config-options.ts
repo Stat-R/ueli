@@ -11,7 +11,6 @@ export interface ConfigOptions {
     directorySeparator: string;
     everythingMaxResults: number;
     everythingFilterFilePath: string;
-    externalPlugins: string[];
     hotkeyEverythingMode: string;
     hotkeyOnlineMode: string;
     hotkeyRunMode: string;
