@@ -380,7 +380,7 @@ function getSearch(userInput: string): void {
                         setModeIcon();
                         onlineInputTimeout = undefined;
                     });
-            }, 500);
+            }, config.onlineModeDelay);
             break;
         }
         case InputMode.WINDOWS: {

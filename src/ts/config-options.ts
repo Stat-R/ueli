@@ -26,6 +26,7 @@ export interface ConfigOptions {
     musicPlayerHotkeyBack: string;
     musicPlayerHotkeyLike: string;
     musicPlayerHotkeyMute: string;
+    onlineModeDelay: number;
     searchEngineThreshold: number;
     searchOperatingSystemSettings: boolean;
     searchResultExecutionArgumentFontSize: number;
