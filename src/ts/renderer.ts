@@ -15,7 +15,7 @@ import { MusicPlayerWebSocket } from "./music-player/music-player-websocket";
 import { SearchResultItemViewModel } from "./search-result-item";
 import * as defaultCSS from "../scss/default.scss";
 import { ipcRenderer } from "electron";
-import { lstatSync, statSync, writeFileSync } from "fs";
+import { existsSync, lstatSync, writeFileSync } from "fs";
 import * as os from "os";
 import { homedir, platform } from "os";
 import Vue from "vue";
@@ -27,11 +27,12 @@ const config = new ConfigFileRepository(defaultConfig, UeliHelpers.configFilePat
 document.addEventListener("keyup", handleGlobalKeyPress);
 document.addEventListener("keydown", handleHoldingKey);
 let prefix = "";
+const customCSSPath = `${homedir()}/ueli.custom.css`;
 const vue = new Vue({
     data: {
         autoFocus: true,
         commandLineOutput: [] as string[],
-        customStyleSheet: `${homedir()}/ueli.custom.css`,
+        customStyleSheet: customCSSPath,
         isMouseMoving: false,
         musicPlayer: {
             albumCover: "",
@@ -138,10 +139,8 @@ const vue = new Vue({
 });
 
 // Check custom css file availability
-try {
-    statSync(`${homedir()}/ueli.custom.css`);
-} catch (_e) {
-    writeFileSync(`${homedir()}/ueli.custom.css`, `:root {
+if (!existsSync(customCSSPath)) {
+    writeFileSync(customCSSPath, `:root {
     --background-color: 0,0,0;
     --input-container-background: rgba(var(--background-color), 0.5);
     --output-container-background: rgba(var(--background-color), 0.4);
@@ -325,6 +324,7 @@ function execute(executionArgument: string, alternative: boolean): void {
 function resetUserInput(): void {
     vue.userInput = "";
     prefix = "";
+    onChangeUserInput("");
 }
 
 function handleGlobalKeyPress(event: KeyboardEvent): void {
