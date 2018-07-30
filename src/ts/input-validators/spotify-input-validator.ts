@@ -28,7 +28,6 @@ export class SpotifyInputValidator implements InputValidator {
                 case "podcast":
                     prefix += categoryPrefix[0];
                     trimmed = trimmed.substr(categoryPrefix[0].length);
-                    console.log(trimmed)
                     scopes.push(categoryPrefix[1].toUpperCase());
                     break;
             }

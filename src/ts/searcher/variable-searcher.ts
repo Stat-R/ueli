@@ -23,7 +23,7 @@ export class VariableSearcher implements Searcher {
                     breadCrumb: value.split(DirectorySeparator.WindowsDirectorySeparator),
                     executionArgument: value,
                     icon: Icons.VARIABLE,
-                    name: `${varName}`,
+                    name: varName,
                 });
             }
         }
