@@ -9,7 +9,7 @@ export class ProcessInputValidationService {
     private searchEngine: SearchEngine;
 
     constructor() {
-        this.searchEngine = new SearchEngine(0.4);
+        this.searchEngine = new SearchEngine();
     }
 
     public getSearchResult(userInput: string): SearchResultItem[] {

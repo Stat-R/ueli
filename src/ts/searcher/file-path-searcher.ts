@@ -11,12 +11,10 @@ export class FilePathSearcher implements Searcher {
     public readonly needSort = false;
     public readonly shouldIsolate = false;
 
-    private sortThreshold: number;
     private textEditorName: string;
     private executableExtension: string[];
 
-    constructor(sortThreshold: number, executableExtension: string[], textEditorName: string) {
-        this.sortThreshold = sortThreshold;
+    constructor(executableExtension: string[], textEditorName: string) {
         this.textEditorName = textEditorName;
         this.executableExtension = executableExtension.map((ext) => ext.toLowerCase());
     }
@@ -95,7 +93,7 @@ export class FilePathSearcher implements Searcher {
     }
 
     private sortSearchResult(items: SearchResultItem[], searchTerm: string): SearchResultItem[] {
-        const searchEngine = new SearchEngine(this.sortThreshold);
+        const searchEngine = new SearchEngine();
         return searchEngine.search(items, searchTerm);
     }
 

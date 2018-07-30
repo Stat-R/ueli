@@ -13,7 +13,7 @@ export class InputValidationService {
     public constructor(combs: InputValidatorSearcherCombination[]) {
         this.combs = combs;
         const countManager = new CountManager(new CountFileRepository(UeliHelpers.countFilePath));
-        this.searchEngine = new SearchEngine(0.4, countManager);
+        this.searchEngine = new SearchEngine(countManager);
     }
 
     public getSearchResult(userInput: string): Array<Promise<SearchResultItem[]>> {

@@ -3,11 +3,9 @@ import { SearchResultItem } from "./search-result-item";
 import * as Fuse from "fuse.js";
 
 export class SearchEngine {
-    private threshold: number;
     private countManager: CountManager | undefined;
 
-    public constructor(threshold: number, countManager?: CountManager) {
-        this.threshold = threshold;
+    public constructor(countManager?: CountManager) {
         this.countManager = countManager;
     }
 
@@ -20,7 +18,7 @@ export class SearchEngine {
             maxPatternLength: 32,
             minMatchCharLength: 1,
             shouldSort: true,
-            threshold: this.threshold,
+            threshold: 0.4,
         });
 
         let fuseResults = fuse.search<{

@@ -37,7 +37,7 @@ export class InputValidatorSearcherCombinationManager {
                 validator: new WebSearchInputValidator(globalUELI.config.webSearches),
             },
             {
-                searcher: new FilePathSearcher(globalUELI.config.searchEngineThreshold, globalUELI.config.applicationFileExtensions, globalUELI.config.textEditor.name),
+                searcher: new FilePathSearcher(globalUELI.config.applicationFileExtensions, globalUELI.config.textEditor.name),
                 validator: new FilePathInputValidator(),
             },
             {
