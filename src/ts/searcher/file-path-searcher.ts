@@ -109,7 +109,7 @@ export class FilePathSearcher implements Searcher {
     }
 
     private filterWildcard(items: SearchResultItem[], searchTerm: string): SearchResultItem[] {
-        searchTerm = `^${searchTerm.replace(/\./, "\\.").replace(/\*/g, ".*").replace(/\?/g, ".")}$`;
+        searchTerm = `^${searchTerm.replace(/\./g, "\\.").replace(/\*/g, ".*").replace(/\?/g, ".")}$`;
         const regExp = new RegExp(searchTerm);
         return items.filter((item) => {
             const name = path.basename(item.executionArgument);
