@@ -38,7 +38,6 @@ export const defaultConfig: ConfigOptions = {
     musicPlayerType: "local",
     musicPlayerWebSocketPort: 8974,
     onlineModeDelay: 500,
-    searchEngineThreshold: 0.4,
     searchOperatingSystemSettings: true,
     searchResultExecutionArgumentFontSize: 14,
     searchResultHeight: 60,

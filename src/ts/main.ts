@@ -110,12 +110,12 @@ function webSocketSearch(userInput: string): Promise<WebSocketSearchResult[]> {
 }
 
 let inputValidationService = new InputValidationService(
-    new InputValidatorSearcherCombinationManager(globalUELI).getCombinations(), config.searchEngineThreshold);
+    new InputValidatorSearcherCombinationManager(globalUELI).getCombinations());
 
 let onlineInputValidationService = new OnlineInputValidationService(
     new OnlineInputValidatorSearcherCombinationManager(globalUELI).getCombinations());
 
-let processInputValidationService = new ProcessInputValidationService(config.searchEngineThreshold);
+let processInputValidationService = new ProcessInputValidationService();
 
 let everythingInputValidationService = new EverythingInputValidationService(nativeUtil, config.everythingMaxResults, config.everythingFilterFilePath);
 
@@ -309,12 +309,12 @@ function reloadApp(): void {
         new CountManager(new CountFileRepository(UeliHelpers.countFilePath)));
 
     inputValidationService = new InputValidationService(
-        new InputValidatorSearcherCombinationManager(globalUELI).getCombinations(), config.searchEngineThreshold);
+        new InputValidatorSearcherCombinationManager(globalUELI).getCombinations());
 
     onlineInputValidationService = new OnlineInputValidationService(
         new OnlineInputValidatorSearcherCombinationManager(globalUELI).getCombinations());
 
-    processInputValidationService = new ProcessInputValidationService(config.searchEngineThreshold);
+    processInputValidationService = new ProcessInputValidationService();
 
     everythingInputValidationService = new EverythingInputValidationService(nativeUtil, config.everythingMaxResults, config.everythingFilterFilePath);
 

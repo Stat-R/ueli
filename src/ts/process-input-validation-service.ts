@@ -1,15 +1,15 @@
 import { StringHelpers } from "./helpers/string-helpers";
-import { SearchResultItem } from "./search-result-item";
-import { SearchEngine } from "./search-engine";
 import { Icons } from "./icon-manager/icon-manager";
-import { Taskbar, App } from "taskbar-node";
+import { SearchEngine } from "./search-engine";
+import { SearchResultItem } from "./search-result-item";
+import { App, Taskbar } from "taskbar-node";
 
 export class ProcessInputValidationService {
     public taskbar: Taskbar | undefined;
-    private sortThreshold: number;
+    private searchEngine: SearchEngine;
 
-    constructor(sortThreshold: number) {
-        this.sortThreshold = sortThreshold;
+    constructor() {
+        this.searchEngine = new SearchEngine(0.4);
     }
 
     public getSearchResult(userInput: string): SearchResultItem[] {
@@ -33,7 +33,7 @@ export class ProcessInputValidationService {
         if (!userInput) {
             return result;
         } else {
-            return new SearchEngine(this.sortThreshold).search(result, userInput);
+            return this.searchEngine.search(result, userInput);
         }
     }
 }

@@ -10,10 +10,10 @@ export class InputValidationService {
     private combs: InputValidatorSearcherCombination[];
     private searchEngine: SearchEngine;
 
-    public constructor(combs: InputValidatorSearcherCombination[], sortThreshold: number) {
+    public constructor(combs: InputValidatorSearcherCombination[]) {
         this.combs = combs;
         const countManager = new CountManager(new CountFileRepository(UeliHelpers.countFilePath));
-        this.searchEngine = new SearchEngine(sortThreshold, countManager);
+        this.searchEngine = new SearchEngine(0.4, countManager);
     }
 
     public getSearchResult(userInput: string): Array<Promise<SearchResultItem[]>> {
