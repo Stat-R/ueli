@@ -85,6 +85,10 @@ function getExternalPlugins() {
             // Nah
         }
     } else {
+        const dotUeliPath = path.join(homedir(), ".ueli");
+        if (!existsSync(dotUeliPath)) {
+            mkdirSync(dotUeliPath);
+        }
         mkdirSync(externalPluginFolderPath);
     }
 
