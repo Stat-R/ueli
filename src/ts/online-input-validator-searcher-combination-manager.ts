@@ -1,4 +1,5 @@
 import { PrefixInputValidator } from "./input-validators/prefix-input-validator";
+import { SpotifyInputValidator } from "./input-validators/spotify-input-validator";
 import { GlobalUELI } from "./main";
 import { OnlineInputValidatorSearcherCombination } from "./online-input-validator-searcher-combination";
 import { SpotifySearcher } from "./searcher-online/spotify-searcher";
@@ -11,7 +12,7 @@ export class OnlineInputValidatorSearcherCombinationManager {
         this.combinations = [
             {
                 searcher: new SpotifySearcher(globalUELI.webSocketSearch),
-                validator: new PrefixInputValidator("s!", "Spotify"),
+                validator: new SpotifyInputValidator(),
             },
             {
                 searcher: new YoutubeSearcher(),
