@@ -1,11 +1,14 @@
-export interface SearchResultItem {
+export interface BareSearchResultItem {
+    name: string;
+    tags?: string[];
+}
+
+export interface SearchResultItem extends BareSearchResultItem {
     alternativeExecutionArgument?: string;
     alternativePrefix?: string;
     breadCrumb?: string[];
     executionArgument: string;
     icon: string;
-    name: string;
-    tags?: string[];
 }
 
 export interface SearchResultItemViewModel extends SearchResultItem {

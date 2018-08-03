@@ -2,14 +2,15 @@ import { Searcher } from "./searcher";
 import { CommandLineHelpers } from "../helpers/command-line-helpers";
 import { StringHelpers } from "../helpers/string-helpers";
 import { Icons } from "../icon-manager/icon-manager";
-import { SearchResultItem } from "../search-result-item";
+import { SearchEngine } from "../search-engine";
+import { BareSearchResultItem, SearchResultItem } from "../search-result-item";
 import { exec, execSync } from "child_process";
 
 export class CommandLineSearcher implements Searcher {
     public readonly needSort = false;
     public readonly shouldIsolate = true;
 
-    private programList: string[];
+    private programList: BareSearchResultItem[];
     private cachedParameters: { [key: string]: string[] };
 
     constructor() {
@@ -19,7 +20,14 @@ export class CommandLineSearcher implements Searcher {
             if (error) {
                 return;
             }
-            this.programList = stdout.split("\r\n");
+            this.programList = stdout.split("\r\n").map((item) => {
+                if (item.toLocaleLowerCase().endsWith(".exe")) {
+                    item = item.substr(0, item.length - 4);
+                }
+                return {
+                    name: item
+                } as BareSearchResultItem;
+            });
         });
     }
 
@@ -28,22 +36,12 @@ export class CommandLineSearcher implements Searcher {
         if (command.length === 0) {
             return [];
         }
-        // Search available commands
-        const matched = this.programList
-            .filter((item) => item.toLowerCase().startsWith(command.toLowerCase()));
-        if (matched.length > 0) {
-            return matched.map((item) => ({
-                executionArgument: `${CommandLineHelpers.commandLinePrefix}${item}`,
-                icon: Icons.COMMANDLINE,
-                name: `${item}`,
-            } as SearchResultItem));
-        }
 
         // Search available parameters of command
         const words = StringHelpers.stringToWords(command);
-        if (words.length > 0) {
+        if (words.length > 1) {
             const lastWord = words.pop();
-            if (lastWord && lastWord.startsWith("-")) {
+            if (lastWord) {
                 const baseCommand = words[0];
                 let parameters: string[] = [];
 
@@ -56,7 +54,7 @@ export class CommandLineSearcher implements Searcher {
                             paraList.length = 0;
                         }
                         parameters = this.cachedParameters[baseCommand] = paraList;
-                    } catch(_e) {
+                    } catch (_e) {
                         // Nah
                     }
                 } else {
@@ -76,6 +74,18 @@ export class CommandLineSearcher implements Searcher {
                 }
             }
         }
+
+        // Search available commands
+        const matched = new SearchEngine().search(this.programList, userInput);
+
+        if (matched.length > 0) {
+            return matched.map((item) => ({
+                executionArgument: `${CommandLineHelpers.commandLinePrefix}${item.name}`,
+                icon: Icons.COMMANDLINE,
+                name: item.name,
+            } as SearchResultItem));
+        }
+
         return [
             {
                 executionArgument: userInput,

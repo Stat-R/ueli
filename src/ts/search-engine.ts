@@ -1,5 +1,5 @@
 import { CountManager } from "./count-manager";
-import { SearchResultItem } from "./search-result-item";
+import { BareSearchResultItem, SearchResultItem } from "./search-result-item";
 import * as Fuse from "fuse.js";
 
 export class SearchEngine {
@@ -9,7 +9,7 @@ export class SearchEngine {
         this.countManager = countManager;
     }
 
-    public search(unsortedSearchResults: SearchResultItem[], searchTerm: string): SearchResultItem[] {
+    public search<T extends BareSearchResultItem | SearchResultItem>(unsortedSearchResults: T[], searchTerm: string): T[] {
         const fuse = new Fuse(unsortedSearchResults, {
             distance: 100,
             includeScore: true,
@@ -22,7 +22,7 @@ export class SearchEngine {
         });
 
         let fuseResults = fuse.search<{
-            item: SearchResultItem;
+            item: T;
             score: number;
         }>(searchTerm);
 
