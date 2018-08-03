@@ -32,11 +32,13 @@ import {
     ipcMain,
     Menu,
     Tray,
+    dialog,
 } from "electron";
 
 export interface GlobalUELI {
     config: ConfigOptions;
-    externalPluginCollection: any[];
+    runPluginCollection: any[];
+    onlinePluginCollection: any[];
     webSocketCommandSender: (command: string) => void;
     webSocketSearch: (input: string) => Promise<WebSocketSearchResult[]>;
 }
@@ -61,7 +63,8 @@ let taskbar: Taskbar | undefined;
 
 const globalUELI: GlobalUELI = {
     config,
-    externalPluginCollection: [],
+    runPluginCollection: [],
+    onlinePluginCollection: [],
     webSocketCommandSender: (url: string) => {
         mainWindow.webContents.send(IpcChannels.websocketPlayURL, url);
     },
@@ -70,19 +73,28 @@ const globalUELI: GlobalUELI = {
 
 const externalPluginFolderPath = path.join(homedir(), ".ueli/extensions");
 function getExternalPlugins() {
-    const collection = [];
+    const runCollection = [] as any[];
+    const onlineCollection = [] as any[];
+
     if (existsSync(externalPluginFolderPath)) {
         try {
             const pluginNameCollection = readdirSync(externalPluginFolderPath);
             for (const pluginName of pluginNameCollection) {
+                console.log(pluginName);
                 const pluginFullPath = path.join(externalPluginFolderPath, pluginName);
                 const obj = __non_webpack_require__(pluginFullPath);
                 if (obj.searcher && obj.inputValidator) {
-                    collection.push(obj);
+                    runCollection.push(obj);
+                } else if (obj.onlineSearcher && obj.inputValidator) {
+                    onlineCollection.push(obj);
+                } else {
+                    dialog.showErrorBox(
+                        `Invalid extension: ${pluginName}`,
+                        "Cannot find runSeacher or onlineSeacher or inputValidator exports.");
                 }
             }
-        } catch {
-            // Nah
+        } catch (error) {
+            dialog.showErrorBox("Cannot load Extension", error.message);
         }
     } else {
         const dotUeliPath = path.join(homedir(), ".ueli");
@@ -92,9 +104,12 @@ function getExternalPlugins() {
         mkdirSync(externalPluginFolderPath);
     }
 
-    return collection;
+    return { runCollection, onlineCollection };
 }
-globalUELI.externalPluginCollection = getExternalPlugins();
+
+const externalPlugins = getExternalPlugins();
+globalUELI.runPluginCollection = externalPlugins.runCollection;
+globalUELI.onlinePluginCollection = externalPlugins.onlineCollection;
 
 let currentInputMode = 0;
 let currentInputString = "";
@@ -301,8 +316,9 @@ function hideMainWindow(focusLastActiveWindow = false): void {
 function reloadApp(): void {
     config = new ConfigFileRepository(defaultConfig, UeliHelpers.configFilePath).getConfig();
     globalUELI.config = config;
-    globalUELI.externalPluginCollection.length = 0;
-    globalUELI.externalPluginCollection = getExternalPlugins();
+    const externalPlugins = getExternalPlugins();
+    globalUELI.runPluginCollection = externalPlugins.runCollection;
+    globalUELI.onlinePluginCollection = externalPlugins.onlineCollection;
 
     executionService = new ExecutionService(
         new ExecutionArgumentValidatorExecutorCombinationManager(globalUELI).getCombinations(),

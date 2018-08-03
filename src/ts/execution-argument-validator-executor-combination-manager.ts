@@ -80,7 +80,16 @@ export class ExecutionArgumentValidatorExecutorCombinationManager {
             }
         }
 
-        for (const plugin of globalUELI.externalPluginCollection) {
+        for (const plugin of globalUELI.runPluginCollection) {
+            if (plugin.executor && plugin.executionValidator) {
+                this.combinations.push({
+                    executor: new plugin.executor(),
+                    validator: new plugin.executionValidator(),
+                });
+            }
+        }
+
+        for (const plugin of globalUELI.onlinePluginCollection) {
             if (plugin.executor && plugin.executionValidator) {
                 this.combinations.push({
                     executor: new plugin.executor(),

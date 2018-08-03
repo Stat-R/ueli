@@ -50,9 +50,9 @@ export class InputValidatorSearcherCombinationManager {
             },
         ];
 
-        for (const plugin of globalUELI.externalPluginCollection) {
+        for (const plugin of globalUELI.runPluginCollection) {
             this.combinations.push({
-                searcher: new plugin.searcher(),
+                searcher: new plugin.runSearcher(),
                 validator: new plugin.inputValidator(),
             });
         }

@@ -1,7 +1,7 @@
-import { ipcMain } from "electron";
+import { CountManager } from "./count-manager";
 import { ExecutionArgumentValidatorExecutorCombination } from "./execution-argument-validator-executor-combination";
 import { IpcChannels } from "./ipc-channels";
-import { CountManager } from "./count-manager";
+import { ipcMain } from "electron";
 
 export class ExecutionService {
     private validatorExecutorCombinations: ExecutionArgumentValidatorExecutorCombination[];
@@ -27,11 +27,11 @@ export class ExecutionService {
                 }
 
                 setTimeout(() => {
+                    combi.executor.execute(executionArgument, alternative);
+
                     if (combi.executor.hideAfterExecution) {
                         ipcMain.emit(IpcChannels.hideWindow, false);
                     }
-
-                    combi.executor.execute(executionArgument, alternative);
                 }, 50); // set delay for execution to 50ms otherwise user input reset does not work properly
 
                 return;

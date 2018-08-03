@@ -19,6 +19,13 @@ export class OnlineInputValidatorSearcherCombinationManager {
                 validator: new PrefixInputValidator("y!", "Youtube"),
             },
         ];
+
+        for (const plugin of globalUELI.onlinePluginCollection) {
+            this.combinations.push({
+                searcher: new plugin.onlineSearcher(),
+                validator: new plugin.inputValidator(),
+            });
+        }
     }
 
     public getCombinations(): OnlineInputValidatorSearcherCombination[] {
