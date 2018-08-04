@@ -11,12 +11,15 @@ export class CommandLineSearcher implements Searcher {
     public readonly shouldIsolate = true;
 
     private programList: BareSearchResultItem[];
-    private cachedParameters: { [key: string]: string[] };
-
-    constructor() {
+    private cachedParameters: { [key: string]: BareSearchResultItem[] };
+    private searchEngine: SearchEngine;
+    private powerShellPath: string;
+    constructor(powerShellPath: string) {
         this.programList = [];
         this.cachedParameters = {};
-        exec(`powershell "Get-Command -Type All | ForEach-Object { $_.Name }"`, (error, stdout) => {
+        this.searchEngine = new SearchEngine();
+        this.powerShellPath = powerShellPath;
+        exec(`"${this.powerShellPath}" -Command "Get-Command -Type All | ForEach-Object { $_.Name }"`, (error, stdout) => {
             if (error) {
                 return;
             }
@@ -41,19 +44,21 @@ export class CommandLineSearcher implements Searcher {
         const words = StringHelpers.stringToWords(command);
         if (words.length > 1) {
             const lastWord = words.pop();
-            if (lastWord) {
+            if (lastWord && lastWord.startsWith("-")) {
                 const baseCommand = words[0];
-                let parameters: string[] = [];
+                let parameters: BareSearchResultItem[] = [];
 
                 if (this.cachedParameters[baseCommand] === undefined) {
                     try {
                         let paraList = execSync(
-                            `powershell "(Get-Command -Name ${baseCommand}).Parameters.Keys"`)
+                            `"${this.powerShellPath}" -Command "(Get-Command -Name '${baseCommand}').Parameters.Keys"`)
                             .toString().split("\r\n");
                         if (paraList && paraList.length === 1 && paraList[0] === "") {
                             paraList.length = 0;
                         }
-                        parameters = this.cachedParameters[baseCommand] = paraList;
+                        parameters = this.cachedParameters[baseCommand] = paraList.map((item) => ({
+                            name: item,
+                        }) as BareSearchResultItem);
                     } catch (_e) {
                         // Nah
                     }
@@ -62,21 +67,28 @@ export class CommandLineSearcher implements Searcher {
                 }
 
                 if (parameters.length > 0) {
-                    const paraInput = lastWord.replace(/^\-/, "").toLowerCase();
-                    const matchedPara = parameters
-                        .filter((item) => item.toLowerCase().startsWith(paraInput));
+                    const paraInput = lastWord.replace(/^\-/, "");
+                    if (paraInput.length === 0) {
+                        return parameters.map((item: BareSearchResultItem) => ({
+                            executionArgument: `${CommandLineHelpers.commandLinePrefix}${words.join(" ")} -${item.name}`,
+                            icon: Icons.COMMANDLINE,
+                            name: `-${item.name}`,
+                        }) as SearchResultItem);
+                    }
 
-                    return matchedPara.map((item) => ({
-                        executionArgument: `${CommandLineHelpers.commandLinePrefix}${words.join(" ")} -${item}`,
+                    const matchedPara = this.searchEngine.search(parameters, paraInput);
+
+                    return matchedPara.map((item: BareSearchResultItem) => ({
+                        executionArgument: `${CommandLineHelpers.commandLinePrefix}${words.join(" ")} -${item.name}`,
                         icon: Icons.COMMANDLINE,
-                        name: `-${item}`
-                    }) as SearchResultItem)
+                        name: `-${item.name}`,
+                    }) as SearchResultItem);
                 }
             }
         }
 
         // Search available commands
-        const matched = new SearchEngine().search(this.programList, userInput);
+        const matched = this.searchEngine.search(this.programList, command);
 
         if (matched.length > 0) {
             return matched.map((item) => ({
@@ -92,6 +104,6 @@ export class CommandLineSearcher implements Searcher {
                 icon: Icons.COMMANDLINE,
                 name: command,
             } as SearchResultItem,
-        ]
+        ];
     }
 }

@@ -38,6 +38,7 @@ export const defaultConfig: ConfigOptions = {
     musicPlayerType: "local",
     musicPlayerWebSocketPort: 8974,
     onlineModeDelay: 500,
+    powerShellPath: "powershell",
     searchOperatingSystemSettings: true,
     searchResultExecutionArgumentFontSize: 14,
     searchResultHeight: 60,

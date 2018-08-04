@@ -27,6 +27,7 @@ export interface ConfigOptions {
     musicPlayerHotkeyLike: string;
     musicPlayerHotkeyMute: string;
     onlineModeDelay: number;
+    powerShellPath: string;
     searchOperatingSystemSettings: boolean;
     searchResultExecutionArgumentFontSize: number;
     searchResultHeight: number;

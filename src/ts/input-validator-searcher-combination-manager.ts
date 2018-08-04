@@ -29,7 +29,7 @@ export class InputValidatorSearcherCombinationManager {
                 validator: new PrefixInputValidator("$", "Variable"),
             },
             {
-                searcher: new CommandLineSearcher(),
+                searcher: new CommandLineSearcher(globalUELI.config.powerShellPath),
                 validator: new CommandLineInputValidator(),
             },
             {
