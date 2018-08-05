@@ -71,7 +71,7 @@ const globalUELI: GlobalUELI = {
     webSocketSearch,
 };
 
-const externalPluginFolderPath = path.join(homedir(), ".ueli/extensions");
+const externalPluginFolderPath = path.join(homedir(), ".ueli/plugins");
 function getExternalPlugins() {
     const runCollection = [] as any[];
     const onlineCollection = [] as any[];
@@ -80,10 +80,9 @@ function getExternalPlugins() {
         try {
             const pluginNameCollection = readdirSync(externalPluginFolderPath);
             for (const pluginName of pluginNameCollection) {
-                console.log(pluginName);
                 const pluginFullPath = path.join(externalPluginFolderPath, pluginName);
                 const obj = __non_webpack_require__(pluginFullPath);
-                if (obj.searcher && obj.inputValidator) {
+                if (obj.runSearcher && obj.inputValidator) {
                     runCollection.push(obj);
                 } else if (obj.onlineSearcher && obj.inputValidator) {
                     onlineCollection.push(obj);
@@ -94,7 +93,7 @@ function getExternalPlugins() {
                 }
             }
         } catch (error) {
-            dialog.showErrorBox("Cannot load Extension", error.message);
+            dialog.showErrorBox("Cannot load plugin", error.message);
         }
     } else {
         const dotUeliPath = path.join(homedir(), ".ueli");
