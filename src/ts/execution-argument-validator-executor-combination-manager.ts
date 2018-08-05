@@ -50,7 +50,7 @@ export class ExecutionArgumentValidatorExecutorCombinationManager {
                 validator: new WebUrlExecutionArgumentValidator(),
             },
             {
-                executor: new CustomCommandExecutor(),
+                executor: new CustomCommandExecutor(globalUELI.config.powerShellPath),
                 validator: new CustomCommandExecutionArgumentValidator(),
             },
             {
