@@ -52,10 +52,11 @@ export class InputValidationService {
 
     public getScopes(userInput: string): string[] {
         for (const combination of this.combs) {
-            if (combination.searcher.shouldIsolate
-             && combination.validator.isValidForSearchResults(userInput)
-             && combination.validator.getScopes) {
-                return combination.validator.getScopes(userInput);
+            if (combination.validator.isValidForSearchResults(userInput)) {
+                if (combination.validator.getScopes) {
+                    return combination.validator.getScopes(userInput);
+                }
+                break;
             }
         }
         return [];
