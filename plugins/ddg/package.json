@@ -1,0 +1,12 @@
+{
+  "name": "ddg",
+  "version": "1.0.0",
+  "description": "DuckDuckGo for ueli",
+  "main": "index.js",
+  "author": "khanhas",
+  "license": "MIT",
+  "dependencies": {
+    "cheerio": "^1.0.0-rc.2",
+    "node-fetch": "^2.2.0"
+  }
+}
