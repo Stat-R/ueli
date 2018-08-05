@@ -1,7 +1,7 @@
 {
   "name": "ueli",
   "productName": "ueli",
-  "version": "4.3.0",
+  "version": "4.3.3",
   "author": {
     "name": "Oliver Schwendener",
     "email": "oliver.schwendener@hotmail.com",
@@ -26,7 +26,8 @@
     "build:util": "node-gyp configure build && ndts . > \"./native-util/lib-types.d.ts\"",
     "el": "electron-rebuild",
     "elf": "rmdir \"./build\" /S /Q & yarn el && yarn build && yarn noti && yarn start",
-    "noti": "C:/SnoreToast.exe -t \"Build Done\" -m \"VSCode\""
+    "noti": "C:/SnoreToast.exe -t \"Build Done\" -m \"VSCode\"",
+    "link:plugin": "mklink /J \"%userprofile%/.ueli/plugins/\" \"./plugins/\""
   },
   "husky": {
     "hooks": {}
@@ -49,6 +50,7 @@
     "@types/mathjs": "^4.4.0",
     "@types/node-fetch": "^2.1.1",
     "@types/sql.js": "^0.0.29",
+    "@types/webpack-env": "^1.13.6",
     "@types/ws": "^5.1.2",
     "autogypi": "^0.2.2",
     "coveralls": "^3.0.1",
@@ -77,7 +79,6 @@
   "license": "MIT",
   "dependencies": {
     "cheerio": "^1.0.0-rc.2",
-    "electron-updater": "^2.23.3",
     "fuse.js": "^3.2.0",
     "node-fetch": "^2.1.2",
     "nowplaying-node": "^0.1.3",
