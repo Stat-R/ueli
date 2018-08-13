@@ -28,6 +28,7 @@ export class ExecutionArgumentValidatorExecutorCombinationManager {
     private combinations: ExecutionArgumentValidatorExecutorCombination[];
 
     constructor(globalUELI: GlobalUELI) {
+        const clExecutor = new CommandLineExecutor(globalUELI.config.powerShellPath);
         this.combinations = [
             {
                 executor: new UeliCommandExecutor(),
@@ -38,7 +39,7 @@ export class ExecutionArgumentValidatorExecutorCombinationManager {
                 validator: new FilePathExecutionArgumentValidator(),
             },
             {
-                executor: new CommandLineExecutor(),
+                executor: clExecutor,
                 validator: new CommandLineExecutionArgumentValidator(),
             },
             {
@@ -50,7 +51,7 @@ export class ExecutionArgumentValidatorExecutorCombinationManager {
                 validator: new WebUrlExecutionArgumentValidator(),
             },
             {
-                executor: new CustomCommandExecutor(globalUELI.config.powerShellPath),
+                executor: new CustomCommandExecutor(clExecutor),
                 validator: new CustomCommandExecutionArgumentValidator(),
             },
             {

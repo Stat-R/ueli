@@ -8,28 +8,22 @@ export class CustomCommandExecutor implements Executor {
     public hideAfterExecution = true;
     public readonly resetUserInputAfterExecution = true;
     public readonly logExecution = false;
-    private shellPath: string;
+    private commandLineExecutor: CommandLineExecutor;
 
-    constructor(shellPath: string) {
-        this.shellPath = shellPath;
+    constructor(commandLineExecutor: CommandLineExecutor) {
+        this.commandLineExecutor = commandLineExecutor;
     }
 
     public execute(executionArgument: string): void {
         executionArgument = executionArgument.replace(UeliHelpers.customCommandPrefix, "");
         if (new CommandLineExecutionArgumentValidator().isValidForExecution(executionArgument)) {
             this.hideAfterExecution = false;
-            new CommandLineExecutor().execute(executionArgument);
+            this.commandLineExecutor.execute(executionArgument);
             return;
         }
 
         this.hideAfterExecution = true;
-
-        const shellOpts = {
-            shell: this.shellPath,
-            env: process.env
-        };
-
-        exec(executionArgument, shellOpts, (err: Error): void => {
+        exec(executionArgument, (err: Error): void => {
             if (err) {
                 throw err;
             }

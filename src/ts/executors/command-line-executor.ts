@@ -1,25 +1,25 @@
 import { Executor } from "./executor";
 import { CommandLineHelpers } from "../helpers/command-line-helpers";
+import { StringHelpers } from "../helpers/string-helpers";
 import { Icons } from "../icon-manager/icon-manager";
 import { IpcChannels } from "../ipc-channels";
 import { spawn, SpawnOptions } from "child_process";
 import { ipcMain } from "electron";
-// import { platform } from "os";e
 
 export class CommandLineExecutor implements Executor {
     public readonly hideAfterExecution = false;
     public readonly resetUserInputAfterExecution = true;
     public readonly logExecution = false;
-    private commandHistory: string[];
+    private shellPath: string;
 
-    constructor() {
-        this.commandHistory = [];
+    constructor(shellPath: string) {
+        this.shellPath = shellPath;
     }
 
     public execute(executionArgument: string): void {
-        this.commandHistory.push(executionArgument);
-
-        const command = CommandLineHelpers.buildCommand(executionArgument);
+        const words = StringHelpers.stringToWords(executionArgument);
+        words[0] = words[0].replace(CommandLineHelpers.commandLinePrefix, "");
+        words.unshift("-Command");
 
         const clOptions: SpawnOptions = {
             env: process.env,
@@ -27,7 +27,7 @@ export class CommandLineExecutor implements Executor {
 
         ipcMain.emit(IpcChannels.setLoadingIcon);
 
-        const commandLineTool = spawn(command.name, command.args, clOptions);
+        const commandLineTool = spawn(this.shellPath, words, clOptions);
 
         commandLineTool.on("error", (err) => {
             this.sendCommandLineOutputToRenderer(err.message);
