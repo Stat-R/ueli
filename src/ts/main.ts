@@ -88,7 +88,7 @@ function getExternalPlugins() {
                     onlineCollection.push(obj);
                 } else {
                     dialog.showErrorBox(
-                        `Invalid extension: ${pluginName}`,
+                        `Invalid plugin: ${pluginName}`,
                         "Cannot find runSeacher or onlineSeacher or inputValidator exports.");
                 }
             }
