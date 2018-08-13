@@ -62,7 +62,7 @@ module.exports.inputValidator = class Validator {
     /**
      *
      * @param {string} userInput
-     * @returns {[string, string, string]}
+     * @returns {string[]} [Prefix symbols, prefix trimmed input, ...scopes[]]
      */
     getScopes(userInput) {
         const trimmed = userInput.substr(PREFIX.length);
