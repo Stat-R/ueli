@@ -1,11 +1,11 @@
 import { ConfigFileRepository } from "./config-file-repository";
-import { ConfigOptions } from "./config-options";
 import { CountFileRepository } from "./count-file-repository";
 import { CountManager } from "./count-manager";
 import { defaultConfig } from "./default-config";
 import { EverythingInputValidationService } from "./everything-validation-service";
 import { ExecutionArgumentValidatorExecutorCombinationManager } from "./execution-argument-validator-executor-combination-manager";
 import { ExecutionService } from "./execution-service";
+import { GlobalUELI } from "./global-ueli";
 import { UeliHelpers } from "./helpers/ueli-helpers";
 import { WindowHelpers } from "./helpers/winow-helpers";
 import { Icons, IconsWindowsSetting } from "./icon-manager/icon-manager";
@@ -34,14 +34,6 @@ import {
     Tray,
     dialog,
 } from "electron";
-
-export interface GlobalUELI {
-    config: ConfigOptions;
-    runPluginCollection: any[];
-    onlinePluginCollection: any[];
-    webSocketCommandSender: (command: string) => void;
-    webSocketSearch: (input: string) => Promise<WebSocketSearchResult[]>;
-}
 
 export enum InputMode {
     RUN,
@@ -77,9 +69,9 @@ function getExternalPlugins() {
     const onlineCollection = [] as any[];
 
     if (existsSync(externalPluginFolderPath)) {
-        try {
-            const pluginNameCollection = readdirSync(externalPluginFolderPath);
-            for (const pluginName of pluginNameCollection) {
+        const pluginNameCollection = readdirSync(externalPluginFolderPath);
+        for (const pluginName of pluginNameCollection) {
+            try {
                 const pluginFullPath = path.join(externalPluginFolderPath, pluginName);
                 const obj = __non_webpack_require__(pluginFullPath);
                 if (obj.runSearcher && obj.inputValidator) {
@@ -91,9 +83,9 @@ function getExternalPlugins() {
                         `Invalid plugin: ${pluginName}`,
                         "Cannot find runSeacher or onlineSeacher or inputValidator exports.");
                 }
+            } catch (error) {
+                dialog.showErrorBox("Cannot load plugin", error.message);
             }
-        } catch (error) {
-            dialog.showErrorBox("Cannot load plugin", error.message);
         }
     } else {
         const dotUeliPath = path.join(homedir(), ".ueli");

@@ -1,6 +1,6 @@
+import { GlobalUELI } from "./global-ueli";
 import { PrefixInputValidator } from "./input-validators/prefix-input-validator";
 import { SpotifyInputValidator } from "./input-validators/spotify-input-validator";
-import { GlobalUELI } from "./main";
 import { OnlineInputValidatorSearcherCombination } from "./online-input-validator-searcher-combination";
 import { SpotifySearcher } from "./searcher-online/spotify-searcher";
 import { YoutubeSearcher } from "./searcher-online/youtube-searcher";

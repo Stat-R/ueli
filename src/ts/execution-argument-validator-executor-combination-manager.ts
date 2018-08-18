@@ -19,8 +19,8 @@ import { WebSearchExecutor } from "./executors/web-search-executor";
 import { WebUrlExecutor } from "./executors/web-url-executor";
 import { ProcessExecutor } from "./executors/windows-executor";
 import { WindowsSettingsExecutor } from "./executors/windows-settings-executor";
+import { GlobalUELI } from "./global-ueli";
 import { OperatingSystemHelpers } from "./helpers/operating-system-helpers";
-import { GlobalUELI } from "./main";
 import { OperatingSystem } from "./operating-system";
 import { platform } from "os";
 

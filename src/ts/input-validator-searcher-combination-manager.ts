@@ -1,3 +1,4 @@
+import { GlobalUELI } from "./global-ueli";
 import { InputValidatorSearcherCombination } from "./input-validator-searcher-combination";
 import { CalculatorInputValidator } from "./input-validators/calculator-input-validator";
 import { CommandLineInputValidator } from "./input-validators/command-line-input-validator";
@@ -6,7 +7,6 @@ import { PrefixInputValidator } from "./input-validators/prefix-input-validator"
 import { SearchPluginsInputValidator } from "./input-validators/search-plugins-input-validator";
 import { WebSearchInputValidator } from "./input-validators/web-search-input-validator";
 import { WebUrlInputValidator } from "./input-validators/web-url-input-validator";
-import { GlobalUELI } from "./main";
 import { CalculatorSearcher } from "./searcher/calculator-searcher";
 import { CommandLineSearcher } from "./searcher/command-line-searcher";
 import { FilePathSearcher } from "./searcher/file-path-searcher";
