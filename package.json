@@ -1,7 +1,7 @@
 {
   "name": "ueli",
   "productName": "ueli",
-  "version": "4.3.3",
+  "version": "4.3.4",
   "author": {
     "name": "Oliver Schwendener",
     "email": "oliver.schwendener@hotmail.com",
@@ -20,7 +20,7 @@
     "test:all": "jest --silent ./src/tests",
     "coverage": "coveralls < ./coverage/lcov.info",
     "package:publish": "yarn clean & yarn build:publish && electron-builder --config electron-builder-config.yml --publish onTag",
-    "package": "electron-builder --dir --config electron-builder-config.yml --publish never",
+    "package": "yarn build && electron-builder --dir --config electron-builder-config.yml --publish never",
     "link:taskbar": "mklink /J \"D:/ueli/node_modules/taskbar-node\" \"D:/taskbar-node/\"",
     "clean": "rmdir \"./build\" \"./dist\" /S /Q",
     "build:util": "node-gyp configure build && ndts . > \"./native-util/lib-types.d.ts\"",
