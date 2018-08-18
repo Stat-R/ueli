@@ -4,6 +4,7 @@ import { CommandLineExecutionArgumentValidator } from "./execution-argument-vali
 import { FilePathExecutionArgumentValidator } from "./execution-argument-validators/file-path-execution-argument-validator";
 import { FilePathExecutor } from "./executors/file-path-executor";
 import { Hotkey } from "./helpers/hotkey";
+import { StringHelpers } from "./helpers/string-helpers";
 import { UeliHelpers } from "./helpers/ueli-helpers";
 import { MacOsIconManager } from "./icon-manager/mac-os-icon-manager";
 import { WindowsIconManager } from "./icon-manager/windows-icon-manager";
@@ -16,7 +17,6 @@ import { SearchResultItemViewModel } from "./search-result-item";
 import * as defaultCSS from "../scss/default.scss";
 import { ipcRenderer } from "electron";
 import { existsSync, lstatSync, writeFileSync } from "fs";
-import * as os from "os";
 import { homedir, platform } from "os";
 import Vue from "vue";
 
@@ -27,6 +27,8 @@ const config = new ConfigFileRepository(defaultConfig, UeliHelpers.configFilePat
 document.addEventListener("keyup", handleGlobalKeyPress);
 document.addEventListener("keydown", handleHoldingKey);
 let prefix = "";
+let cavetPosition: number | null = null;
+
 const customCSSPath = `${homedir()}/ueli.custom.css`;
 const vue = new Vue({
     data: {
@@ -79,6 +81,16 @@ const vue = new Vue({
                     prefix = "";
                     onChangeUserInput(vue.userInput);
                 }
+            } else if (event.key === "(") {
+                autoCompleteBracketAndQuote(")");
+            } else if (event.key === "\"") {
+                autoCompleteBracketAndQuote("\"");
+            } else if (event.key === "\'") {
+                autoCompleteBracketAndQuote("\'");
+            } else if (event.key === "[") {
+                autoCompleteBracketAndQuote("]");
+            } else if (event.key === "{") {
+                autoCompleteBracketAndQuote("}");
             }
         },
         handleMouseMove: (event: MouseEvent): void => {
@@ -187,7 +199,7 @@ if (musicInfoCrawler !== undefined) {
 
 ipcRenderer.send(IpcChannels.setModeIcon);
 
-const iconManager = Injector.getIconManager(os.platform());
+const iconManager = Injector.getIconManager(platform());
 const coverContainerElement = document.getElementById("cover-container");
 
 const nextHotKey = new Hotkey(config.musicPlayerHotkeyNext);
@@ -197,6 +209,11 @@ const likeHotKey = new Hotkey(config.musicPlayerHotkeyLike);
 
 function onChangeUserInput(val: string): void {
     vue.commandLineOutput = [] as string[];
+    if (cavetPosition !== null) {
+        const inputEle = document.getElementsByTagName("input")[0];
+        inputEle.selectionStart = inputEle.selectionEnd = cavetPosition;
+        cavetPosition = null;
+    }
     if (prefix) {
         ipcRenderer.send(IpcChannels.getSearch, prefix + val);
     } else {
@@ -403,6 +420,24 @@ function showAlternativePrefix() {
 
 function hideAlternativePrefix() {
     vue.showAlternativePrefix = false;
+}
+
+function autoCompleteBracketAndQuote(endSymbol: string) {
+    const inputEle = document.getElementsByTagName("input")[0];
+    if (inputEle.selectionEnd !== null && inputEle.selectionStart !== null) {
+        const start = inputEle.selectionStart;
+        const end = inputEle.selectionEnd;
+
+        inputEle.value = StringHelpers.insertString(
+            inputEle.value,
+            inputEle.selectionEnd,
+            endSymbol
+        );
+
+        inputEle.selectionStart = inputEle.selectionEnd = start;
+
+        cavetPosition = end + 1;
+    }
 }
 
 ipcRenderer.on(IpcChannels.getSearchIconResponse, (_event: Electron.Event, arg: string): void => {
