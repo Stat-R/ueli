@@ -15,6 +15,7 @@ export const defaultConfig: ConfigOptions = {
             [`${homedir()}\\Desktop`, "Desktop"],
         ]
         : [["/Applications", "Applications"]],
+    applicationKeywordBlacklist: [],
     autoStartApp: true,
     bookmarkFromBrowser: "",
     bookmarkProfileName: "",

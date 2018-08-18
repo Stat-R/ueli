@@ -21,7 +21,7 @@ export class SearchPluginManager {
         ];
 
         config.applicationFolders.forEach((folder) => {
-            this.plugins.push(new ProgramsPlugin(new ProgramFileRepository(folder, config.applicationFileExtensions)));
+            this.plugins.push(new ProgramsPlugin(new ProgramFileRepository(folder, config.applicationFileExtensions, config.applicationKeywordBlacklist)));
         });
 
         if (config.searchOperatingSystemSettings) {

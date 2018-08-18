@@ -4,6 +4,7 @@ import { WebSearch } from "./web-search";
 export interface ConfigOptions {
     applicationFileExtensions: string[];
     applicationFolders: Array<[string, string]>;
+    applicationKeywordBlacklist: string[];
     autoStartApp: boolean;
     bookmarkFromBrowser: string;
     bookmarkProfileName: string;
