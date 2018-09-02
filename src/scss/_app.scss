@@ -1,9 +1,8 @@
 $side-padding: 15px;
 $scrollbar-size: 8px;
 $icon-size: 55%;
-
 $font-family: "SF Pro Text", "Segoe UI", "Helvetica";
-$player-font-family: "SF Pro Display",  "Segoe UI", "Helvetica";
+$player-font-family: "SF Pro Display", "Segoe UI", "Helvetica";
 $font-family-mono: "Consolas", "Courier", monospace;
 $font-icon: "Segoe MDL2 Assets";
 
@@ -22,7 +21,7 @@ div.container {
     overflow: hidden;
     border-radius: 10px;
     margin: 20px;
-    box-shadow: 0px 0px 20px rgba(0,0,0,0.4);
+    box-shadow: 0px 0px 20px rgba(0, 0, 0, 0.4);
 }
 
 #acrylic {
@@ -43,7 +42,7 @@ div.container {
 }
 
 #noise {
-    background-image: url(data:image/png;base64,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);
+    background-image: url("data:image/png;base64,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");
     width: 100%;
     height: 100%;
     opacity: var(--noise-amount);
@@ -183,8 +182,8 @@ span {
         font-weight: 500;
         opacity: 0;
         width: 0;
-
         @include transitions();
+
         &.active {
             width: unset;
             padding: 0 10px 0 10px;
@@ -228,162 +227,197 @@ span {
     filter: blur(40px) brightness(0.5);
 }
 
+#player-info {
+    width: 100%;
+    font-family: $player-font-family;
+
+    & .title {
+        font-weight: 600;
+        color: var(--text-color);
+        font-size: 40px;
+        line-height: 55px;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+        overflow: hidden;
+    }
+
+    & .artist {
+        font-weight: 100;
+        font-kerning: 3px;
+        color: var(--text-color);
+        opacity: 0.8;
+        font-size: 20px;
+        line-height: 35px;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+        overflow: hidden;
+    }
+}
+
 #player {
     position: absolute;
     top: 150px;
     left: 70px;
     display: -webkit-inline-box;
     width: calc(100% - 70px * 2);
-}
 
-#player-container {
-    padding-left: 220px;
-    width: calc(100% - 200px)
-}
+    #player-container {
+        padding-left: 220px;
+        width: calc(100% - 200px)
+    }
 
-#player-info {
-    width: 100%;
-    font-family: $player-font-family;
-}
+    #player-control {
+        font-family: $font-icon;
+        font-size: 25px;
+        display: -webkit-inline-box;
+        vertical-align: middle;
+        line-height: 80px;
+        position: absolute;
+        right: 0px;
+    }
 
-#player-info .title {
-    font-weight: 600;
-    color: var(--text-color);
-    font-size: 40px;
-    line-height: 55px;
-    text-overflow: ellipsis;
-    white-space: nowrap;
-    overflow: hidden;
-}
+    .previous-track {
+        padding-right: 20px;
+    }
 
-#player-info .artist {
-    font-weight: 100;
-    font-kerning: 3px;
-    color: var(--text-color);
-    opacity: 0.8;
-    font-size: 20px;
-    line-height: 35px;
-    text-overflow: ellipsis;
-    white-space: nowrap;
-    overflow: hidden;
-}
+    .previous-track::before {
+        content: "\E892";
+    }
 
-#player-control {
-    font-family: $font-icon;
-    font-size: 25px;
-    display: -webkit-inline-box;
-    vertical-align: middle;
-    line-height: 80px;
-    position: absolute;
-    right: 0px;
-}
+    .next-track {
+        padding: 0 20px 0 20px;
+    }
 
-.previous-track {
-    padding-right: 20px;
-}
+    .next-track::before {
+        content: "\E893";
+    }
 
-.previous-track::before {
-    content: "\E892";
-}
+    .play::before {
+        content: "\E768";
+    }
 
-.next-track {
-    padding: 0 20px 0 20px;
-}
+    .pause::before {
+        content: "\E769";
+    }
 
-.next-track::before {
-    content: "\E893";
-}
-
-.play::before {
-    content: "\E768";
-}
-
-.pause::before {
-    content: "\E769";
-}
-
-.icon:hover {
-    color: var(--active-item-background);
-    cursor: pointer;
-}
-
-.play-pause {
-    font-size: 30px;
-    width: 70px;
-    height: 70px;
-    line-height: 70px;
-    box-shadow: inset 0 0 0 2px var(--text-color);
-    border-radius: 50%;
-    text-align: center;
-    margin-left: 20px;
-
-    &:hover {
-        box-shadow: inset 0 0 0 2px var(--active-item-background);
+    .icon:hover {
+        color: var(--active-item-background);
         cursor: pointer;
+    }
+
+    .play-pause {
+        font-size: 30px;
+        width: 70px;
+        height: 70px;
+        line-height: 70px;
+        box-shadow: inset 0 0 0 2px var(--text-color);
+        border-radius: 50%;
+        text-align: center;
+        margin-left: 20px;
+
+        &:hover {
+            box-shadow: inset 0 0 0 2px var(--active-item-background);
+            cursor: pointer;
+        }
+    }
+
+    #player-container .spacer {
+        height: 100px;
+    }
+
+    #cover-container {
+        position: absolute;
+        width: 200px;
+        height: 200px;
+    }
+
+    #like-track {
+        left: calc(50% - 25px /2);
+        text-align: center;
+        font-family: $font-icon;
+        font-size: 25px;
+        color: var(--mono-text-color);
+        position: absolute;
+        bottom: 0px;
+        opacity: 0;
+        transition: all 0.5s cubic-bezier(0.215, 0.610, 0.355, 1);
+    }
+
+    #cover-container:hover #album-cover,
+    #cover-container.hover #album-cover {
+        top: -30px;
+    }
+
+    #cover-container:hover #like-track,
+    #cover-container.hover #like-track {
+        bottom: -10px;
+        opacity: 1;
+    }
+
+    #album-cover {
+        width: 100%;
+        height: 100%;
+        background-size: cover;
+        border-radius: 5px;
+        box-shadow: 0 10px 40px rgba(0, 0, 0, 0.4);
+        position: absolute;
+        z-index: 2;
+        top: 0px;
+        transition: all 0.5s cubic-bezier(0.215, 0.610, 0.355, 1);
+    }
+
+    #like-track::before {
+        content: "\E006";
+    }
+
+    #like-track:hover::before {
+        content: "\E00B";
+    }
+
+    #like-track.liked::before {
+        content: "\E00B";
+        color: #FF213F;
+    }
+
+    #like-track.liked:hover::before {
+        content: "\E00C";
+        color: #FF213F;
     }
 }
 
-#player-container .spacer {
-    height: 100px;
+
+#blur-background.small {
+    height: 140px;
 }
 
-#cover-container {
+#player.small {
     position: absolute;
-    width: 200px;
-    height: 200px;
-}
+    top: 120px;
+    left: 40px;
+    display: -webkit-inline-box;
+    width: calc(100% - 70px * 2);
 
-#like-track {
-    left: calc(50% - 25px /2);
-    text-align: center;
-    font-family: $font-icon;
-    font-size: 25px;
-    color: var(--mono-text-color);
-    position: absolute;
-    bottom: 0px;
-    opacity: 0;
-    transition: all 0.5s cubic-bezier(0.215, 0.610, 0.355, 1);
-}
+    #player-control, #like-track {
+        display: none;
+    }
 
-#cover-container:hover #album-cover,
-#cover-container.hover #album-cover {
-    top: -30px;
-}
+    #cover-container,
+    #cover-container:hover #album-cover,
+    #cover-container.hover #album-cover {
+        width: 100px;
+        height: 100px;
+        top: 0px;
+    }
 
-#cover-container:hover #like-track,
-#cover-container.hover #like-track  {
-    bottom: -10px;
-    opacity: 1;
-}
+    #player-container .spacer {
+        height: 5px;
+    }
 
-#album-cover {
-    width: 100%;
-    height: 100%;
-    background-size: cover;
-    border-radius: 5px;
-    box-shadow: 0 10px 40px rgba(0,0,0,0.4);
-    position: absolute;
-    z-index: 2;
-    top: 0px;
-    transition: all 0.5s cubic-bezier(0.215, 0.610, 0.355, 1);
-}
-
-#like-track::before {
-    content: "\E006";
-}
-
-#like-track:hover::before {
-    content: "\E00B";
-}
-
-#like-track.liked::before {
-    content: "\E00B";
-    color: #FF213F;
-}
-
-#like-track.liked:hover::before {
-    content: "\E00C";
-    color: #FF213F;
+    #player-container {
+        padding-left: 120px;
+        padding-top: 0px;
+        width: calc(100% - 100px);
+    }
 }
 
 #scopes-container {

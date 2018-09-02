@@ -133,11 +133,13 @@ let playerConnectStatus: boolean = false;
 
 app.on("ready", createMainWindow);
 app.on("window-all-closed", quitApp);
+app.requestSingleInstanceLock();
 
 function createMainWindow(): void {
     hideAppInDock();
 
     mainWindow = new BrowserWindow({
+        alwaysOnTop: true,
         autoHideMenuBar: true,
         center: true,
         frame: false,
@@ -281,7 +283,7 @@ function showMainWindow(): void {
 }
 
 function updateWindowSize(searchResultCount: number): void {
-    const musicPlayerHeight = playerConnectStatus ? config.musicPlayerHeight : 0;
+    const musicPlayerHeight = playerConnectStatus ? (config.musicPlayerSmallSize ? 140 : 300) : 0;
     const newWindowHeight = WindowHelpers.calculateWindowHeight(searchResultCount, config.maxSearchResultCount, config.userInputHeight, config.searchResultHeight, musicPlayerHeight);
     mainWindow.setSize(config.windowWidth, newWindowHeight);
 }
@@ -338,6 +340,8 @@ function resetWindowToDefaultSizeAndPosition(): void {
 }
 
 function quitApp(): void {
+    mainWindow.webContents.session.clearCache(() => {});
+    mainWindow.webContents.session.clearStorageData();
     destructTaskbar();
     trayIcon.destroy();
     globalShortcut.unregisterAll();

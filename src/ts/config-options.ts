@@ -18,7 +18,7 @@ export interface ConfigOptions {
     hotkeyWindowsMode: string;
     imageMagickPath: string;
     maxSearchResultCount: number;
-    musicPlayerHeight: number;
+    musicPlayerSmallSize: boolean;
     musicPlayerType: string;
     musicPlayerWebSocketPort: number;
     musicPlayerLocalName: string;

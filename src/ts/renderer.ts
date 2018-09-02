@@ -43,6 +43,7 @@ const vue = new Vue({
             playerConnectStatus: false,
             state: false,
             track: "",
+            smallSize: config.musicPlayerSmallSize
         },
         scopes: [] as string[],
         screenshotFile: "",
