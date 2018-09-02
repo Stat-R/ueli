@@ -26,11 +26,15 @@ export class FilePathSearcher implements Searcher {
             filePath = userInput;
             const stats = fs.lstatSync(filePath);
             if (stats.isDirectory()) {
-                return await this.getFolderSearchResult(filePath);
+                if (userInput.endsWith("\\")) {
+                    return await this.getFolderSearchResult(filePath);
+                }
             } else {
                 return this.getFileSearchResult(filePath);
             }
-        } else if (fs.existsSync(path.dirname(userInput))) {
+        }
+
+        if (fs.existsSync(path.dirname(userInput))) {
             filePath = path.dirname(userInput);
             const searchTerm = path.basename(userInput);
 
