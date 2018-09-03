@@ -15,7 +15,7 @@ import { MusicPlayerNowPlaying } from "./music-player/music-player-nowplaying";
 import { MusicPlayerWebSocket } from "./music-player/music-player-websocket";
 import { SearchResultItemViewModel } from "./search-result-item";
 import * as defaultCSS from "../scss/default.scss";
-import { ipcRenderer } from "electron";
+import { clipboard, ipcRenderer } from "electron";
 import { existsSync, lstatSync, writeFileSync } from "fs";
 import { homedir, platform } from "os";
 import Vue from "vue";
@@ -28,6 +28,7 @@ document.addEventListener("keyup", handleGlobalKeyPress);
 document.addEventListener("keydown", handleHoldingKey);
 let prefix = "";
 let cavetPosition: number | null = null;
+const isValidFilePath = new FilePathExecutionArgumentValidator().isValidForExecution;
 
 const customCSSPath = `${homedir()}/ueli.custom.css`;
 const vue = new Vue({
@@ -45,6 +46,8 @@ const vue = new Vue({
             track: "",
             smallSize: config.musicPlayerSmallSize
         },
+        notifyIcon: "",
+        notifying: false,
         scopes: [] as string[],
         screenshotFile: "",
         searchIcon: "",
@@ -66,6 +69,8 @@ const vue = new Vue({
                 handleEnterPress(false);
             } else if (event.ctrlKey && event.key === "o") {
                 handleOpenFileLocation();
+            } else if (event.ctrlKey && event.shiftKey && event.key === "C") {
+                handleCopyFilePath();
             } else if (event.key === "ArrowDown" || event.key === "ArrowUp") {
                 event.preventDefault();
                 vue.isMouseMoving = false;
@@ -110,7 +115,7 @@ const vue = new Vue({
         },
         handleRightClick: (index: number): void => {
             const arg = vue.searchResults[index].executionArgument;
-            if (new FilePathExecutionArgumentValidator().isValidForExecution(arg)) {
+            if (isValidFilePath(arg)) {
                 ipcRenderer.send(IpcChannels.activateContextMenu, arg);
             }
         },
@@ -306,7 +311,7 @@ function handleOpenFileLocation(): void {
 
     if (activeItem !== undefined) {
         const filePath = activeItem.executionArgument;
-        if (new FilePathExecutionArgumentValidator().isValidForExecution(filePath)) {
+        if (isValidFilePath(filePath)) {
             FilePathExecutor.openFileLocation(filePath);
         }
     }
@@ -318,7 +323,7 @@ function handleAutoCompletion(): void {
     if (activeItem !== undefined) {
         const dirSeparator = Injector.getDirectorySeparator(platform());
         const arg = activeItem.executionArgument;
-        if (new FilePathExecutionArgumentValidator().isValidForExecution(arg)) {
+        if (isValidFilePath(arg)) {
             if (!activeItem.executionArgument.endsWith(dirSeparator) && lstatSync(arg).isDirectory()) {
                 prefix = ""
                 vue.userInput = `${arg}${dirSeparator}`;
@@ -438,6 +443,33 @@ function autoCompleteBracketAndQuote(endSymbol: string) {
         inputEle.selectionStart = inputEle.selectionEnd = start;
 
         cavetPosition = end + 1;
+    }
+}
+
+let notifyingTimeout: NodeJS.Timer | number | null = null;
+
+function notify(iconFunctionName: keyof WindowsIconManager) {
+    if (notifyingTimeout !== null) {
+        clearTimeout(notifyingTimeout as number);
+    }
+
+    vue.notifying = true;
+    vue.notifyIcon = iconManager[iconFunctionName].call(iconManager);
+    notifyingTimeout = setTimeout(() => {
+        vue.notifying = false;
+        notifyingTimeout = null;
+    }, 2000);
+}
+
+function handleCopyFilePath() {
+    const activeItem = getActiveItem();
+    if (activeItem !== undefined) {
+        const filePath = activeItem.executionArgument;
+        if (isValidFilePath(filePath)) {
+            clipboard.writeText(filePath);
+
+            notify("getClipboardIcon");
+        }
     }
 }
 

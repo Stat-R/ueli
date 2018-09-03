@@ -74,7 +74,7 @@ input.user-input {
     }
 }
 
-div.search-icon-container {
+div.search-icon-container, div.notify-icon-container {
     display: flex;
     justify-content: center;
     align-items: center;
@@ -83,6 +83,16 @@ div.search-icon-container {
         width: $icon-size;
         fill: var(--text-color);
     }
+}
+
+@keyframes wiggle {
+    0% { transform:rotate(6deg); }
+    50% { transform:rotate(-6deg); }
+    100% {transform:rotate(6deg); }
+}
+
+div.notify-icon-container:not(.hidden) {
+    animation: wiggle .3s 4;
 }
 
 div.output-container {

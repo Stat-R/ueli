@@ -40,10 +40,18 @@
                 >
                 <div
                     class="search-icon-container"
+                    :class="{ 'hidden': notifying }"
                     style="-webkit-app-region: drag;"
                     :style="searchResultWidth()"
                 >
                     <svg viewBox="0 0 32 32" v-html="searchIcon"></svg>
+                </div>
+                <div
+                    class="notify-icon-container"
+                    :class="{ 'hidden': !notifying }"
+                    :style="searchResultWidth()"
+                >
+                    <svg viewBox="0 0 32 32" v-html="notifyIcon"></svg>
                 </div>
             </div>
 
