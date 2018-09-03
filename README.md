@@ -39,7 +39,23 @@ This repo contains personal modification, only supports Windows 10. Some require
 * Press Enter to launch the program
 
 ## Features
-Full list of features in [wiki](https://github.com/khanhas/ueli/wiki)
+- [Run mode](https://github.com/khanhas/ueli/wiki/Run-mode)
+    * [Programs search](https://github.com/khanhas/ueli/wiki/Run-mode#program-search)
+    * [Files and folder search](https://github.com/khanhas/ueli/wiki/Run-mode#files-and-folder-search)
+    * [Open URL with web browser](https://github.com/khanhas/ueli/wiki/Run-mode#open-urls-with-your-default-web-browser)
+    * [Web search engines](https://github.com/khanhas/ueli/wiki/Run-mode#web-search-engines)
+    * [Execute commandline tool](https://github.com/khanhas/ueli/wiki/Run-mode#execute-commandline-tool)
+    * [Browse file system](https://github.com/khanhas/ueli/wiki/Run-mode#browse-file-system)
+    * [Calculator](https://github.com/khanhas/ueli/wiki/Run-mode#calculator)
+    * [Custom commands](https://github.com/khanhas/ueli/wiki/Run-mode#custom-commands)
+    * [Environment variables](https://github.com/khanhas/ueli/wiki/Run-mode#environment-variables)
+- [Windows mode](https://github.com/khanhas/ueli/wiki/Windows-mode)  
+    Search and open running applications.
+- [Online mode](https://github.com/khanhas/ueli/wiki/Online-mode)
+    * [Spotify](https://github.com/khanhas/ueli/wiki/Online-mode#search-spotify)
+    * [Youtube](https://github.com/khanhas/ueli/wiki/Online-mode#search-youtube)
+- [Everything mode](https://github.com/khanhas/ueli/wiki/Everything-mode)  
+    Search files instantly with Search Everything from VoidTools
 
 ### Keyboard shortcuts
 
