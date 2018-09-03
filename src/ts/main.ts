@@ -104,7 +104,7 @@ globalUELI.onlinePluginCollection = externalPlugins.onlineCollection;
 
 let currentInputMode = 0;
 let currentInputString = "";
-let onlineInputTimeout: NodeJS.Timer | undefined;
+let onlineInputTimeout: NodeJS.Timer | number | null = null;
 
 function webSocketSearch(userInput: string): Promise<WebSocketSearchResult[]> {
     return new Promise((resolve) => {
@@ -371,8 +371,8 @@ function getSearch(userInput: string): void {
             break;
         }
         case InputMode.ONLINE: {
-            if (onlineInputTimeout !== undefined) {
-                clearTimeout(onlineInputTimeout);
+            if (onlineInputTimeout !== null) {
+                clearTimeout(onlineInputTimeout as number);
             }
 
             mainWindow.webContents.send(
@@ -393,7 +393,7 @@ function getSearch(userInput: string): void {
                             mainWindow.webContents.send(IpcChannels.getSearchResponse, result);
                         }
                         setModeIcon();
-                        onlineInputTimeout = undefined;
+                        onlineInputTimeout = null;
                     });
             }, config.onlineModeDelay);
             break;
