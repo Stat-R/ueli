@@ -14,6 +14,7 @@ export class InputValidationService {
         this.combs = combs;
         const countManager = new CountManager(new CountFileRepository(UeliHelpers.countFilePath));
         this.searchEngine = new SearchEngine(countManager);
+        this.combs.forEach((comb) => comb.searcher.fuzzySearcher = this.searchEngine.search);
     }
 
     public getSearchResult(userInput: string): Array<Promise<SearchResultItem[]>> {
