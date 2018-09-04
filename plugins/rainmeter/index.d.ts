@@ -18,6 +18,6 @@ interface SearchResultItemViewModel extends SearchResultItem {
 }
 
 interface Bang {
-    name: string,
+    bang: string,
     para: string[]
 }
