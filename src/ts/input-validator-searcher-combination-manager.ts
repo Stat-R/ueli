@@ -1,3 +1,5 @@
+import { CommandLineCompleter } from "./completer/command-line-completer";
+import { FilePathCompleter } from "./completer/file-path-completer";
 import { GlobalUELI } from "./global-ueli";
 import { InputValidatorSearcherCombination } from "./input-validator-searcher-combination";
 import { CalculatorInputValidator } from "./input-validators/calculator-input-validator";
@@ -29,6 +31,7 @@ export class InputValidatorSearcherCombinationManager {
                 validator: new PrefixInputValidator("$", "Variable"),
             },
             {
+                completer: new CommandLineCompleter(),
                 searcher: new CommandLineSearcher(globalUELI.config.powerShellPath),
                 validator: new CommandLineInputValidator(),
             },
@@ -37,6 +40,7 @@ export class InputValidatorSearcherCombinationManager {
                 validator: new WebSearchInputValidator(globalUELI.config.webSearches),
             },
             {
+                completer: new FilePathCompleter(),
                 searcher: new FilePathSearcher(globalUELI.config.applicationFileExtensions, globalUELI.config.textEditor.name),
                 validator: new FilePathInputValidator(),
             },
@@ -52,6 +56,7 @@ export class InputValidatorSearcherCombinationManager {
 
         for (const plugin of globalUELI.runPluginCollection) {
             this.combinations.push({
+                completer: plugin.completer ? new plugin.completer() : undefined,
                 searcher: new plugin.runSearcher(),
                 validator: new plugin.inputValidator(),
             });

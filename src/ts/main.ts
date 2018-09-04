@@ -514,3 +514,10 @@ ipcMain.on(IpcChannels.rendererInit, (): void => {
 ipcMain.on(IpcChannels.activateContextMenu, (_event: Event, arg: string) => {
     nativeUtil.activateContextMenu(arg);
 });
+
+ipcMain.on(IpcChannels.autoComplete, (_event: Event, userInput: string, cavetPosition: number, selectingResult: SearchResultItem) => {
+    const result = inputValidationService.complete(userInput, cavetPosition, selectingResult);
+    if (result.length > 0) {
+        mainWindow.webContents.send(IpcChannels.autoCompleteResponse, result);
+    }
+});

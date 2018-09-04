@@ -52,13 +52,24 @@ export class InputValidationService {
 
     public getScopes(userInput: string): string[] {
         for (const combination of this.combs) {
-            if (combination.validator.isValidForSearchResults(userInput)) {
-                if (combination.validator.getScopes) {
-                    return combination.validator.getScopes(userInput);
+            if (combination.validator.isValidForSearchResults(userInput)
+             && combination.validator.getScopes) {
+                const scopes = combination.validator.getScopes(userInput);
+                if (scopes.length > 0) {
+                    return scopes;
                 }
-                break;
             }
         }
         return [];
+    }
+
+    public complete(userInput: string, cavetPosition: number, selectingResult: SearchResultItem): string {
+        for (const combination of this.combs) {
+            if (combination.completer
+             && combination.completer.isCompletable(userInput, cavetPosition, selectingResult)) {
+                return combination.completer.complete(userInput, cavetPosition, selectingResult);
+            }
+        }
+        return "";
     }
 }

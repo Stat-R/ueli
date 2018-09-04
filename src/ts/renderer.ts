@@ -1,6 +1,5 @@
 import { ConfigFileRepository } from "./config-file-repository";
 import { defaultConfig } from "./default-config";
-import { CommandLineExecutionArgumentValidator } from "./execution-argument-validators/command-line-execution-argument-validator";
 import { FilePathExecutionArgumentValidator } from "./execution-argument-validators/file-path-execution-argument-validator";
 import { FilePathExecutor } from "./executors/file-path-executor";
 import { Hotkey } from "./helpers/hotkey";
@@ -16,7 +15,7 @@ import { MusicPlayerWebSocket } from "./music-player/music-player-websocket";
 import { SearchResultItemViewModel } from "./search-result-item";
 import * as defaultCSS from "../scss/default.scss";
 import { clipboard, ipcRenderer } from "electron";
-import { existsSync, lstatSync, writeFileSync } from "fs";
+import { existsSync, writeFileSync } from "fs";
 import { homedir, platform } from "os";
 import Vue from "vue";
 
@@ -321,17 +320,13 @@ function handleAutoCompletion(): void {
     const activeItem = getActiveItem();
 
     if (activeItem !== undefined) {
-        const dirSeparator = Injector.getDirectorySeparator(platform());
-        const arg = activeItem.executionArgument;
-        if (isValidFilePath(arg)) {
-            if (!activeItem.executionArgument.endsWith(dirSeparator) && lstatSync(arg).isDirectory()) {
-                prefix = ""
-                vue.userInput = `${arg}${dirSeparator}`;
-            }
-        } else if (new CommandLineExecutionArgumentValidator().isValidForExecution(arg)) {
-            prefix = ""
-            vue.userInput = `${arg} `;
+        const inputElement = document.getElementsByTagName("input")[0];
+        const userInput = `${prefix}${vue.userInput}`;
+        let cavetPosition = userInput.length;
+        if (inputElement !== null && inputElement.selectionStart !== null) {
+            cavetPosition = inputElement.selectionStart;
         }
+        ipcRenderer.send(IpcChannels.autoComplete, userInput, cavetPosition, activeItem);
     }
 }
 
@@ -536,4 +531,9 @@ ipcRenderer.on(IpcChannels.getScopes, (_event: Event, arg: string[]): void => {
     } else {
         vue.scopes = [];
     }
-})
+});
+
+ipcRenderer.on(IpcChannels.autoCompleteResponse, (_event: Event, arg: string): void => {
+    prefix = "";
+    vue.userInput = arg;
+});
