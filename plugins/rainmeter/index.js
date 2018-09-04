@@ -1,4 +1,5 @@
 // @ts-check
+/// <reference path="index.d.ts" />
 
 const exec = require("child_process").exec;
 const path = require("path");
@@ -83,24 +84,31 @@ module.exports.runSearcher = class Searcher {
 
     /**
      *
+     * @param {Array<SearchResultItem>} inputItems
+     * @param {string} searchTerm
+     * @returns {Array<SearchResultItem>}
+     */
+    /* virtual */ fuzzySearcher(inputItems, searchTerm) { return []; }
+
+    /**
+     *
      * @param {string} input
+     * @returns {Promise<Array<SearchResultItem>>}
      */
     async getSearchResult(input) {
-        const bangInput = splitByArg(input.replace(PREFIX, ""));
-        console.log(input.endsWith(" "));
-        const bangLowerCase = bangInput.length > 0 ? bangInput[0].toLowerCase() : "";
+        const trimmedInput = input.replace(PREFIX, "");
+        const bangInput = splitByArg(trimmedInput);
 
-        if (bangInput.length === 0) {
-            return this.mapBangToResult(BANG_LIST, input);
-        } else if (bangInput.length === 1) {
-            const validBang = BANG_LIST.filter((value) => {
-                return value.bang.toLowerCase().startsWith(bangLowerCase);
-            });
-
-            return this.mapBangToResult(validBang, input);
+        if (bangInput.length === 1) {
+            const searchResults = BANG_LIST.map(this.mapBangToResult);
+            if (trimmedInput) {
+                return this.fuzzySearcher(searchResults, trimmedInput);
+            } else {
+                return searchResults;
+            }
         } else {
             const validBang = BANG_LIST.filter((value) => {
-                return value.bang.toLowerCase() === bangLowerCase;
+                return value.bang.toLowerCase() === bangInput[0].toLowerCase();
             });
 
             if (validBang.length == 1) {
@@ -108,31 +116,43 @@ module.exports.runSearcher = class Searcher {
                 switch (field) {
                     case "Config":
                         const arg = bangInput.pop().replace(/\"/g, "");
-                        return validSkinConfig
-                        .filter((item) => {
-                            return item.toLowerCase().startsWith(arg);
-                        })
-                        .map((item) => ({
+                        const allConfig = validSkinConfig.map((item) => ({
                             breadCrumb: [`!${validBang[0].bang} ${validBang[0].para.join(" ")}`],
-                            name: `${bangInput.join(" ")} ${item.indexOf(" ") === -1 ? item : `"${item}"`}`,
+                            name: item,
                             executionArgument: `${PREFIX}${bangInput.join(" ")} ${item.indexOf(" ") === -1 ? item : `"${item}"`}`,
-                            icon: ICON
+                            icon: ICON,
                         }));
+
+                        if (arg) {
+                            return this.fuzzySearcher(allConfig, arg);
+                        }
+
+                        return allConfig;
                 }
-                return this.mapBangToResult(validBang, input);
+                return [{
+                    breadCrumb: [`!${validBang[0].bang} ${validBang[0].para.join(" ")}`],
+                    executionArgument: input,
+                    icon: ICON,
+                    name: validBang[0].bang,
+                }];
             }
         }
 
         return [];
     }
 
-    mapBangToResult(bangList, input) {
-        return bangList.map((value) => ({
+    /**
+     *
+     * @param {Bang} value
+     * @returns {SearchResultItem}
+     */
+    mapBangToResult(value) {
+        return {
             breadCrumb: [`!${value.bang} ${value.para.join(" ")}`],
-            executionArgument: input,
+            executionArgument: `${PREFIX}${value.bang}`,
             icon: ICON,
             name: value.bang,
-        }));
+        };
     }
 }
 
@@ -158,6 +178,11 @@ module.exports.inputValidator = class Validator {
 }
 
 module.exports.executionValidator = class ExecutionArgumentValidator {
+    /**
+     *
+     * @param {string} arg
+     * @returns {boolean}
+     */
     isValidForExecution(arg) {
         return arg.startsWith(PREFIX);
     }
@@ -170,9 +195,13 @@ module.exports.executor = class Executor {
         this.logExecution = false;
     }
 
+    /**
+     *
+     * @param {string} arg
+     */
     execute(arg) {
         const command = arg.replace(PREFIX, `"${RAINMETER_EXE_PATH}" !`);
-        console.log(command);
+
         exec(command, (err) => {
             if (err) {
                 throw err;
@@ -186,7 +215,7 @@ module.exports.completer = class ArgumentCompleter {
      *
      * @param {string} userInput
      * @param {number} cavetPosition
-     * @param {{ name: string;tags?: string[]; alternativeExecutionArgument?: string; alternativePrefix?: string; breadCrumb?: string[]; executionArgument: string; icon: string}} selectingResult
+     * @param {SearchResultItem} selectingResult
      */
     isCompletable(userInput, cavetPosition, selectingResult) {
         return selectingResult.executionArgument.startsWith(PREFIX);
@@ -196,13 +225,16 @@ module.exports.completer = class ArgumentCompleter {
      *
      * @param {string} userInput
      * @param {number} cavetPosition
-     * @param {{ name: string;tags?: string[]; alternativeExecutionArgument?: string; alternativePrefix?: string; breadCrumb?: string[]; executionArgument: string; icon: string}} selectingResult
+     * @param {SearchResultItem} selectingResult
      */
     complete(userInput, cavetPosition, selectingResult) {
-        return `${PREFIX}${selectingResult.name} `;
+        return `${selectingResult.executionArgument} `;
     }
 }
 
+/**
+ * @type {Bang[]}
+ */
 const BANG_LIST = [
     {
         bang: "TrayMenu",
