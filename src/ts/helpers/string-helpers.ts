@@ -12,7 +12,7 @@ export class StringHelpers {
     }
 
     public static trimAndReplaceMultipleWhiteSpacesWithOne(value: string): string {
-        return value.replace(/\s\s+/g, " ").trim();
+        return value.replace(/\s\s+/g, " ").replace(/^\s*/, "");
     }
 
     public static stringToWords(value: string): string[] {
