@@ -28,6 +28,8 @@ document.addEventListener("keydown", handleHoldingKey);
 let prefix = "";
 let cavetPosition: number | null = null;
 const isValidFilePath = new FilePathExecutionArgumentValidator().isValidForExecution;
+const inputHistory = [] as string[];
+let historyIndex = -1;
 
 const customCSSPath = `${homedir()}/ueli.custom.css`;
 const vue = new Vue({
@@ -70,6 +72,20 @@ const vue = new Vue({
                 handleOpenFileLocation();
             } else if (event.ctrlKey && event.shiftKey && event.key === "C") {
                 handleCopyFilePath();
+            } else if (event.ctrlKey && event.key === "ArrowUp") {
+                const nextIndex = historyIndex + 1;
+                if (nextIndex >= 0 && nextIndex < inputHistory.length && inputHistory[nextIndex]) {
+                    historyIndex++;
+                    prefix = "";
+                    vue.userInput = inputHistory[historyIndex];
+                }
+            } else if (event.ctrlKey && event.key === "ArrowDown") {
+                const nextIndex = historyIndex - 1;
+                if (nextIndex >= 0 && nextIndex < inputHistory.length && inputHistory[nextIndex]) {
+                    historyIndex--;
+                    prefix = "";
+                    vue.userInput = inputHistory[historyIndex];
+                }
             } else if (event.key === "ArrowDown" || event.key === "ArrowUp") {
                 event.preventDefault();
                 vue.isMouseMoving = false;
@@ -340,6 +356,11 @@ function execute(executionArgument: string, alternative: boolean): void {
 }
 
 function resetUserInput(): void {
+    if (vue.userInput) {
+        inputHistory.unshift(`${prefix}${vue.userInput}`);
+        historyIndex = -1;
+    }
+
     vue.userInput = "";
     prefix = "";
     onChangeUserInput("");
