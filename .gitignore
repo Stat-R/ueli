@@ -69,3 +69,5 @@ native-util/nbind.node
 bin/
 auto-top.gypi
 auto.gypi
+
+*/api-key.js
