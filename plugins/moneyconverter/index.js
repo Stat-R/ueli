@@ -16,7 +16,6 @@ try {
     const raw = readFileSync(STORAGE_PATH, "utf-8");
     data = JSON.parse(raw);
     const today = new Date().toISOString().substr(0, 10); // 2018-09-05 = 10 chars
-    console.log(today, data.date);
     if (data.date !== today) {
         throw Error;
     }
