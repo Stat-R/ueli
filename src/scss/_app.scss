@@ -1,10 +1,6 @@
 $side-padding: 15px;
 $scrollbar-size: 8px;
 $icon-size: 55%;
-$font-family: "SF Pro Text", "Segoe UI", "Helvetica";
-$player-font-family: "SF Pro Display", "Segoe UI", "Helvetica";
-$font-family-mono: "Consolas", "Courier", monospace;
-$font-icon: "Segoe MDL2 Assets";
 
 @mixin transitions() {
     transition: all 150ms ease-in-out;
@@ -19,7 +15,7 @@ div.container {
     display: flex;
     flex-direction: column;
     overflow: hidden;
-    border-radius: 10px;
+    border-radius: var(--corner-radius);
     margin: 20px;
     box-shadow: 0px 0px 20px rgba(0, 0, 0, 0.4);
 }
@@ -27,18 +23,17 @@ div.container {
 #acrylic {
     position: absolute;
     z-index: 0;
-    // border-radius: 10px;
     width: calc(100% - 40px);
     height: calc(100% - 40px);
     @include transitions();
     overflow: hidden;
-    border-radius: 10px;
-}
+    border-radius: var(--corner-radius);
 
-#acrylic img {
-    filter: blur(60px);
-    position: absolute;
-    z-index: -1;
+    & img {
+        filter: blur(60px);
+        position: absolute;
+        z-index: -1;
+    }
 }
 
 #noise {
@@ -53,14 +48,12 @@ div.user-input-container {
     padding: 0 $side-padding;
     background-color: var(--input-container-background);
     z-index: 1;
-    // border-radius: 10px;
-    &.active {
-        // border-radius: 10px 10px 0 0;
-    }
+
+    &.active {}
 }
 
 input.user-input {
-    font-family: $font-family;
+    font-family: var(--font-family);
     font-weight: 200;
     width: 100%;
     box-sizing: border-box;
@@ -99,20 +92,17 @@ div.output-container {
     width: 100%;
     overflow-y: auto;
     overflow-x: hidden;
-    // border-radius: 0 0 10px 10px;
     background-color: var(--output-container-background);
     z-index: 1;
-}
 
-div.output-container.musicActive {
-    // background-color: rgba(var(--background-color), 1);
+    &.musicActive {}
 }
 
 div.command-line-output-container {
     padding: $side-padding;
 
     pre {
-        font-family: $font-family-mono;
+        font-family: var(--font-family-mono);
         color: var(--mono-text-color)r;
         margin: 0;
         white-space: pre-wrap;
@@ -125,7 +115,7 @@ div.search-results-container {
 }
 
 div.search-result {
-    font-family: $font-family;
+    font-family: var(--font-family);
     display: flex;
     flex-direction: row;
     cursor: pointer;
@@ -178,7 +168,7 @@ div.search-result-header-container {
 span {
     text-overflow: ellipsis;
     white-space: nowrap;
-    font-family: $font-family;
+    font-family: var(--font-family);
 
     &.search-result-name {
         font-weight: 500;
@@ -239,7 +229,7 @@ span {
 
 #player-info {
     width: 100%;
-    font-family: $player-font-family;
+    font-family: var(--player-font-family);
 
     & .title {
         font-weight: 600;
@@ -277,7 +267,7 @@ span {
     }
 
     #player-control {
-        font-family: $font-icon;
+        font-family: var(--font-icon);
         font-size: 25px;
         display: -webkit-inline-box;
         vertical-align: middle;
@@ -335,16 +325,10 @@ span {
         height: 100px;
     }
 
-    #cover-container {
-        position: absolute;
-        width: 200px;
-        height: 200px;
-    }
-
     #like-track {
         left: calc(50% - 25px /2);
         text-align: center;
-        font-family: $font-icon;
+        font-family: var(--font-icon);
         font-size: 25px;
         color: var(--mono-text-color);
         position: absolute;
@@ -353,15 +337,21 @@ span {
         transition: all 0.5s cubic-bezier(0.215, 0.610, 0.355, 1);
     }
 
-    #cover-container:hover #album-cover,
-    #cover-container.hover #album-cover {
-        top: -30px;
-    }
+    #cover-container {
+        position: absolute;
+        width: 200px;
+        height: 200px;
 
-    #cover-container:hover #like-track,
-    #cover-container.hover #like-track {
-        bottom: -10px;
-        opacity: 1;
+        &:hover #album-cover,
+        &.hover #album-cover {
+            top: -30px;
+        }
+
+        &:hover #like-track,
+        &.hover #like-track {
+            bottom: -10px;
+            opacity: 1;
+        }
     }
 
     #album-cover {
@@ -376,22 +366,24 @@ span {
         transition: all 0.5s cubic-bezier(0.215, 0.610, 0.355, 1);
     }
 
-    #like-track::before {
-        content: "\E006";
-    }
+    #like-track {
+        &::before {
+            content: "\E006";
+        }
 
-    #like-track:hover::before {
-        content: "\E00B";
-    }
+        &:hover::before {
+            content: "\E00B";
+        }
 
-    #like-track.liked::before {
-        content: "\E00B";
-        color: #FF213F;
-    }
+        &.liked::before {
+            content: "\E00B";
+            color: #FF213F;
+        }
 
-    #like-track.liked:hover::before {
-        content: "\E00C";
-        color: #FF213F;
+        &.liked:hover::before {
+            content: "\E00C";
+            color: #FF213F;
+        }
     }
 }
 
@@ -436,12 +428,10 @@ span {
     align-items: center;
     display: flex;
     padding-right: 20px;
-    @include transitions();
 
     & .scope {
         padding: 8px 10px;
         border: solid 2px var(--text-color);
         border-radius: 3px;
-        @include transitions();
     }
 }

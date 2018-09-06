@@ -9,5 +9,10 @@
     --scrollbar-color: rgb(68,68,68);
     --alternative-prefix-background: rgba(var(--background-color), 0.8);
     --noise-amount: 0.3;
+    --corner-radius: 10px;
+    --font-family: "SF Pro Text", "Segoe UI", "Helvetica";
+    --player-font-family: "SF Pro Display", "Segoe UI", "Helvetica";
+    --font-family-mono: "Consolas", "Courier", monospace;
+    --font-icon: "Segoe MDL2 Assets";
 }
 @import "app";
