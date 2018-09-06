@@ -16,14 +16,6 @@ export class NativeUtil {
         this.instance.storeBrowserHwnd();
     }
 
-    public storeForegroundHwnd(): void {
-        this.instance.storeForegroundHwnd();
-    }
-
-    public activateLastActiveHwnd(): void {
-        this.instance.activateLastActiveHwnd();
-    }
-
     public elevateExecute(arg: string): void {
         this.instance.elevateExecute(arg);
     }

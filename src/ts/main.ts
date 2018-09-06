@@ -136,8 +136,6 @@ app.on("window-all-closed", quitApp);
 app.requestSingleInstanceLock();
 
 function createMainWindow(): void {
-    hideAppInDock();
-
     mainWindow = new BrowserWindow({
         alwaysOnTop: true,
         autoHideMenuBar: true,
@@ -157,7 +155,7 @@ function createMainWindow(): void {
     mainWindow.setSize(config.windowWidth, config.userInputHeight);
 
     mainWindow.on("close", quitApp);
-    mainWindow.on("blur", () => hideMainWindow(false));
+    mainWindow.on("blur", hideMainWindow);
 
     mainWindow.on("move", moveWindow);
     mainWindow.on("show", () => {
@@ -219,20 +217,13 @@ function registerGlobalShortCuts(): void {
 function changeModeWithHotkey(mode: number) {
     const isVisible = mainWindow.isVisible();
     if (isVisible && mode === currentInputMode) {
-        hideMainWindow(true);
+        hideMainWindow();
         return;
     }
 
     switchMode(mode, currentInputString);
     if (!isVisible) {
-        nativeUtil.storeForegroundHwnd();
         showMainWindow();
-    }
-}
-
-function hideAppInDock(): void {
-    if (platform() === "darwin") {
-        app.dock.hide();
     }
 }
 
@@ -246,7 +237,7 @@ function setAutostartSettings() {
 
 function toggleWindow(): void {
     if (mainWindow.isVisible()) {
-        hideMainWindow(true);
+        hideMainWindow();
     } else {
         showMainWindow();
     }
@@ -265,6 +256,7 @@ if (config.imageMagickPath) {
 
 function showMainWindow(): void {
     getSearch("");
+    mainWindow.restore();
     if (magickExecute === "no") {
         mainWindow.show();
         mainWindow.webContents.send(IpcChannels.mainShow);
@@ -288,7 +280,7 @@ function updateWindowSize(searchResultCount: number): void {
     mainWindow.setSize(config.windowWidth, newWindowHeight);
 }
 
-function hideMainWindow(focusLastActiveWindow = false): void {
+function hideMainWindow(): void {
     mainWindow.webContents.send(IpcChannels.resetCommandlineOutput);
     mainWindow.webContents.send(IpcChannels.resetUserInput);
 
@@ -297,11 +289,9 @@ function hideMainWindow(focusLastActiveWindow = false): void {
     setTimeout(() => {
         if (mainWindow !== null && mainWindow !== undefined && mainWindow.isVisible()) {
             updateWindowSize(0);
+            mainWindow.minimize();
             mainWindow.hide();
             mainWindow.setOpacity(0);
-            if (focusLastActiveWindow) {
-                nativeUtil.activateLastActiveHwnd();
-            }
         }
     }, delayWhenHidingCommandlineOutputInMs); // to give user input and command line output time to reset properly delay hiding window
 }
@@ -432,7 +422,7 @@ function destructTaskbar() {
     }
 }
 
-ipcMain.on(IpcChannels.hideWindow, (_event: Event, arg: boolean) => hideMainWindow(arg));
+ipcMain.on(IpcChannels.hideWindow, hideMainWindow);
 ipcMain.on(IpcChannels.ueliReload, reloadApp);
 ipcMain.on(IpcChannels.ueliExit, quitApp);
 

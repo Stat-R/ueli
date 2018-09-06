@@ -37,21 +37,6 @@ class NativeUtil
         browserHwnd = FindWindow(NULL, L"ueli");
     }
 
-    void storeForegroundHwnd()
-    {
-        const HWND hwnd = GetForegroundWindow();
-        if (hwnd != browserHwnd)
-        {
-            lastActiveHwnd = hwnd;
-        }
-    }
-
-    void activateLastActiveHwnd()
-    {
-        SwitchToThisWindow(lastActiveHwnd, true);
-        SetWindowPos(lastActiveHwnd, HWND_TOP, 0, 0, 0, 0, SWP_NOMOVE | SWP_NOSIZE | SWP_SHOWWINDOW);
-    }
-
     void elevateExecute(std::string arg)
     {
         LPCWSTR appName = StrToWStr(arg).c_str();
@@ -233,7 +218,6 @@ class NativeUtil
         }
     }
     HWND browserHwnd;
-    HWND lastActiveHwnd;
     HWND ipcHwnd;
 };
 
@@ -241,8 +225,6 @@ NBIND_CLASS(NativeUtil)
 {
     construct();
     method(storeBrowserHwnd);
-    method(storeForegroundHwnd);
-    method(activateLastActiveHwnd);
     method(elevateExecute);
     method(queryEverything);
     method(resolveEverything);

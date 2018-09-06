@@ -9,12 +9,6 @@ export class NativeUtil extends NBindBase {
 	/** void storeBrowserHwnd(); */
 	storeBrowserHwnd(): void;
 
-	/** void storeForegroundHwnd(); */
-	storeForegroundHwnd(): void;
-
-	/** void activateLastActiveHwnd(); */
-	activateLastActiveHwnd(): void;
-
 	/** void elevateExecute(std::string); */
 	elevateExecute(p0: string): void;
 
