@@ -71,22 +71,12 @@ const vue = new Vue({
             } else if (event.ctrlKey && event.key === "o") {
                 handleOpenFileLocation();
             } else if (event.ctrlKey && event.shiftKey && event.key === "C") {
-                handleCopyFilePath();
+                handleCopyArgument();
             } else if (event.ctrlKey && event.key === "ArrowUp") {
-                const nextIndex = historyIndex + 1;
-                if (nextIndex >= 0 && nextIndex < inputHistory.length && inputHistory[nextIndex]) {
-                    historyIndex++;
-                    prefix = "";
-                    vue.userInput = inputHistory[historyIndex];
-                }
+                changeHistoryIndex(1)
             } else if (event.ctrlKey && event.key === "ArrowDown") {
-                const nextIndex = historyIndex - 1;
-                if (nextIndex >= 0 && nextIndex < inputHistory.length && inputHistory[nextIndex]) {
-                    historyIndex--;
-                    prefix = "";
-                    vue.userInput = inputHistory[historyIndex];
-                }
-            } else if (event.key === "ArrowDown" || event.key === "ArrowUp") {
+                changeHistoryIndex(-1)
+            }else if (event.key === "ArrowDown" || event.key === "ArrowUp") {
                 event.preventDefault();
                 vue.isMouseMoving = false;
                 const direction = event.key === "ArrowDown" ? 1 : -1;
@@ -95,7 +85,7 @@ const vue = new Vue({
                 event.preventDefault();
                 handleAutoCompletion();
             } else if (event.key === "Escape") {
-                ipcRenderer.send(IpcChannels.hideWindow, true);
+                ipcRenderer.send(IpcChannels.hideWindow);
             } else if (event.key === "Backspace" && vue.userInput.length === 0) {
                 if (prefix) {
                     vue.userInput = prefix.slice(0, prefix.length - 1);
@@ -477,15 +467,20 @@ function notify(iconFunctionName: keyof WindowsIconManager) {
     }, 2000);
 }
 
-function handleCopyFilePath() {
+function handleCopyArgument() {
     const activeItem = getActiveItem();
     if (activeItem !== undefined) {
-        const filePath = activeItem.executionArgument;
-        if (isValidFilePath(filePath)) {
-            clipboard.writeText(filePath);
+        clipboard.writeText(activeItem.executionArgument);
+        notify("getClipboardIcon");
+    }
+}
 
-            notify("getClipboardIcon");
-        }
+function changeHistoryIndex(direction: 1 | -1) {
+    const nextIndex = historyIndex + direction;
+    if (nextIndex >= 0 && nextIndex < inputHistory.length && inputHistory[nextIndex]) {
+        historyIndex = nextIndex;
+        prefix = "";
+        vue.userInput = inputHistory[historyIndex];
     }
 }
 
