@@ -1,8 +1,6 @@
 // @ts-check
-
-const fetch = require("node-fetch").default;
 const cheerio = require("cheerio");
-
+const { get } = require('http');
 const PREFIX = "dd!"
 
 module.exports.onlineSearcher = class Searcher {
@@ -16,26 +14,36 @@ module.exports.onlineSearcher = class Searcher {
      * @param {string} userInput
      * @returns {Promise<Array<{ name: string;tags?: string[]; alternativeExecutionArgument?: string; alternativePrefix?: string; breadCrumb?: string[]; executionArgument: string; icon: string}>>}
      */
-    async getSearchResult(userInput) {
+    getSearchResult(userInput) {
         const input = userInput.replace(PREFIX, "");
-        return fetch(`https://duckduckgo.com/lite/?q=${encodeURIComponent(input)}`)
-            .then((res) => res.text())
-            .then((res) => {
-                const $ = cheerio.load(res);
-                const rawResults = $("tr");
-                const headers = rawResults.find("a");
-                const descriptions = rawResults.find(".result-snippet");
-                const results = [];
-                for (let i = 0; i < headers.length; i++) {
-                    results.push({
-                        breadCrumb: [$(descriptions[i]).text()],
-                        executionArgument: this.toLink($(headers[i])),
-                        icon: "getURLIcon",
-                        name: $(headers[i]).text(),
-                    })
-                }
-                return results;
+        return new Promise((resolve, reject) => {
+            get(`http://duckduckgo.com/lite/?q=${encodeURIComponent(input)}`, (res) => {
+                let body = '';
+
+                res.on('error', (err) => reject(err));
+
+                res.on('data', (chunk) => {
+                    body += chunk;
+                });
+
+                res.on('end', () => {
+                    const $ = cheerio.load(body);
+                    const rawResults = $("tr");
+                    const headers = rawResults.find("a");
+                    const descriptions = rawResults.find(".result-snippet");
+                    const results = [];
+                    for (let i = 0; i < headers.length; i++) {
+                        results.push({
+                            breadCrumb: [$(descriptions[i]).text()],
+                            executionArgument: this.toLink($(headers[i])),
+                            icon: "getURLIcon",
+                            name: $(headers[i]).text(),
+                        })
+                    }
+                    resolve(results);
+                });
             });
+        });
     }
 
     /**
