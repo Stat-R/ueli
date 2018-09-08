@@ -5,6 +5,7 @@ export interface ConfigOptions {
     applicationFileExtensions: string[];
     applicationFolders: Array<[string, string]>;
     applicationKeywordBlacklist: string[];
+    autoCompleteSymbolPairs: Array<[string, string]>;
     autoStartApp: boolean;
     bookmarkFromBrowser: string;
     bookmarkProfileName: string;

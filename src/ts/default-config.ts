@@ -17,6 +17,13 @@ export const defaultConfig: ConfigOptions = {
         : [["/Applications", "Applications"]],
     applicationKeywordBlacklist: [],
     autoStartApp: true,
+    autoCompleteSymbolPairs: [
+        ["(",")"],
+        ["{","}"],
+        ["[","]"],
+        ["\"","\""],
+        ["'","'"],
+    ],
     bookmarkFromBrowser: "",
     bookmarkProfileName: "",
     customCommands: [],
