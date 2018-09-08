@@ -457,15 +457,9 @@ function autoCompleteSymbolPairs(inputSymbol: string) {
         return;
     }
 
-    console.log(endSymbol);
-
     const start = inputElement.selectionStart;
     const end = inputElement.selectionEnd;
-    console.log(StringHelpers.insertString(
-        inputElement.value,
-        end,
-        endSymbol
-    ));
+
     inputElement.value = StringHelpers.insertString(
         inputElement.value,
         end,
