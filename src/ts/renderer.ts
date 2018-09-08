@@ -86,22 +86,18 @@ const vue = new Vue({
                 handleAutoCompletion();
             } else if (event.key === "Escape") {
                 ipcRenderer.send(IpcChannels.hideWindow);
-            } else if (event.key === "Backspace" && vue.userInput.length === 0) {
-                if (prefix) {
-                    vue.userInput = prefix.slice(0, prefix.length - 1);
-                    prefix = "";
-                    onChangeUserInput(vue.userInput);
+            } else if (event.key === "Backspace") {
+                if (vue.userInput.length === 0) {
+                    if (prefix) {
+                        vue.userInput = prefix.slice(0, prefix.length - 1);
+                        prefix = "";
+                        onChangeUserInput(vue.userInput);
+                    }
+                } else {
+                    autoDeleteSymbolPairs();
                 }
-            } else if (event.key === "(") {
-                autoCompleteBracketAndQuote(")");
-            } else if (event.key === "\"") {
-                autoCompleteBracketAndQuote("\"");
-            } else if (event.key === "\'") {
-                autoCompleteBracketAndQuote("\'");
-            } else if (event.key === "[") {
-                autoCompleteBracketAndQuote("]");
-            } else if (event.key === "{") {
-                autoCompleteBracketAndQuote("}");
+            } else {
+                autoCompleteSymbolPairs(event.key);
             }
         },
         handleMouseMove: (event: MouseEvent): void => {
@@ -226,8 +222,8 @@ const likeHotKey = new Hotkey(config.musicPlayerHotkeyLike);
 function onChangeUserInput(val: string): void {
     vue.commandLineOutput = [] as string[];
     if (cavetPosition !== null) {
-        const inputEle = document.getElementsByTagName("input")[0];
-        inputEle.selectionStart = inputEle.selectionEnd = cavetPosition;
+        const inputElement = document.getElementsByTagName("input")[0];
+        inputElement.selectionStart = inputElement.selectionEnd = cavetPosition;
         cavetPosition = null;
     }
     if (prefix) {
@@ -331,13 +327,14 @@ function handleAutoCompletion(): void {
     const activeItem = getActiveItem();
 
     if (activeItem !== undefined) {
-        const inputElement = document.getElementsByTagName("input")[0];
         const userInput = `${prefix}${vue.userInput}`;
-        let cavetPosition = userInput.length;
-        if (inputElement !== null && inputElement.selectionStart !== null) {
-            cavetPosition = inputElement.selectionStart;
+
+        const inputElement = document.getElementsByTagName("input")[0];
+        let currentCavetPosition = userInput.length;
+        if (inputElement.selectionStart !== null) {
+            currentCavetPosition = inputElement.selectionStart;
         }
-        ipcRenderer.send(IpcChannels.autoComplete, userInput, cavetPosition, activeItem);
+        ipcRenderer.send(IpcChannels.autoComplete, userInput, currentCavetPosition, activeItem);
     }
 }
 
@@ -439,21 +436,66 @@ function hideAlternativePrefix() {
     vue.showAlternativePrefix = false;
 }
 
-function autoCompleteBracketAndQuote(endSymbol: string) {
-    const inputEle = document.getElementsByTagName("input")[0];
-    if (inputEle.selectionEnd !== null && inputEle.selectionStart !== null) {
-        const start = inputEle.selectionStart;
-        const end = inputEle.selectionEnd;
+function getEndSymbol(inputSymbol: string): string {
+    const matchedPair = config.autoCompleteSymbolPairs
+        .filter((pair) => pair[0] === inputSymbol);
 
-        inputEle.value = StringHelpers.insertString(
-            inputEle.value,
-            inputEle.selectionEnd,
-            endSymbol
-        );
+    if (matchedPair.length === 0) {
+        return "";
+    }
 
-        inputEle.selectionStart = inputEle.selectionEnd = start;
+    return matchedPair[0][1];
+}
 
-        cavetPosition = end + 1;
+function autoCompleteSymbolPairs(inputSymbol: string) {
+    const endSymbol = getEndSymbol(inputSymbol);
+
+    const inputElement = document.getElementsByTagName("input")[0];
+    if (inputElement.selectionEnd === null
+     || inputElement.selectionStart === null
+     || !endSymbol) {
+        return;
+    }
+
+    console.log(endSymbol);
+
+    const start = inputElement.selectionStart;
+    const end = inputElement.selectionEnd;
+    console.log(StringHelpers.insertString(
+        inputElement.value,
+        end,
+        endSymbol
+    ));
+    inputElement.value = StringHelpers.insertString(
+        inputElement.value,
+        end,
+        endSymbol
+    );
+
+    inputElement.selectionStart = inputElement.selectionEnd = start;
+
+    cavetPosition = end + 1;
+}
+
+function autoDeleteSymbolPairs() {
+    const inputElement = document.getElementsByTagName("input")[0];
+
+    if (inputElement.selectionEnd === null
+     || inputElement.selectionStart === null) {
+        return;
+    }
+
+    const start = inputElement.selectionStart;
+    const end = inputElement.selectionEnd;
+
+    if (end - start === 0 && start > 0) {
+        const endSymbol = getEndSymbol(vue.userInput[start - 1]);
+
+        if (endSymbol && inputElement.value[start]
+         && endSymbol === inputElement.value[start]) {
+            inputElement.value = inputElement.value.substring(0, start) + inputElement.value.substring(start + 1);
+            inputElement.selectionStart = inputElement.selectionEnd = start;
+        }
     }
 }
 
