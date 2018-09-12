@@ -1,6 +1,7 @@
 export interface Executor {
-    readonly hideAfterExecution: boolean;
-    readonly resetUserInputAfterExecution: boolean;
-    readonly logExecution: boolean;
+    hideAfterExecution: boolean;
+    resetUserInputAfterExecution: boolean;
+    logExecution: boolean;
     execute(executionArgument: string, alternative: boolean): void;
+    destruct?: () => void;
 }

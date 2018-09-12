@@ -14,7 +14,13 @@ export class InputValidationService {
         this.combs = combs;
         const countManager = new CountManager(new CountFileRepository(UeliHelpers.countFilePath));
         this.searchEngine = new SearchEngine(countManager);
-        this.combs.forEach((comb) => comb.searcher.fuzzySearcher = this.searchEngine.search);
+
+        // Exposes search engine's search method for external plugin
+        this.combs.forEach((comb) => {
+            if (comb.searcher.fuzzySearcher) {
+                comb.searcher.fuzzySearcher = this.searchEngine.search;
+            }
+        });
     }
 
     public getSearchResult(userInput: string): Array<Promise<SearchResultItem[]>> {
@@ -72,5 +78,13 @@ export class InputValidationService {
             }
         }
         return "";
+    }
+
+    public destruct() {
+        this.combs.forEach((comb) => {
+            comb.searcher.destruct && comb.searcher.destruct();
+            comb.validator.destruct && comb.validator.destruct();
+            comb.completer && comb.completer.destruct && comb.completer.destruct();
+        })
     }
 }

@@ -23,42 +23,42 @@ export class InputValidatorSearcherCombinationManager {
     constructor(globalUELI: GlobalUELI) {
         this.combinations = [
             {
-                searcher: new CalculatorSearcher(),
-                validator: new CalculatorInputValidator(),
+                searcher: new CalculatorSearcher,
+                validator: new CalculatorInputValidator,
             },
             {
-                searcher: new VariableSearcher(),
+                searcher: new VariableSearcher,
                 validator: new PrefixInputValidator("$", "Variable"),
             },
             {
-                completer: new CommandLineCompleter(),
+                completer: new CommandLineCompleter,
                 searcher: new CommandLineSearcher(globalUELI.config.powerShellPath),
-                validator: new CommandLineInputValidator(),
+                validator: new CommandLineInputValidator,
             },
             {
                 searcher: new WebSearchSearcher(globalUELI.config.webSearches),
                 validator: new WebSearchInputValidator(globalUELI.config.webSearches),
             },
             {
-                completer: new FilePathCompleter(),
+                completer: new FilePathCompleter,
                 searcher: new FilePathSearcher(globalUELI.config.applicationFileExtensions, globalUELI.config.textEditor.name),
-                validator: new FilePathInputValidator(),
+                validator: new FilePathInputValidator,
             },
             {
-                searcher: new WebUrlSearcher(),
-                validator: new WebUrlInputValidator(),
+                searcher: new WebUrlSearcher,
+                validator: new WebUrlInputValidator,
             },
             {
                 searcher: new SearchPluginsSearcher(globalUELI.config),
-                validator: new SearchPluginsInputValidator(),
+                validator: new SearchPluginsInputValidator,
             },
         ];
 
         for (const plugin of globalUELI.runPluginCollection) {
             this.combinations.push({
-                completer: plugin.completer ? new plugin.completer() : undefined,
-                searcher: new plugin.runSearcher(),
-                validator: new plugin.inputValidator(),
+                completer: plugin.completer ? new plugin.completer : undefined,
+                searcher: new plugin.runSearcher,
+                validator: new plugin.inputValidator,
             });
         }
     }

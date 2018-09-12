@@ -5,6 +5,7 @@ import { defaultConfig } from "./default-config";
 import { EverythingInputValidationService } from "./everything-validation-service";
 import { ExecutionArgumentValidatorExecutorCombinationManager } from "./execution-argument-validator-executor-combination-manager";
 import { ExecutionService } from "./execution-service";
+import { ExternalOnlinePlugin, ExternalRunPlugin } from "./external-plugin";
 import { GlobalUELI } from "./global-ueli";
 import { UeliHelpers } from "./helpers/ueli-helpers";
 import { WindowHelpers } from "./helpers/winow-helpers";
@@ -65,8 +66,8 @@ const globalUELI: GlobalUELI = {
 
 const externalPluginFolderPath = path.join(homedir(), ".ueli/plugins");
 function getExternalPlugins() {
-    const runCollection = [] as any[];
-    const onlineCollection = [] as any[];
+    const runCollection = [] as ExternalRunPlugin[];
+    const onlineCollection = [] as ExternalOnlinePlugin[];
 
     if (existsSync(externalPluginFolderPath)) {
         const pluginNameCollection = readdirSync(externalPluginFolderPath);
@@ -75,16 +76,16 @@ function getExternalPlugins() {
                 const pluginFullPath = path.join(externalPluginFolderPath, pluginName);
                 const obj = __non_webpack_require__(pluginFullPath);
                 if (obj.runSearcher && obj.inputValidator) {
-                    runCollection.push(obj);
+                    runCollection.push(obj as ExternalRunPlugin);
                 } else if (obj.onlineSearcher && obj.inputValidator) {
-                    onlineCollection.push(obj);
+                    onlineCollection.push(obj as ExternalOnlinePlugin);
                 } else {
                     dialog.showErrorBox(
                         `Invalid plugin: ${pluginName}`,
                         "Cannot find runSeacher or onlineSeacher or inputValidator exports.");
                 }
             } catch (error) {
-                dialog.showErrorBox("Cannot load plugin", error.message);
+                dialog.showErrorBox(`Cannot load plugin ${pluginName}`, error.message);
             }
         }
     } else {
@@ -299,6 +300,11 @@ function hideMainWindow(): void {
 function reloadApp(): void {
     config = new ConfigFileRepository(defaultConfig, UeliHelpers.configFilePath).getConfig();
     globalUELI.config = config;
+
+    executionService.destruct();
+    inputValidationService.destruct();
+    onlineInputValidationService.destruct();
+
     const externalPlugins = getExternalPlugins();
     globalUELI.runPluginCollection = externalPlugins.runCollection;
     globalUELI.onlinePluginCollection = externalPlugins.onlineCollection;
@@ -330,6 +336,10 @@ function resetWindowToDefaultSizeAndPosition(): void {
 }
 
 function quitApp(): void {
+    executionService.destruct();
+    inputValidationService.destruct();
+    onlineInputValidationService.destruct();
+
     mainWindow.webContents.session.clearCache(() => {});
     mainWindow.webContents.session.clearStorageData();
     destructTaskbar();

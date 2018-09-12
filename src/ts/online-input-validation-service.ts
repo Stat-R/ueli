@@ -1,12 +1,22 @@
 import { StringHelpers } from "./helpers/string-helpers";
-import { OnlineInputValidatorSearcherCombination } from "./online-input-validator-searcher-combination";
+import { InputValidatorSearcherCombination } from "./input-validator-searcher-combination";
+import { SearchEngine } from "./search-engine";
 import { SearchResultItem } from "./search-result-item";
 
 export class OnlineInputValidationService {
-    private combs: OnlineInputValidatorSearcherCombination[];
+    private combs: InputValidatorSearcherCombination[];
+    private searchEngine: SearchEngine;
 
-    public constructor(validatorSearcherCombinations: OnlineInputValidatorSearcherCombination[]) {
+    public constructor(validatorSearcherCombinations: InputValidatorSearcherCombination[]) {
         this.combs = validatorSearcherCombinations;
+        this.searchEngine = new SearchEngine();
+
+        // Exposes search engine's search method for external plugin
+        this.combs.forEach((comb) => {
+            if (comb.searcher.fuzzySearcher) {
+                comb.searcher.fuzzySearcher = this.searchEngine.search;
+            }
+        });
     }
 
     public getSearchResult(userInput: string): Array<Promise<SearchResultItem[]>> {
@@ -36,5 +46,13 @@ export class OnlineInputValidationService {
             }
         }
         return [];
+    }
+
+    public destruct() {
+        this.combs.forEach((comb) => {
+            comb.searcher.destruct && comb.searcher.destruct();
+            comb.validator.destruct && comb.validator.destruct();
+            comb.completer && comb.completer.destruct && comb.completer.destruct();
+        })
     }
 }
