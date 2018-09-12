@@ -12,9 +12,6 @@ export class SpotifyExecutor implements Executor {
     }
 
     public execute(executionArgument: string): void {
-        // if (alternative) {
-        //     executionArgument = `${executionArgument}:QUEUE`;
-        // }
         this.sender(executionArgument);
     }
 }

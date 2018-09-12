@@ -1,3 +1,4 @@
+import { SpotifyCompleter } from "./completer/spotify-completer";
 import { GlobalUELI } from "./global-ueli";
 import { InputValidatorSearcherCombination } from "./input-validator-searcher-combination";
 import { PrefixInputValidator } from "./input-validators/prefix-input-validator";
@@ -11,6 +12,7 @@ export class OnlineInputValidatorSearcherCombinationManager {
     constructor(globalUELI: GlobalUELI) {
         this.combinations = [
             {
+                completer: new SpotifyCompleter,
                 searcher: new SpotifySearcher(globalUELI.webSocketSearch),
                 validator: new SpotifyInputValidator,
             },
@@ -22,6 +24,7 @@ export class OnlineInputValidatorSearcherCombinationManager {
 
         for (const plugin of globalUELI.onlinePluginCollection) {
             this.combinations.push({
+                completer: plugin.completer ? new plugin.completer : undefined,
                 searcher: new plugin.onlineSearcher,
                 validator: new plugin.inputValidator,
             });

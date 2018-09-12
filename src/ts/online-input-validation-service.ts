@@ -48,6 +48,16 @@ export class OnlineInputValidationService {
         return [];
     }
 
+    public complete(userInput: string, cavetPosition: number, selectingResult: SearchResultItem): string {
+        for (const combination of this.combs) {
+            if (combination.completer
+             && combination.completer.isCompletable(userInput, cavetPosition, selectingResult)) {
+                return combination.completer.complete(userInput, cavetPosition, selectingResult);
+            }
+        }
+        return "";
+    }
+
     public destruct() {
         this.combs.forEach((comb) => {
             comb.searcher.destruct && comb.searcher.destruct();

@@ -3,13 +3,15 @@ import { SearchResultItem } from "../search-result-item";
 import { Searcher } from "../searcher/searcher";
 
 export class SpotifySearcher implements Searcher {
+    public static prefix = "s!";
     private searcher: WebSocketSearcher;
+
     constructor(search: WebSocketSearcher) {
         this.searcher = search;
     }
 
     public getSearchResult(userInput: string): Promise<SearchResultItem[]> {
-        userInput = userInput.replace("s!", "");
+        userInput = userInput.replace(SpotifySearcher.prefix, "");
         return new Promise<SearchResultItem[]>((resolve) => {
             this.searcher(userInput)
                 .then((result) => {

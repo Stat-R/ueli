@@ -1,22 +1,15 @@
 import { InputValidator } from "./input-validator";
+import { SpotifySearcher } from "../searcher-online/spotify-searcher";
 
 export class SpotifyInputValidator implements InputValidator {
-    private prefix: string;
-    private scope: string;
-
-    constructor() {
-        this.prefix = "s!";
-        this.scope = "Spotify";
-    }
-
     public isValidForSearchResults(userInput: string): boolean {
-        return userInput.startsWith(this.prefix);
+        return userInput.startsWith(SpotifySearcher.prefix);
     }
 
     public getScopes(userInput: string): string[] {
-        const scopes = [this.scope];
-        let prefix = this.prefix;
-        let trimmed = userInput.substr(this.prefix.length);
+        const scopes = ["Spotify"];
+        let prefix = SpotifySearcher.prefix;
+        let trimmed = userInput.substr(SpotifySearcher.prefix.length);
         const categoryPrefix = trimmed.match(/^(.+?)\!/);
         if (categoryPrefix){
             switch (categoryPrefix[1]) {

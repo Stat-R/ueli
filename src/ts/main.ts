@@ -389,9 +389,8 @@ function getSearch(userInput: string): void {
                         });
 
                         updateWindowSize(result.length);
-                        if (result.length > 0) {
-                            mainWindow.webContents.send(IpcChannels.getSearchResponse, result);
-                        }
+                        mainWindow.webContents.send(IpcChannels.getSearchResponse, result);
+
                         setModeIcon();
                         onlineInputTimeout = null;
                     });
@@ -516,7 +515,16 @@ ipcMain.on(IpcChannels.activateContextMenu, (_event: Event, arg: string) => {
 });
 
 ipcMain.on(IpcChannels.autoComplete, (_event: Event, userInput: string, cavetPosition: number, selectingResult: SearchResultItem) => {
-    const result = inputValidationService.complete(userInput, cavetPosition, selectingResult);
+    let result = "";
+    switch (currentInputMode) {
+        case InputMode.RUN:
+            result = inputValidationService.complete(userInput, cavetPosition, selectingResult);
+            break;
+        case InputMode.ONLINE:
+            result = onlineInputValidationService.complete(userInput, cavetPosition, selectingResult);
+            break;
+    }
+
     if (result.length > 0) {
         mainWindow.webContents.send(IpcChannels.autoCompleteResponse, result);
     }
