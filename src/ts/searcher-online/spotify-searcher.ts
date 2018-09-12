@@ -1,8 +1,8 @@
-import { SearcherOnline } from "./searcher";
 import { WebSocketSearcher } from "../music-player/music-player-websocket";
 import { SearchResultItem } from "../search-result-item";
+import { Searcher } from "../searcher/searcher";
 
-export class SpotifySearcher implements SearcherOnline {
+export class SpotifySearcher implements Searcher {
     private searcher: WebSocketSearcher;
     constructor(search: WebSocketSearcher) {
         this.searcher = search;

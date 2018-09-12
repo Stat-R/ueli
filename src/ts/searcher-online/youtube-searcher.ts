@@ -1,9 +1,9 @@
-import { SearcherOnline } from "./searcher";
 import { SearchResultItem } from "../search-result-item";
+import { Searcher } from "../searcher/searcher";
 import * as cheerio from "cheerio";
 import * as fetch from "node-fetch";
 
-export class YoutubeSearcher implements SearcherOnline {
+export class YoutubeSearcher implements Searcher {
     public getSearchResult(userInput: string): Promise<SearchResultItem[]> {
         userInput = userInput.replace("y!", "");
         return new Promise<SearchResultItem[]>((resolve) => {
