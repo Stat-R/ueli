@@ -148,7 +148,7 @@
                                 :style="searchResultExecutionArgumentStyle()"
                                 :class="{ 'active' : searchResult.active } "
                             >
-                                {{ searchResult.description || searchResult.executionArgument }}
+                                {{ !searchResult.hideDescription ? (searchResult.description || searchResult.executionArgument) : "" }}
                             </span>
                         </div>
                     </div>

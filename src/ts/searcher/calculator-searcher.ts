@@ -19,6 +19,7 @@ export class CalculatorSearcher implements Searcher {
             {
                 executionArgument: resultString,
                 icon: Icons.CALCULATOR,
+                hideDescription: true,
                 name: `= ${resultString}`,
             } as SearchResultItem,
         ];
