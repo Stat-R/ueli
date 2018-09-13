@@ -1,9 +1,9 @@
-import { SearchResultItem } from "../search-result-item";
-import { Icons } from "../icon-manager/icon-manager";
 import { SearchPlugin } from "./search-plugin";
+import { Icons } from "../icon-manager/icon-manager";
+import { SearchResultItem } from "../search-result-item";
 import * as fs from "fs";
-import * as SQL from "sql.js";
 import * as path from "path";
+import * as SQL from "sql.js";
 
 interface ChromiumURLItem {
     name: string;
@@ -68,7 +68,7 @@ export class BrowserBookmark implements SearchPlugin {
                 if (row[1]) {
                     this.items.push({
                         executionArgument: row[1],
-                        icon: Icons.URL,
+                        icon: Icons.BOOKMARK,
                         name: row[0] || row[1],
                         tags: [new URL(row[1]).hostname],
                     } as SearchResultItem);
