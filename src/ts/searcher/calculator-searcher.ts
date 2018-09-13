@@ -9,11 +9,17 @@ export class CalculatorSearcher implements Searcher {
 
     public async getSearchResult(userInput: string): Promise<SearchResultItem[]> {
         const result = math.eval(userInput);
+        let resultString: string = result.toString();
+
+        if (resultString === "[object Object]") {
+            resultString = JSON.stringify(result);
+        }
+
         return [
             {
-                executionArgument: "",
+                executionArgument: resultString,
                 icon: Icons.CALCULATOR,
-                name: `= ${result}`,
+                name: `= ${resultString}`,
             } as SearchResultItem,
         ];
     }
