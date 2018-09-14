@@ -1,13 +1,13 @@
 import { SearchResultItem } from "../search-result-item";
 import { Searcher } from "../searcher/searcher";
 import * as cheerio from "cheerio";
-import * as fetch from "node-fetch";
+import fetch from "node-fetch";
 
 export class YoutubeSearcher implements Searcher {
     public getSearchResult(userInput: string): Promise<SearchResultItem[]> {
         userInput = userInput.replace("y!", "");
         return new Promise<SearchResultItem[]>((resolve) => {
-            fetch.default(`https://youtube.com/results?search_query=${encodeURIComponent(userInput)}`)
+            fetch(`https://youtube.com/results?search_query=${encodeURIComponent(userInput)}`)
                 .then((response) => response.text())
                 .then((response) => {
                     const $ = cheerio.load(response);

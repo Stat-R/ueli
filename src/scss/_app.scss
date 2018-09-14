@@ -435,3 +435,9 @@ span {
         border-radius: 3px;
     }
 }
+
+.breadcrumb-link {
+    &:hover {
+        text-decoration: underline;
+    }
+}

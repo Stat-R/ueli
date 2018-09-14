@@ -1,7 +1,7 @@
 {
   "name": "ueli",
   "productName": "ueli",
-  "version": "4.3.7",
+  "version": "4.3.8",
   "author": {
     "name": "Oliver Schwendener",
     "email": "oliver.schwendener@hotmail.com",
@@ -55,7 +55,7 @@
     "autogypi": "^0.2.2",
     "coveralls": "^3.0.1",
     "css-loader": "^0.28.11",
-    "electron": "^3.0.0-beta.2",
+    "electron": "^3.0.0-beta.12",
     "electron-builder": "^20.18.0",
     "electron-rebuild": "^1.7.3",
     "extract-loader": "^2.0.1",

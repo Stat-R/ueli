@@ -507,7 +507,9 @@ ipcMain.on(IpcChannels.elevatedExecute, (arg: string): void => {
 
 ipcMain.on(IpcChannels.rendererInit, (): void => {
     moveWindow();
-    mainWindow.webContents.send(IpcChannels.tookScreenshot, screenshotFile);
+    if (magickExecute !== "no") {
+        mainWindow.webContents.send(IpcChannels.tookScreenshot, screenshotFile);
+    }
 });
 
 ipcMain.on(IpcChannels.activateContextMenu, (_event: Event, arg: string) => {

@@ -15,6 +15,8 @@ export class CalculatorSearcher implements Searcher {
             resultString = JSON.stringify(result);
         }
 
+        resultString = resultString.replace(/\^(\d+)/g, (_, num: string) => num.sup());
+
         return [
             {
                 executionArgument: resultString,

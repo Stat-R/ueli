@@ -132,23 +132,23 @@
                                     class="search-result-alternative-prefix"
                                     :class="{ 'active' : searchResult.active && searchResult.alternativePrefix && showAlternativePrefix }"
                                     :style="searchResultAlternativePrefixStyle()"
+                                    v-html="searchResult.alternativePrefix"
                                 >
-                                    {{ searchResult.alternativePrefix }}
                                 </span>
                                 <span
                                     class="search-result-name"
                                     :class="{ 'active' : searchResult.active }"
                                     :style="searchResultNameStyle()"
+                                    v-html="searchResult.name"
                                 >
-                                    {{ searchResult.name }}
                                 </span>
                             </div>
                             <span
                                 class="search-result-execution-argument"
                                 :style="searchResultExecutionArgumentStyle()"
                                 :class="{ 'active' : searchResult.active } "
+                                v-html="searchResult.description"
                             >
-                                {{ !searchResult.hideDescription ? (searchResult.description || searchResult.executionArgument) : "" }}
                             </span>
                         </div>
                     </div>
