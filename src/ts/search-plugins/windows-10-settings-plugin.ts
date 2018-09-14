@@ -1,7 +1,7 @@
-import { SearchResultItem } from "../search-result-item";
 import { SearchPlugin } from "./search-plugin";
 import { WindowsSettingsHelpers } from "../helpers/windows-settings-helpers";
 import { IconsWindowsSetting } from "../icon-manager/icon-manager";
+import { SearchResultItem } from "../search-result-item";
 
 export class Windows10SettingsSearchPlugin implements SearchPlugin {
     private items = [] as SearchResultItem[];
@@ -25,7 +25,10 @@ export class Windows10SettingsSearchPlugin implements SearchPlugin {
     }
 
     public async getAllItems(): Promise<SearchResultItem[]> {
-        return this.items;
+        return this.items.map((item) => {
+            item.hideDescription = true;
+            return item;
+        });
     }
 
     private addToItems(items: SearchResultItem[]) {
