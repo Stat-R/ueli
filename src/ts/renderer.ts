@@ -237,11 +237,21 @@ function updateSearchResults(searchResults: SearchResultItemViewModel[]): void {
     searchResults.forEach((searchResultItem: SearchResultItemViewModel, index: number): void => {
         searchResultItem.id = `search-result-item-${index}`;
         searchResultItem.active = false;
-        if (searchResultItem.breadCrumb) {
-            searchResultItem.description = searchResultItem.breadCrumb.join(config.directorySeparator);
-        }
+
         if (iconManager[searchResultItem.icon as keyof WindowsIconManager & keyof MacOsIconManager]) {
             searchResultItem.icon = iconManager[searchResultItem.icon as keyof WindowsIconManager & keyof MacOsIconManager].call(iconManager);
+        }
+
+        if (!searchResultItem.hideDescription) {
+            if (searchResultItem.breadCrumb) {
+                const descFromBreadCrumb = searchResultItem.breadCrumb.join(config.directorySeparator);
+                if (descFromBreadCrumb) {
+                    searchResultItem.description = descFromBreadCrumb;
+                    return;
+                }
+            }
+
+            searchResultItem.description = searchResultItem.executionArgument;
         }
     });
 
@@ -360,7 +370,7 @@ function resetUserInput(): void {
 
 function handleGlobalKeyPress(event: KeyboardEvent): void {
     const key = event.key.toLowerCase();
-    if (event.keyCode === 18) {
+    if (!event.altKey) {
         hideAlternativePrefix();
     }
     if (key === "f6" || (key === "l" && event.ctrlKey)) {
@@ -524,6 +534,12 @@ function changeHistoryIndex(direction: 1 | -1) {
         vue.userInput = inputHistory[historyIndex];
     }
 }
+
+function handleLinkClick(link: string): void {
+    execute(link, false);
+}
+
+(global as any).handleLinkClick = handleLinkClick;
 
 ipcRenderer.on(IpcChannels.getSearchIconResponse, (_event: Electron.Event, arg: string): void => {
     vue.searchIcon = iconManager[arg as keyof WindowsIconManager & keyof MacOsIconManager].call(iconManager);

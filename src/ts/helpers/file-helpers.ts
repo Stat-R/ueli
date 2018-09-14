@@ -1,3 +1,4 @@
+import { DirectorySeparator } from "../directory-separator";
 import * as fs from "fs";
 import * as path from "path";
 
@@ -20,6 +21,7 @@ export class FileHelpers {
 
                     fileNames.forEach((fileName) => {
                         const filePath = path.resolve(folderPath.fullPath, fileName);
+                        const link = this.toHTML(filePath, fileName);
                         fs.stat(filePath, (error, stat) => {
                             if (error ) {
                                 if (!--pending) {
@@ -29,7 +31,7 @@ export class FileHelpers {
                             }
 
                             const fancified = {
-                                breadCrumb: [...folderPath.breadCrumb, fileName],
+                                breadCrumb: [...folderPath.breadCrumb, link],
                                 fullPath: filePath,
                             } as FancyFile;
 
@@ -66,10 +68,14 @@ export class FileHelpers {
             const result = [] as FancyFile[];
             FileHelpers.getFileNamesFromFolder(folderPath.fullPath)
                 .then((filePaths) => {
-                    const fancifiedPaths = filePaths.map((f): FancyFile => ({
-                        breadCrumb: [...folderPath.breadCrumb, f],
-                        fullPath: path.join(folderPath.fullPath, f),
-                    }));
+                    const fancifiedPaths = filePaths.map((fileName): FancyFile => {
+                        const filePath = path.join(folderPath.fullPath, fileName);
+                        const link = this.toHTML(filePath, fileName);
+                        return {
+                            breadCrumb: [...folderPath.breadCrumb, link],
+                            fullPath: filePath,
+                        }
+                    });
                     let pending = fancifiedPaths.length;
 
                     if (!pending) {
@@ -100,6 +106,25 @@ export class FileHelpers {
         });
 
         return result;
+    }
+
+    public static toHTML(fullPath: string, baseName: string) {
+        return `<a class="breadcrumb-link" onclick="event.stopPropagation();handleLinkClick('${fullPath.replace(/\\/g, "\\\\")}')">${baseName}</a>`
+    }
+
+    public static filePathToBreadCrumbs(filePath: string): string[] {
+        let crumbs = filePath.split(DirectorySeparator.WindowsDirectorySeparator);
+        if (!crumbs[crumbs.length - 1]) {
+            crumbs.length = crumbs.length - 1;
+        }
+
+        const linkedCrumbs = new Array<string>(crumbs.length);
+        for (let i = 0; i < crumbs.length; i++) {
+            const filePath = crumbs.slice(0, i + 1).join(DirectorySeparator.WindowsDirectorySeparator);
+            linkedCrumbs[i] = this.toHTML(filePath, crumbs[i]);
+        }
+
+        return linkedCrumbs;
     }
 
     private static getFileNamesFromFolder(folderPath: string): Promise<string[]> {

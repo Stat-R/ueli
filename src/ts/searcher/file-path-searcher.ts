@@ -1,5 +1,4 @@
 import { Searcher } from "./searcher";
-import { DirectorySeparator } from "../directory-separator";
 import { FileHelpers } from "../helpers/file-helpers";
 import { Icons } from "../icon-manager/icon-manager";
 import { SearchEngine } from "../search-engine";
@@ -47,13 +46,8 @@ export class FilePathSearcher implements Searcher {
     private async getFolderSearchResult(folderPath: string, searchTerm?: string, wildCard = false): Promise<SearchResultItem[]> {
         const result = [] as SearchResultItem[];
 
-        const crumbs = folderPath.split(DirectorySeparator.WindowsDirectorySeparator);
-        if (!crumbs[crumbs.length - 1]) {
-            crumbs.length = crumbs.length - 1;
-        }
-
         const files = await FileHelpers.getFilesFromFolder({
-            breadCrumb: crumbs,
+            breadCrumb: FileHelpers.filePathToBreadCrumbs(folderPath),
             fullPath: folderPath,
         });
 
@@ -102,9 +96,16 @@ export class FilePathSearcher implements Searcher {
     }
 
     private getFileSearchResult(filePath: string): SearchResultItem[] {
+        let prefix = "";
+        const fileExt = path.extname(filePath).toLowerCase();
+        if (this.executableExtension.indexOf(fileExt) !== -1) {
+            prefix = "Run As Administrator";
+        }
+
         return [
             {
-                breadCrumb: filePath.split(DirectorySeparator.WindowsDirectorySeparator),
+                alternativePrefix: prefix,
+                breadCrumb: FileHelpers.filePathToBreadCrumbs(filePath),
                 executionArgument: filePath,
                 icon: Icons.FILE,
                 name: path.basename(filePath),

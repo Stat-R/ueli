@@ -20,7 +20,7 @@ export class ProgramFileRepository implements ProgramRepository {
             const result = [] as Program[];
 
             FileHelpers.getFilesFromFolderRecursively({
-                breadCrumb: [this.appFolder[1]],
+                breadCrumb: [FileHelpers.toHTML(this.appFolder[0], this.appFolder[1])],
                 fullPath: this.appFolder[0],
             })
                 .then((files) => {
