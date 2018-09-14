@@ -1,4 +1,5 @@
 import { SearchPlugin } from "./search-plugin";
+import { FileHelpers } from "../helpers/file-helpers";
 import { UeliHelpers } from "../helpers/ueli-helpers";
 import { Icons } from "../icon-manager/icon-manager";
 import { IpcChannels } from "../ipc-channels";
@@ -30,6 +31,7 @@ export class UeliCommandsSearchPlugin implements SearchPlugin {
 
     public async getAllItems(): Promise<SearchResultItem[]> {
         return this.items.map((i): SearchResultItem => ({
+            breadCrumb: FileHelpers.filePathToBreadCrumbs(i.executionArgument),
             executionArgument: i.executionArgument,
             icon: Icons.UELI,
             name: i.name,

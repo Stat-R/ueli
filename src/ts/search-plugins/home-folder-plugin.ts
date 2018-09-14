@@ -1,10 +1,10 @@
+import { SearchPlugin } from "./search-plugin";
+import { FileHelpers } from "../helpers/file-helpers";
+import { Icons } from "../icon-manager/icon-manager";
+import { SearchResultItem } from "../search-result-item";
 import * as fs from "fs";
 import * as os from "os";
 import * as path from "path";
-import { FileHelpers } from "../helpers/file-helpers";
-import { SearchResultItem } from "../search-result-item";
-import { SearchPlugin } from "./search-plugin";
-import { Icons } from "../icon-manager/icon-manager";
 
 export class HomeFolderSearchPlugin implements SearchPlugin {
     private homeFolderPath = os.homedir();
@@ -21,7 +21,7 @@ export class HomeFolderSearchPlugin implements SearchPlugin {
 
     private async getFilesAndFolders(): Promise<Array<Promise<SearchResultItem>>> {
         const filesPending = FileHelpers.getFilesFromFolder({
-            breadCrumb: ["Home"],
+            breadCrumb: [FileHelpers.toHTML(this.homeFolderPath, "Home")],
             fullPath: this.homeFolderPath,
         });
 
