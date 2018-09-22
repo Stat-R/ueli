@@ -19,7 +19,6 @@ export class Windows10SettingsSearchPlugin implements SearchPlugin {
         this.addToItems(this.getEaseOfAccessSettings());
         this.addToItems(this.getPrivacySettings());
         this.addToItems(this.getUpdateAndSecuritySettings());
-        this.addToItems(this.getCortanaSettings());
         this.addToItems(this.getSystemCommands());
         this.addToItems(this.getWindows10Apps());
     }

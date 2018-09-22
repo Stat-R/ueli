@@ -45,10 +45,6 @@ export class CommandLineExecutor implements Executor {
             ipcMain.emit(IpcChannels.setModeIcon, Icons.SEARCH);
             this.sendCommandLineOutputToRenderer(`Exit ${code}`);
         });
-
-        ipcMain.on(IpcChannels.exitCommandLineTool, () => {
-            commandLineTool.kill();
-        });
     }
 
     private sendCommandLineOutputToRenderer(data: string): void {

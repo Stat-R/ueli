@@ -15,11 +15,8 @@ export class IpcChannels {
     public static readonly commandLineOutput = "command-line-output";
     public static readonly ueliReload = `${UeliHelpers.ueliCommandPrefix}reload`;
     public static readonly ueliExit = `${UeliHelpers.ueliCommandPrefix}exit`;
-    public static readonly ueliRescan = `${UeliHelpers.ueliCommandPrefix}rescan`;
-    public static readonly exitCommandLineTool = "exit-command-line-tool";
     public static readonly resetCommandlineOutput = "reset-commandline-output";
     public static readonly resetUserInput = "reset-user-input";
-    public static readonly showHelp = "show-help";
     public static readonly playerConnectStatus = "player-connect-status";
     public static readonly playerArtist = "player-artist";
     public static readonly playerAlbum = "player-album";
@@ -34,12 +31,7 @@ export class IpcChannels {
     public static readonly searchWebsocket = "search-websocket";
     public static readonly websocketPlayURL = "web-socket-playurl";
 
-    public static readonly tookScreenshot = "took-screenshot";
-
-    public static readonly getLoadingIconResponse = "get-loading-icon-response";
-
     public static readonly rotateMode = "rotate-mode";
-    public static readonly switchMode = "switch-mode";
     public static readonly onMove = "on-move";
 
     public static readonly elevatedExecute = "elevate-execute";
