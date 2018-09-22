@@ -2,12 +2,8 @@
 
 # ueli
 Original repo: https://github.com/oliverschwendener/ueli  
-This repo contains personal modification, only supports Windows 10. Some requirements are needed to run correctly:
+This repo contains personal modification, only supports Windows 10. Some optional requirements:
 
-- ImageMagick (https://www.imagemagick.org/script/download.php) for blurry background.
-    - When installing, check `Add application directory to system path`. And it will work out of the box.
-    - If you are in situation that you can't change system path (`magick` can't be run in terminal), set `imageMagickPath` to `magick.exe`'s full path in config file.
-    - If you don't want to have blurry background at all, set `imageMagickPath` to `no` in config file.
 - Spicetify (https://github.com/khanhas/spicetify) for Spotify search and control player.
     - If you are also using WebNowPlaying in one of your skin in Rainmeter, it's best to use another port for Spotify to communicate with UELI:
         - Save this [file](https://gist.github.com/khanhas/43dea6becd480390487df7b0ffc84dfd) to `Documents\Rainmeter\Skins\Spicetify\Extensions`
@@ -82,6 +78,7 @@ Option | Type | Description
 `applicationFolders` | [`path`, `alias`][] | `path` is the folder path which are scanned for applications, `alias` is for search result description.
 `applicationKeywordBlacklist` | string[] | List of keyword to excluding application from search results, like `uninstall` or `help`
 `autoStartApp` | boolean | If the app should be started automatically when you log in
+`blurBackground` | boolean | Whether ueli should show blurry background
 `bookmarkFromBrowser` | string | Browser to get bookmark from. Valid values: `firefox`, `chrome`, `vivaldi`, `opera`, `chromium`.
 `bookmarkProfileName` | string | https://github.com/khanhas/ueli/wiki/Browser-bookmark-search
 `customCommands` | customCommand[] | A list of customCommand.
@@ -92,7 +89,6 @@ Option | Type | Description
 `hotkeyOnlineMode` | string |
 `hotkeyRunMode` | string |
 `hotkeyWindowsMode` | string |
-`imageMagickPath` | string | Path to `magick.exe`. 
 `maxSearchResultCount` | number | Maximum number of search results to be displayed
 `musicPlayerHotkeyBack` | string |
 `musicPlayerHotkeyLike` | string | 
