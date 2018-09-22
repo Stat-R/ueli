@@ -50,7 +50,7 @@ module.exports = {
         test: /\.node$/,
         use: [
           {
-            loader: "./custom-node-loader.js"
+            loader: "./scripts/custom-node-loader.js"
           }
         ]
       }
