@@ -12,10 +12,6 @@ export class NativeUtil {
         this.instance = new lib.NativeUtil();
     }
 
-    public storeBrowserHwnd(): void {
-        this.instance.storeBrowserHwnd();
-    }
-
     public elevateExecute(arg: string): void {
         this.instance.elevateExecute(arg);
     }
@@ -30,5 +26,9 @@ export class NativeUtil {
 
     public activateContextMenu(filePath: string): void {
         this.instance.activateContextMenu(filePath);
+    }
+
+	public takeScreenshot(width: number, height: number, outFilePath: string): void {
+        this.instance.takeScreenshot(width, height, outFilePath);
     }
 }

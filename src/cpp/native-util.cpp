@@ -6,6 +6,15 @@
 #include "EverythingSDK/everything_ipc.h"
 #include <Shlobj.h>
 #include <wrl/client.h>
+#include <algorithm>
+
+namespace Gdiplus
+{
+    using std::min;
+    using std::max;
+};
+
+#include <Gdiplus.h>
 
 #define COPYDATA_QUERYCOMPLETE 0
 #define GETDATA(data) (wchar_t *)(data + sizeof(DWORD))
@@ -18,6 +27,7 @@ std::vector<std::vector<std::string>> ipcResultList;
 bool ipcGotResult = false;
 
 bool ShowContextMenu(HWND hwnd, std::string &path);
+bool GetEncoderClsid(CLSID *pClsid);
 
 class NativeUtil
 {
@@ -25,17 +35,21 @@ class NativeUtil
     NativeUtil()
     {
         CreateEverythingIPCWindow();
+        Gdiplus::GdiplusStartupInput gdiplusStartupInput;
+        Gdiplus::GdiplusStartup(&gdiplusToken, &gdiplusStartupInput, NULL);
+
+        if (!GetEncoderClsid(&myClsId)) {
+            printf("Cannot find Encoder Clsid\n");
+        }
+
+        browserHwnd = FindWindow(NULL, L"ueli");
     }
 
     ~NativeUtil()
     {
         DestroyWindow(ipcHwnd);
+        Gdiplus::GdiplusShutdown(gdiplusToken);
     };
-
-    void storeBrowserHwnd()
-    {
-        browserHwnd = FindWindow(NULL, L"ueli");
-    }
 
     void elevateExecute(std::string arg)
     {
@@ -183,6 +197,19 @@ class NativeUtil
         return results;
     }
 
+    void takeScreenshot(int width, int height, std::string outPath)
+    {
+        HDC hDc = CreateCompatibleDC(0);
+        HBITMAP hBmp = CreateCompatibleBitmap(GetDC(0), width, height);
+        SelectObject(hDc, hBmp);
+        BitBlt(hDc, 0, 0, width, height, GetDC(0), 0, 0, SRCCOPY);
+
+        Gdiplus::Bitmap *image = new Gdiplus::Bitmap(hBmp, NULL);
+        LPCWSTR outPathW = StrToWStr(outPath).c_str();
+        image->Save(outPathW, &myClsId, NULL);
+        delete image;
+    }
+
   private:
     void CreateEverythingIPCWindow()
     {
@@ -219,16 +246,18 @@ class NativeUtil
     }
     HWND browserHwnd;
     HWND ipcHwnd;
+    ULONG_PTR gdiplusToken;
+    CLSID myClsId;
 };
 
 NBIND_CLASS(NativeUtil)
 {
     construct();
-    method(storeBrowserHwnd);
     method(elevateExecute);
     method(queryEverything);
     method(resolveEverything);
     method(activateContextMenu);
+    method(takeScreenshot);
 }
 
 std::wstring StrToWStr(const std::string &str)
@@ -295,4 +324,34 @@ LRESULT CALLBACK window_proc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
     }
 
     return DefWindowProc(hwnd, uMsg, wParam, lParam);
+}
+
+bool GetEncoderClsid(CLSID *pClsid)
+{
+    UINT num = 0;  // number of image encoders
+    UINT size = 0; // size of the image encoder array in bytes
+
+    Gdiplus::ImageCodecInfo *pImageCodecInfo = NULL;
+
+    Gdiplus::GetImageEncodersSize(&num, &size);
+    if (size == 0)
+        return false;
+
+    pImageCodecInfo = (Gdiplus::ImageCodecInfo *)(malloc(size));
+    if (pImageCodecInfo == NULL)
+        return false;
+
+    Gdiplus::GetImageEncoders(num, size, pImageCodecInfo);
+
+    for (UINT j = 0; j < num; ++j)
+    {
+        if (wcscmp(pImageCodecInfo[j].MimeType, L"image/bmp") == 0)
+        {
+            *pClsid = pImageCodecInfo[j].Clsid;
+            free(pImageCodecInfo);
+            return true;
+        }
+    }
+    free(pImageCodecInfo);
+    return false;
 }

@@ -17,6 +17,7 @@ import * as defaultCSS from "../scss/default.scss";
 import { clipboard, ipcRenderer } from "electron";
 import { existsSync, writeFileSync } from "fs";
 import { homedir, platform } from "os";
+import { join } from "path";
 import Vue from "vue";
 
 ipcRenderer.send(IpcChannels.rendererInit);
@@ -551,21 +552,19 @@ ipcRenderer.on(IpcChannels.commandLineOutput, (_event: Electron.Event, arg: stri
 
 ipcRenderer.on(IpcChannels.resetUserInput, resetUserInput);
 
-ipcRenderer.on(IpcChannels.tookScreenshot, (_event: Electron.Event, arg: string): void => {
-    vue.screenshotFile = new URL(`${arg}?${Date.now()}`).href;
-});
-
 ipcRenderer.on(IpcChannels.onMove, (_event: Electron.Event, arg: [number, number]): void => {
     const ele = document.querySelectorAll("#acrylic img")[0] as HTMLElement;
     ele.style.left = `${-arg[0] - 20}px`;
     ele.style.top = `${-arg[1] - 20}px`;
 });
 
+const screenshotLink = new URL(join(homedir(), "acrylic.bmp")).href;
+
 ipcRenderer.on(IpcChannels.mainShow, () => {
-    focusOnInput();
-    if (coverContainerElement) {
-        coverContainerElement.classList.remove("hover");
+    if (config.blurBackground) {
+        vue.screenshotFile =  `${screenshotLink}?${Date.now()}`;
     }
+    focusOnInput();
 });
 
 ipcRenderer.on(IpcChannels.websocketPlayURL, (_event: Event, arg: string) => {

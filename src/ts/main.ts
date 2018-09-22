@@ -20,11 +20,11 @@ import { OnlineInputValidatorSearcherCombinationManager } from "./online-input-v
 import { ProcessInputValidationService } from "./process-input-validation-service";
 import { SearchResultItem } from "./search-result-item";
 import { NativeUtil } from "../../native-util/native-util";
-import * as childProcess from "child_process";
 import { existsSync, mkdirSync, readdirSync } from "fs";
 import { homedir, platform } from "os";
 import * as path from "path";
 import { Taskbar } from "taskbar-node";
+
 import {
     app,
     BrowserWindow,
@@ -46,7 +46,6 @@ export enum InputMode {
 
 let mainWindow: BrowserWindow;
 let trayIcon: Tray;
-const delayWhenHidingCommandlineOutputInMs = 25;
 
 let nativeUtil = new NativeUtil();
 
@@ -107,6 +106,9 @@ let currentInputMode = 0;
 let currentInputString = "";
 let onlineInputTimeout: NodeJS.Timer | number | null = null;
 
+const screenshotFile = path.join(homedir(), "acrylic.bmp");
+let screenshotSize: Electron.Size | null = null;
+
 function webSocketSearch(userInput: string): Promise<WebSocketSearchResult[]> {
     return new Promise((resolve) => {
         mainWindow.webContents.send(IpcChannels.searchWebsocket, userInput);
@@ -138,7 +140,6 @@ app.requestSingleInstanceLock();
 
 function createMainWindow(): void {
     mainWindow = new BrowserWindow({
-        alwaysOnTop: true,
         autoHideMenuBar: true,
         center: true,
         frame: false,
@@ -149,8 +150,6 @@ function createMainWindow(): void {
         transparent: true,
         width: config.windowWidth,
     });
-
-    nativeUtil.storeBrowserHwnd();
 
     mainWindow.loadURL(`file://${__dirname}/../main.html`);
     mainWindow.setSize(config.windowWidth, config.userInputHeight);
@@ -166,6 +165,7 @@ function createMainWindow(): void {
 
     createTrayIcon();
     registerGlobalShortCuts();
+    screenshotSize = require("electron").screen.getPrimaryDisplay().size;
 
     if (process.env.NODE_ENV !== "production") {
         setAutostartSettings();
@@ -217,15 +217,16 @@ function registerGlobalShortCuts(): void {
 
 function changeModeWithHotkey(mode: number) {
     const isVisible = mainWindow.isVisible();
+    if (!isVisible) {
+        showMainWindow();
+    }
+
     if (isVisible && mode === currentInputMode) {
         hideMainWindow();
         return;
     }
 
     switchMode(mode, currentInputString);
-    if (!isVisible) {
-        showMainWindow();
-    }
 }
 
 function setAutostartSettings() {
@@ -244,35 +245,14 @@ function toggleWindow(): void {
     }
 }
 
-const screenshotFile = path.join(homedir(), "acrylic.bmp");
-
-let magickExecute = "cmd /C magick";
-if (config.imageMagickPath) {
-    if (config.imageMagickPath === "no") {
-        magickExecute = "no";
-    } else {
-        magickExecute = `"${config.imageMagickPath}"`;
-    }
-}
-
 function showMainWindow(): void {
-    getSearch("");
-    mainWindow.restore();
-    if (magickExecute === "no") {
-        mainWindow.show();
-        mainWindow.webContents.send(IpcChannels.mainShow);
-        return;
+    if (config.blurBackground && screenshotSize) {
+        nativeUtil.takeScreenshot(screenshotSize.width, screenshotSize.height, screenshotFile);
     }
 
-    childProcess.exec(`${magickExecute} screenshot:[0] "${screenshotFile}"`, (err) => {
-        if (!err) {
-            mainWindow.webContents.send(IpcChannels.tookScreenshot, screenshotFile);
-        } else {
-            throw err;
-        }
-        mainWindow.show();
-        mainWindow.webContents.send(IpcChannels.mainShow);
-    });
+    mainWindow.restore();
+    mainWindow.show();
+    mainWindow.webContents.send(IpcChannels.mainShow);
 }
 
 function updateWindowSize(searchResultCount: number): void {
@@ -287,14 +267,12 @@ function hideMainWindow(): void {
 
     destructTaskbar()
 
-    setTimeout(() => {
-        if (mainWindow !== null && mainWindow !== undefined && mainWindow.isVisible()) {
-            updateWindowSize(0);
-            mainWindow.minimize();
-            mainWindow.hide();
-            mainWindow.setOpacity(0);
-        }
-    }, delayWhenHidingCommandlineOutputInMs); // to give user input and command line output time to reset properly delay hiding window
+    if (mainWindow !== null && mainWindow !== undefined && mainWindow.isVisible()) {
+        updateWindowSize(0);
+        mainWindow.minimize();
+        mainWindow.hide();
+        mainWindow.setOpacity(0);
+    }
 }
 
 function reloadApp(): void {
@@ -482,8 +460,6 @@ function setModeIcon(): void {
     }
 }
 
-ipcMain.on(IpcChannels.switchMode, (_event: Event, mode: number, currentInput: string): void => switchMode(mode, currentInput));
-
 function switchMode(mode: number, userInput = "") {
     mainWindow.webContents.send(IpcChannels.getSearchResponse, []);
     currentInputMode = mode;
@@ -507,9 +483,6 @@ ipcMain.on(IpcChannels.elevatedExecute, (arg: string): void => {
 
 ipcMain.on(IpcChannels.rendererInit, (): void => {
     moveWindow();
-    if (magickExecute !== "no") {
-        mainWindow.webContents.send(IpcChannels.tookScreenshot, screenshotFile);
-    }
 });
 
 ipcMain.on(IpcChannels.activateContextMenu, (_event: Event, arg: string) => {

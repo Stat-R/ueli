@@ -6,9 +6,6 @@ export class NativeUtil extends NBindBase {
 	/** NativeUtil(); */
 	constructor();
 
-	/** void storeBrowserHwnd(); */
-	storeBrowserHwnd(): void;
-
 	/** void elevateExecute(std::string); */
 	elevateExecute(p0: string): void;
 
@@ -20,4 +17,7 @@ export class NativeUtil extends NBindBase {
 
 	/** void activateContextMenu(std::string); */
 	activateContextMenu(p0: string): void;
+
+	/** void takeScreenshot(int32_t, int32_t, std::string); */
+	takeScreenshot(p0: number, p1: number, p2: string): void;
 }

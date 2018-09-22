@@ -7,6 +7,7 @@ export interface ConfigOptions {
     applicationKeywordBlacklist: string[];
     autoCompleteSymbolPairs: Array<[string, string]>;
     autoStartApp: boolean;
+    blurBackground: boolean;
     bookmarkFromBrowser: string;
     bookmarkProfileName: string;
     customCommands: CustomCommand[];
@@ -17,7 +18,6 @@ export interface ConfigOptions {
     hotkeyOnlineMode: string;
     hotkeyRunMode: string;
     hotkeyWindowsMode: string;
-    imageMagickPath: string;
     maxSearchResultCount: number;
     musicPlayerSmallSize: boolean;
     musicPlayerType: string;

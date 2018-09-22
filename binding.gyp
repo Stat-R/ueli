@@ -15,7 +15,7 @@
             "<(module_root_dir)",
             "<(module_root_dir)/src/cpp/EverythingSDK/",
           ],
-          "libraries": [],
+          "libraries": ["Gdiplus.lib"],
           "defines": [
             "NTDDI_VERSION=NTDDI_WIN7",
             "UNICODE"
