@@ -60,9 +60,15 @@ export class OnlineInputValidationService {
 
     public destruct() {
         this.combs.forEach((comb) => {
-            comb.searcher.destruct && comb.searcher.destruct();
-            comb.validator.destruct && comb.validator.destruct();
-            comb.completer && comb.completer.destruct && comb.completer.destruct();
-        })
+            if (comb.searcher.destruct) {
+                comb.searcher.destruct();
+            }
+            if (comb.validator.destruct) {
+                comb.validator.destruct();
+            }
+            if (comb.completer && comb.completer.destruct) {
+                comb.completer.destruct();
+            }
+        });
     }
 }

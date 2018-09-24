@@ -11,7 +11,7 @@ export class SpotifyInputValidator implements InputValidator {
         let prefix = SpotifySearcher.prefix;
         let trimmed = userInput.substr(SpotifySearcher.prefix.length);
         const categoryPrefix = trimmed.match(/^(.+?)\!/);
-        if (categoryPrefix){
+        if (categoryPrefix) {
             switch (categoryPrefix[1]) {
                 case "playlist":
                 case "album":

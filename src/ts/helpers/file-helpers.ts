@@ -74,7 +74,7 @@ export class FileHelpers {
                         return {
                             breadCrumb: [...folderPath.breadCrumb, link],
                             fullPath: filePath,
-                        }
+                        };
                     });
                     let pending = fancifiedPaths.length;
 
@@ -109,19 +109,19 @@ export class FileHelpers {
     }
 
     public static toHTML(fullPath: string, baseName: string) {
-        return `<a class="breadcrumb-link" onclick="event.stopPropagation();handleLinkClick('${fullPath.replace(/\\/g, "\\\\")}')">${baseName}</a>`
+        return `<a class="breadcrumb-link" onclick="event.stopPropagation();handleLinkClick('${fullPath.replace(/\\/g, "\\\\")}')">${baseName}</a>`;
     }
 
     public static filePathToBreadCrumbs(filePath: string): string[] {
-        let crumbs = filePath.split(DirectorySeparator.WindowsDirectorySeparator);
+        const crumbs = filePath.split(DirectorySeparator.WindowsDirectorySeparator);
         if (!crumbs[crumbs.length - 1]) {
             crumbs.length = crumbs.length - 1;
         }
 
         const linkedCrumbs = new Array<string>(crumbs.length);
         for (let i = 0; i < crumbs.length; i++) {
-            const filePath = crumbs.slice(0, i + 1).join(DirectorySeparator.WindowsDirectorySeparator);
-            linkedCrumbs[i] = this.toHTML(filePath, crumbs[i]);
+            const fullPath = crumbs.slice(0, i + 1).join(DirectorySeparator.WindowsDirectorySeparator);
+            linkedCrumbs[i] = this.toHTML(fullPath, crumbs[i]);
         }
 
         return linkedCrumbs;

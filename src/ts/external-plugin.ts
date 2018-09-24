@@ -5,37 +5,39 @@ import { InputValidator } from "./input-validators/input-validator";
 import { SearchEngine } from "./search-engine";
 import { Searcher } from "./searcher/searcher";
 
+// tslint:disable:max-classes-per-file
+
 class ExternalPluginSearcher implements Searcher {
-    needSort?: boolean;
-    shouldIsolate?: boolean;
-    getSearchResult: Searcher["getSearchResult"];
-    fuzzySearcher?: SearchEngine["search"];
-    destruct?: () => void;
+    public needSort?: boolean;
+    public shouldIsolate?: boolean;
+    public getSearchResult: Searcher["getSearchResult"];
+    public fuzzySearcher?: SearchEngine["search"];
+    public destruct?: () => void;
 }
 
 class ExternalPluginInputValidator implements InputValidator {
-    isValidForSearchResults: InputValidator["isValidForSearchResults"];
-    getScopes: InputValidator["getScopes"];
-    destruct?: () => void;
+    public isValidForSearchResults: InputValidator["isValidForSearchResults"];
+    public getScopes: InputValidator["getScopes"];
+    public destruct?: () => void;
 }
 
 class ExternalPluginExecutionArgumentValidator implements ExecutionArgumentValidator {
-    isValidForExecution: ExecutionArgumentValidator["isValidForExecution"];
-    destruct?: () => void;
+    public isValidForExecution: ExecutionArgumentValidator["isValidForExecution"];
+    public destruct?: () => void;
 }
 
 class ExternalPluginExecutor implements Executor {
-    hideAfterExecution: boolean;
-    resetUserInputAfterExecution: boolean;
-    logExecution: boolean;
-    execute: Executor["execute"];
-    destruct?: () => void;
+    public hideAfterExecution: boolean;
+    public resetUserInputAfterExecution: boolean;
+    public logExecution: boolean;
+    public execute: Executor["execute"];
+    public destruct?: () => void;
 }
 
 class ExternalPluginCompleter implements ArgumentCompleter {
-    isCompletable: ArgumentCompleter["isCompletable"];
-    complete: ArgumentCompleter["complete"];
-    destruct?: () => void;
+    public isCompletable: ArgumentCompleter["isCompletable"];
+    public complete: ArgumentCompleter["complete"];
+    public destruct?: () => void;
 }
 
 interface ExternalPlugin {

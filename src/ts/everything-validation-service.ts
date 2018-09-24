@@ -9,7 +9,7 @@ interface EverythingFilter {
         matchOptions: number;
         name: string;
         prefix: string;
-    }
+    };
 }
 
 enum EverythingMatchOptions {
@@ -68,7 +68,7 @@ export class EverythingInputValidationService {
 
             let matchOptions = 0;
 
-            let filterPrefix = userInput.match(/^(.+?)\:/);
+            const filterPrefix = userInput.match(/^(.+?)\:/);
             if (filterPrefix
                 && this.filters
                 && this.filters[filterPrefix[1]]) {
@@ -93,25 +93,25 @@ export class EverythingInputValidationService {
                 }
 
                 const results: SearchResultItem[] = [];
-                for (let i = 0; i < rawList.length; i++) {
+                for (const rawResult of rawList) {
                     results.push({
-                        executionArgument: rawList[i][1],
-                        icon: rawList[i][2] === "folder" ? Icons.FOLDER : Icons.FILE,
-                        name: rawList[i][0],
+                        executionArgument: rawResult[1],
+                        icon: rawResult[2] === "folder" ? Icons.FOLDER : Icons.FILE,
+                        name: rawResult[0],
                     });
                 }
 
                 resolve(results);
 
                 clearInterval(interval);
-            }, 50)
+            }, 50);
         });
     }
 
     public getScopes(userInput: string): string[] {
         const scopes = [] as string[];
         let prefix = userInput.match(/^([cCwWpPaAr])\!/);
-        let storedPrefix = ""
+        let storedPrefix = "";
         while (prefix && prefix[1]) {
             switch (prefix[1]) {
                 case "c": this.addScope(scopes, "Case"); break;
@@ -128,12 +128,12 @@ export class EverythingInputValidationService {
             userInput = userInput.replace(/^([cCwWpPaAr])\!/, "");
             prefix = userInput.match(/^([cCwWpPaAr])\!/);
         }
-        let filterPrefix = userInput.match(/^(.+?)\:/);
+        const filterPrefix = userInput.match(/^(.+?)\:/);
         if (filterPrefix
          && this.filters
          && this.filters[filterPrefix[1]]) {
-            scopes.push(`Filter: ${this.filters[filterPrefix[1]].name || filterPrefix[1]}`)
-            storedPrefix += filterPrefix[1] + ":"
+            scopes.push(`Filter: ${this.filters[filterPrefix[1]].name || filterPrefix[1]}`);
+            storedPrefix += filterPrefix[1] + ":";
             userInput = userInput.replace(/^.+?\:/, "");
         }
         return [storedPrefix, userInput, ...scopes];
@@ -141,12 +141,12 @@ export class EverythingInputValidationService {
 
     private addScope(scopeContainer: string[], detail: string) {
         if (scopeContainer.findIndex((value) => value === detail) === -1) {
-            scopeContainer.push(detail)
+            scopeContainer.push(detail);
         }
     }
 
     private parseFilterCSV(filePath: string): EverythingFilter | undefined {
-        let filter: EverythingFilter = {};
+        const filter: EverythingFilter = {};
         let raw: string;
         try {
             raw = readFileSync(filePath, "utf-8");
@@ -177,7 +177,7 @@ export class EverythingInputValidationService {
                     matchOptions: matchCase | matchWholeWord | matchPath | matchAccents,
                     name: line[1].replace(/\"/g, ""),
                     prefix: line[7].replace(/\"/g, ""),
-                }
+                };
             }
         }
 
@@ -187,7 +187,7 @@ export class EverythingInputValidationService {
     private mergeOptions(current: number, condition: boolean | null, value: number): number {
         if (condition !== null) {
             if (condition) {
-                return (current | value)
+                return (current | value);
             } else if (current & value) {
                 return (current - value);
             }

@@ -47,7 +47,7 @@ export enum InputMode {
 let mainWindow: BrowserWindow;
 let trayIcon: Tray;
 
-let nativeUtil = new NativeUtil();
+const nativeUtil = new NativeUtil();
 
 let config = new ConfigFileRepository(defaultConfig, UeliHelpers.configFilePath).getConfig();
 
@@ -55,8 +55,8 @@ let taskbar: Taskbar | undefined;
 
 const globalUELI: GlobalUELI = {
     config,
-    runPluginCollection: [],
     onlinePluginCollection: [],
+    runPluginCollection: [],
     webSocketCommandSender: (url: string) => {
         mainWindow.webContents.send(IpcChannels.websocketPlayURL, url);
     },
@@ -98,9 +98,11 @@ function getExternalPlugins() {
     return { runCollection, onlineCollection };
 }
 
-const externalPlugins = getExternalPlugins();
-globalUELI.runPluginCollection = externalPlugins.runCollection;
-globalUELI.onlinePluginCollection = externalPlugins.onlineCollection;
+{
+    const externalPlugins = getExternalPlugins();
+    globalUELI.runPluginCollection = externalPlugins.runCollection;
+    globalUELI.onlinePluginCollection = externalPlugins.onlineCollection;
+}
 
 let currentInputMode = 0;
 let currentInputString = "";
@@ -265,7 +267,7 @@ function hideMainWindow(): void {
     mainWindow.webContents.send(IpcChannels.resetCommandlineOutput);
     mainWindow.webContents.send(IpcChannels.resetUserInput);
 
-    destructTaskbar()
+    destructTaskbar();
 
     if (mainWindow !== null && mainWindow !== undefined && mainWindow.isVisible()) {
         updateWindowSize(0);
@@ -317,10 +319,11 @@ function quitApp(): void {
     executionService.destruct();
     inputValidationService.destruct();
     onlineInputValidationService.destruct();
-
-    mainWindow.webContents.session.clearCache(() => {});
-    mainWindow.webContents.session.clearStorageData();
     destructTaskbar();
+
+    mainWindow.webContents.session.clearCache(() => {/**/});
+    mainWindow.webContents.session.clearStorageData();
+
     trayIcon.destroy();
     globalShortcut.unregisterAll();
     app.quit();
@@ -333,7 +336,7 @@ function getSearch(userInput: string): void {
         case InputMode.RUN: {
             mainWindow.webContents.send(
                 IpcChannels.getScopes,
-                inputValidationService.getScopes(userInput)
+                inputValidationService.getScopes(userInput),
             );
 
             Promise.all(inputValidationService.getSearchResult(userInput))
@@ -355,7 +358,7 @@ function getSearch(userInput: string): void {
 
             mainWindow.webContents.send(
                 IpcChannels.getScopes,
-                onlineInputValidationService.getScopes(userInput)
+                onlineInputValidationService.getScopes(userInput),
             );
 
             onlineInputTimeout = setTimeout(() => {
@@ -388,7 +391,7 @@ function getSearch(userInput: string): void {
         case InputMode.EVERYTHING: {
             mainWindow.webContents.send(
                 IpcChannels.getScopes,
-                everythingInputValidationService.getScopes(userInput)
+                everythingInputValidationService.getScopes(userInput),
             );
             setLoadingIcon();
             everythingInputValidationService.getSearchResult(userInput)

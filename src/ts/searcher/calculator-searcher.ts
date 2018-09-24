@@ -20,8 +20,8 @@ export class CalculatorSearcher implements Searcher {
         return [
             {
                 executionArgument: resultString,
-                icon: Icons.CALCULATOR,
                 hideDescription: true,
+                icon: Icons.CALCULATOR,
                 name: `= ${resultString}`,
             } as SearchResultItem,
         ];

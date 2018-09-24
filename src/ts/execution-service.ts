@@ -41,8 +41,13 @@ export class ExecutionService {
 
     public destruct() {
         this.validatorExecutorCombinations.forEach((comb) => {
-            comb.validator.destruct && comb.validator.destruct();
-            comb.executor.destruct && comb.executor.destruct();
-        })
+            if (comb.validator.destruct) {
+                comb.validator.destruct();
+            }
+
+            if (comb.executor.destruct) {
+                comb.executor.destruct();
+            }
+        });
     }
 }

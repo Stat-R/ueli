@@ -14,8 +14,8 @@ export class WebUrlSearcher implements Searcher {
         return [
             {
                 executionArgument: url,
-                icon: Icons.URL,
                 hideDescription: true,
+                icon: Icons.URL,
                 name: "Open default browser",
             } as SearchResultItem,
         ];

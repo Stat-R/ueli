@@ -44,9 +44,9 @@ const vue = new Vue({
             artist: "",
             liked: false,
             playerConnectStatus: false,
+            smallSize: config.musicPlayerSmallSize,
             state: false,
             track: "",
-            smallSize: config.musicPlayerSmallSize
         },
         notifyIcon: "",
         notifying: false,
@@ -74,10 +74,10 @@ const vue = new Vue({
             } else if (event.ctrlKey && event.shiftKey && event.key === "C") {
                 handleCopyArgument();
             } else if (event.ctrlKey && event.key === "ArrowUp") {
-                changeHistoryIndex(1)
+                changeHistoryIndex(1);
             } else if (event.ctrlKey && event.key === "ArrowDown") {
-                changeHistoryIndex(-1)
-            }else if (event.key === "ArrowDown" || event.key === "ArrowUp") {
+                changeHistoryIndex(-1);
+            } else if (event.key === "ArrowDown" || event.key === "ArrowUp") {
                 event.preventDefault();
                 vue.isMouseMoving = false;
                 const direction = event.key === "ArrowDown" ? 1 : -1;
@@ -474,7 +474,7 @@ function autoCompleteSymbolPairs(inputSymbol: string) {
     inputElement.value = StringHelpers.insertString(
         inputElement.value,
         end,
-        endSymbol
+        endSymbol,
     );
 
     inputElement.selectionStart = inputElement.selectionEnd = start;

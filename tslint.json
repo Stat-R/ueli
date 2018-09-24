@@ -23,6 +23,8 @@
             "allow-leading-underscore"
         ],
         "no-var-requires": false,
+        "new-parens": false,
+        "no-bitwise": false
     },
     "rulesDirectory": []
 }

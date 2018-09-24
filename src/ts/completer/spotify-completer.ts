@@ -8,8 +8,8 @@ export class SpotifyCompleter implements ArgumentCompleter {
         `${SpotifySearcher.prefix}album!`,
         `${SpotifySearcher.prefix}artist!`,
         `${SpotifySearcher.prefix}show!`,
-        `${SpotifySearcher.prefix}podcast!`
-    ]
+        `${SpotifySearcher.prefix}podcast!`,
+    ];
 
     public isCompletable(userInput: string, _cavetPosition: number, _selectingResult: SearchResultItem): boolean {
         for (const prefix of this.prefixList) {

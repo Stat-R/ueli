@@ -4,7 +4,7 @@ import { StringHelpers } from "../helpers/string-helpers";
 import { Icons } from "../icon-manager/icon-manager";
 import { SearchEngine } from "../search-engine";
 import { BareSearchResultItem, SearchResultItem } from "../search-result-item";
-import { exec, execSync } from "child_process";
+import { execFile, execFileSync } from "child_process";
 
 export class CommandLineSearcher implements Searcher {
     public readonly needSort = false;
@@ -14,12 +14,16 @@ export class CommandLineSearcher implements Searcher {
     private cachedParameters: { [key: string]: BareSearchResultItem[] };
     private searchEngine: SearchEngine;
     private powerShellPath: string;
+
     constructor(powerShellPath: string) {
         this.programList = [];
         this.cachedParameters = {};
         this.searchEngine = new SearchEngine();
         this.powerShellPath = powerShellPath;
-        exec(`"${this.powerShellPath}" -Command "Get-Command -Type All | ForEach-Object { $_.Name }"`, (error, stdout) => {
+        execFile(this.powerShellPath, [
+            "-Command",
+            `Get-Command -Type All | ForEach-Object { $_.Name }`,
+        ], (error, stdout) => {
             if (error) {
                 return;
             }
@@ -28,7 +32,7 @@ export class CommandLineSearcher implements Searcher {
                     item = item.substr(0, item.length - 4);
                 }
                 return {
-                    name: item
+                    name: item,
                 } as BareSearchResultItem;
             });
         });
@@ -50,9 +54,13 @@ export class CommandLineSearcher implements Searcher {
 
                 if (this.cachedParameters[baseCommand] === undefined) {
                     try {
-                        let paraList = execSync(
-                            `"${this.powerShellPath}" -Command "(Get-Command -Name '${baseCommand}').Parameters.Keys"`)
-                            .toString().split("\r\n");
+                        const result = execFileSync(this.powerShellPath, [
+                            "-Command",
+                            `(Get-Command -Name '${baseCommand}').Parameters.Keys`,
+                        ]);
+
+                        const paraList = result.toString().split("\r\n");
+
                         if (paraList && paraList.length === 1 && paraList[0] === "") {
                             paraList.length = 0;
                         }
@@ -101,6 +109,7 @@ export class CommandLineSearcher implements Searcher {
         return [
             {
                 executionArgument: userInput,
+                hideDescription: true,
                 icon: Icons.COMMANDLINE,
                 name: command,
             } as SearchResultItem,
