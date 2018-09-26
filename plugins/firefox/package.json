@@ -1,0 +1,11 @@
+{
+  "name": "firefox",
+  "version": "1.0.0",
+  "author": "khanhas",
+  "description": "Browse firefox history",
+  "main": "index.js",
+  "license": "MIT",
+  "dependencies": {
+    "sql.js": "^0.5.0"
+  }
+}
