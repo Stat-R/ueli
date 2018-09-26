@@ -1,6 +1,9 @@
 // @ts-check
+/// <reference path="index.d.ts" />
+
 const cheerio = require("cheerio");
 const { get } = require('http');
+
 const PREFIX = "dd!"
 
 module.exports.onlineSearcher = class Searcher {
@@ -12,12 +15,12 @@ module.exports.onlineSearcher = class Searcher {
     /**
      *
      * @param {string} userInput
-     * @returns {Promise<Array<{ name: string;tags?: string[]; alternativeExecutionArgument?: string; alternativePrefix?: string; breadCrumb?: string[]; executionArgument: string; icon: string}>>}
+     * @returns {Promise<SearchResultItem[]>}
      */
     getSearchResult(userInput) {
         const input = userInput.replace(PREFIX, "");
         return new Promise((resolve, reject) => {
-            get(`http://duckduckgo.com/lite/?q=${encodeURIComponent(input)}`, (res) => {
+            get(`http://duckduckgo.com/lite/?q=${encodeURIComponent(input)}&kd=-1`, (res) => {
                 let body = '';
 
                 res.on('error', (err) => reject(err));
@@ -35,7 +38,7 @@ module.exports.onlineSearcher = class Searcher {
                     for (let i = 0; i < headers.length; i++) {
                         results.push({
                             breadCrumb: [$(descriptions[i]).text()],
-                            executionArgument: this.toLink($(headers[i])),
+                            executionArgument: $(headers[i]).attr("href"),
                             icon: "getURLIcon",
                             name: $(headers[i]).text(),
                         })
@@ -44,16 +47,6 @@ module.exports.onlineSearcher = class Searcher {
                 });
             });
         });
-    }
-
-    /**
-     *
-     * @param {Cheerio} element
-     * @returns {string}
-     */
-    toLink(element) {
-        const rawLink = element.attr("href").substr(15); // /l/?kh=-1&uddg=
-        return decodeURIComponent(rawLink);
     }
 }
 
