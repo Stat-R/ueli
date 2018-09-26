@@ -221,6 +221,7 @@ const playPauseHotKey = new Hotkey(config.musicPlayerHotkeyPlayPause);
 const likeHotKey = new Hotkey(config.musicPlayerHotkeyLike);
 
 function onChangeUserInput(val: string): void {
+    vue.isMouseMoving = false;
     vue.commandLineOutput = [] as string[];
     if (cavetPosition !== null) {
         const inputElement = document.getElementsByTagName("input")[0];
