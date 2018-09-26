@@ -128,7 +128,7 @@ let onlineInputValidationService = new OnlineInputValidationService(
 
 let processInputValidationService = new ProcessInputValidationService();
 
-let everythingInputValidationService = new EverythingInputValidationService(nativeUtil, config.everythingMaxResults, config.everythingFilterFilePath);
+let everythingInputValidationService = new EverythingInputValidationService(nativeUtil, config.maxTotalSearchResult, config.everythingFilterFilePath);
 
 let executionService = new ExecutionService(
     new ExecutionArgumentValidatorExecutorCombinationManager(globalUELI).getCombinations(),
@@ -301,7 +301,7 @@ function reloadApp(): void {
 
     processInputValidationService = new ProcessInputValidationService();
 
-    everythingInputValidationService = new EverythingInputValidationService(nativeUtil, config.everythingMaxResults, config.everythingFilterFilePath);
+    everythingInputValidationService = new EverythingInputValidationService(nativeUtil, config.maxTotalSearchResult, config.everythingFilterFilePath);
 
     destructTaskbar();
 
@@ -346,8 +346,7 @@ function getSearch(userInput: string): void {
                         return acc;
                     }, [] as SearchResultItem[]);
 
-                    updateWindowSize(result.length);
-                    mainWindow.webContents.send(IpcChannels.getSearchResponse, result);
+                    sendResult(result);
                 });
             break;
         }
@@ -369,8 +368,7 @@ function getSearch(userInput: string): void {
                             result.push(...field);
                         });
 
-                        updateWindowSize(result.length);
-                        mainWindow.webContents.send(IpcChannels.getSearchResponse, result);
+                        sendResult(result);
 
                         setModeIcon();
                         onlineInputTimeout = null;
@@ -383,9 +381,9 @@ function getSearch(userInput: string): void {
                 taskbar = new Taskbar();
             }
             processInputValidationService.taskbar = taskbar;
+
             result = processInputValidationService.getSearchResult(userInput);
-            updateWindowSize(result.length);
-            mainWindow.webContents.send(IpcChannels.getSearchResponse, result);
+            sendResult(result);
             break;
         }
         case InputMode.EVERYTHING: {
@@ -396,8 +394,7 @@ function getSearch(userInput: string): void {
             setLoadingIcon();
             everythingInputValidationService.getSearchResult(userInput)
                 .then((allResults) => {
-                    updateWindowSize(allResults.length);
-                    mainWindow.webContents.send(IpcChannels.getSearchResponse, allResults);
+                    sendResult(allResults);
                     setModeIcon();
                 });
             break;
@@ -410,6 +407,15 @@ function destructTaskbar() {
         taskbar.destruct();
         taskbar = undefined;
     }
+}
+
+function sendResult(results: SearchResultItem[]) {
+    if (results.length > 100) {
+        results.length = 100;
+    }
+
+    updateWindowSize(results.length);
+    mainWindow.webContents.send(IpcChannels.getSearchResponse, results);
 }
 
 ipcMain.on(IpcChannels.hideWindow, hideMainWindow);

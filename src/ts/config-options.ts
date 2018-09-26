@@ -12,13 +12,13 @@ export interface ConfigOptions {
     bookmarkProfileName: string;
     customCommands: CustomCommand[];
     directorySeparator: string;
-    everythingMaxResults: number;
     everythingFilterFilePath: string;
     hotkeyEverythingMode: string;
     hotkeyOnlineMode: string;
     hotkeyRunMode: string;
     hotkeyWindowsMode: string;
     maxSearchResultCount: number;
+    maxTotalSearchResult: number;
     musicPlayerSmallSize: boolean;
     musicPlayerType: string;
     musicPlayerWebSocketPort: number;
