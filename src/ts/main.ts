@@ -331,7 +331,6 @@ function quitApp(): void {
 
 function getSearch(userInput: string): void {
     currentInputString = userInput;
-    let result: SearchResultItem[] = [];
     switch (currentInputMode) {
         case InputMode.RUN: {
             mainWindow.webContents.send(
@@ -339,15 +338,9 @@ function getSearch(userInput: string): void {
                 inputValidationService.getScopes(userInput),
             );
 
-            Promise.all(inputValidationService.getSearchResult(userInput))
-                .then((resultsArray) => {
-                    result = resultsArray.reduce((acc, curr) => {
-                        acc.push(...curr);
-                        return acc;
-                    }, [] as SearchResultItem[]);
+            inputValidationService.getSearchResult(userInput)
+                .then(sendResult);
 
-                    sendResult(result);
-                });
             break;
         }
         case InputMode.ONLINE: {
@@ -362,6 +355,8 @@ function getSearch(userInput: string): void {
 
             onlineInputTimeout = setTimeout(() => {
                 setLoadingIcon();
+
+                const result: SearchResultItem[] = [];
                 Promise.all(onlineInputValidationService.getSearchResult(userInput))
                     .then((allResults) => {
                         allResults.forEach((field) => {
@@ -381,9 +376,7 @@ function getSearch(userInput: string): void {
                 taskbar = new Taskbar();
             }
             processInputValidationService.taskbar = taskbar;
-
-            result = processInputValidationService.getSearchResult(userInput);
-            sendResult(result);
+            sendResult(processInputValidationService.getSearchResult(userInput));
             break;
         }
         case InputMode.EVERYTHING: {

@@ -23,38 +23,37 @@ export class InputValidationService {
         });
     }
 
-    public getSearchResult(userInput: string): Array<Promise<SearchResultItem[]>> {
-        const result = [] as Array<Promise<SearchResultItem[]>>;
+    public async getSearchResult(userInput: string): Promise<SearchResultItem[]> {
+        let genericResult = [] as SearchResultItem[];
+        const uniqueResult = [] as SearchResultItem[];
         userInput = StringHelpers.trimAndReplaceMultipleWhiteSpacesWithOne(userInput);
 
         if (StringHelpers.stringIsWhiteSpace(userInput)) {
-            return result;
+            return genericResult;
         }
 
         for (const combination of this.combs) {
             if (combination.validator.isValidForSearchResults(userInput)) {
-                const getResults = new Promise<SearchResultItem[]>((resolve) => {
-                    combination.searcher.getSearchResult(userInput)
-                        .then((collection) => {
-                            if (combination.searcher.needSort) {
-                                collection = this.searchEngine.search(collection, userInput);
-                            }
-                            resolve(collection);
-                        })
-                        .catch(() => resolve([]));
-                });
-
+                const getResults = await combination.searcher.getSearchResult(userInput);
                 if (combination.searcher.shouldIsolate) {
-                    result.length = 0;
-                    result.push(getResults);
-                    break;
+                    if (combination.searcher.needSort) {
+                        return this.searchEngine.search(getResults, userInput);
+                    }
+
+                    return getResults;
+                }
+
+                if (combination.searcher.needSort) {
+                    genericResult.push(...getResults);
                 } else {
-                    result.push(getResults);
+                    uniqueResult.push(...getResults);
                 }
             }
         }
 
-        return result;
+        genericResult = this.searchEngine.search(genericResult, userInput);
+
+        return uniqueResult.concat(genericResult);
     }
 
     public getScopes(userInput: string): string[] {
