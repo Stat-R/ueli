@@ -20,6 +20,7 @@ This repo contains personal modification, only supports Windows 10. Some optiona
 
 * [Installation](#installation)
 * [Quick tutorial](#quick-tutorial)
+* [Keyboard shortcuts](#keyboard-shortcuts)
 * [Features](#features)
 * [Customization](#customization)
 * [Development](#development)
@@ -33,6 +34,22 @@ This repo contains personal modification, only supports Windows 10. Some optiona
 * Press `alt+space` to show/hide the window
 * Start typing a program name
 * Press Enter to launch the program
+
+## Keyboard shortcuts
+
+Keyboard shortcut|Description
+---|---
+`Ctrl + o` | Open the selected program or file at it's location
+`Ctrl + Shift + C` | Copy search result to clipboard
+`ArrowUp` | Scroll up
+`ArrowDown` | Scroll down
+`F6`, `Ctrl + L` | Set focus on user input
+`Ctrl + ArrowUp`, `Ctrl + ArrowDown` | Browse previous input
+
+Hold `Alt` when opening an executable to run as adminstrator.  
+Hold `Alt` when opening an folder to open it in text editor.  
+
+Check out config file for mode and media player hotkeys.
 
 ## Features
 - [Run mode](https://github.com/khanhas/ueli/wiki/Run-mode)
@@ -53,20 +70,55 @@ This repo contains personal modification, only supports Windows 10. Some optiona
 - [Everything mode](https://github.com/khanhas/ueli/wiki/Everything-mode)  
     Search files instantly with Search Everything from VoidTools
 
-### Keyboard shortcuts
+ueli also can be extended with [plugins](#plugins)
 
-|Keyboard shortcut|Description|
-|---|---|
-|`Ctrl + o`|Open the selected program or file at it's location|
-|`Ctrl + Shift + C`|Copy file/folder full path to clipboard|
-|`ArrowUp`|Scroll up|
-|`ArrowDown`|Scroll down|
-|`F6`, `Ctrl + L`|Set focus on user input|
+## Plugins
+To install plugins, put plugin you want to use in folder `%userprofile%\.ueli\plugins\`.  
+Following is list of plugins in `plugins.zip` package I included in [releases page](https://github.com/khanhas/ueli/releases).
+  
+### ddg
+**Mode:** Online  
+**Prefix:** `dd!`  
+   
+A Duckduckgo scrapper. Convenient for a quick web search.  
+  
+![plugin_ddg](https://i.imgur.com/ACEzf0f.jpg)
+  
+### firefox
+**Mode:** Run  
+**No prefix**  
 
-Hold `Alt` when opening an executable to run as adminstrator.  
-Hold `Alt` when opening an folder to open it in text editor.  
+Search Firefox visited sites.
 
-Check out config file for mode and media player hotkeys.
+![plugin_firefox](https://i.imgur.com/eu2wJeV.jpg)
+
+### moneyconverter
+**Mode:** Online  
+**No prefix**  
+
+Converts over 160 currencies. Exchange rates are updated everyday.    
+This plugin requires you to register a free account at https://fixer.io/ to get a personal API key.  
+After that, put your API key in `%userprofile%\.ueli\plugins\moneyconverter\api-key.js`.  
+
+**Syntax:** `<number> <from currency> [to] <to currency> <to currency> ...`  
+`to` is optional, it's ok to not type it in.
+
+**Example usages:**
+- 50 usd to eur
+- 50 usd myr
+- 20 aud to gbp cad
+- 20 aud vnd jpy hkd
+
+![plugin_moneyconverter](https://i.imgur.com/xL1eC6F.jpg)
+
+### rainmeter
+**Mode:** Run  
+**Prefix:** `rm!`  
+
+Executes Rainmeter bang. Bang and config names are also autocompletable (hit Tab when selecting a result).  
+
+![plugin_rainmeter](https://i.imgur.com/KZgyhn3.jpg)
+
 
 ## Customization
 
@@ -84,12 +136,12 @@ Option | Type | Description
 `customCommands` | customCommand[] | A list of customCommand.
 `directorySeparator` | string | Separator for search result description
 `everythingFilterFilePath` | string | Path to Everything's filters CSV file.
-`everythingMaxResults` | number | Number of result returns when searching in Everything mode.
 `hotkeyEverythingMode` | string | 
 `hotkeyOnlineMode` | string |
 `hotkeyRunMode` | string |
 `hotkeyWindowsMode` | string |
 `maxSearchResultCount` | number | Maximum number of search results to be displayed
+`maxTotalSearchResult` | number | Maximum number of search results to be listed
 `musicPlayerHotkeyBack` | string |
 `musicPlayerHotkeyLike` | string | 
 `musicPlayerHotkeyMute` | string | 
