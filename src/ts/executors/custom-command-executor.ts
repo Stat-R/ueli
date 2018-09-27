@@ -7,7 +7,7 @@ import { exec } from "child_process";
 export class CustomCommandExecutor implements Executor {
     public hideAfterExecution = true;
     public readonly resetUserInputAfterExecution = true;
-    public readonly logExecution = false;
+    public readonly logExecution = true;
     private commandLineExecutor: CommandLineExecutor;
 
     constructor(commandLineExecutor: CommandLineExecutor) {
