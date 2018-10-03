@@ -28,35 +28,14 @@ export class ExecutionArgumentValidatorExecutorCombinationManager {
     private combinations: ExecutionArgumentValidatorExecutorCombination[];
 
     constructor(globalUELI: GlobalUELI) {
-        const clExecutor = new CommandLineExecutor(globalUELI.config.powerShellPath);
         this.combinations = [
-            {
-                executor: new UeliCommandExecutor,
-                validator: new UeliCommandExecutionArgumentValidator,
-            },
             {
                 executor: new FilePathExecutor(globalUELI.config.textEditor.path),
                 validator: new FilePathExecutionArgumentValidator,
             },
             {
-                executor: clExecutor,
-                validator: new CommandLineExecutionArgumentValidator,
-            },
-            {
-                executor: new WebSearchExecutor(globalUELI.config.webSearches),
-                validator: new WebSearchExecutionArgumentValidator(globalUELI.config.webSearches),
-            },
-            {
                 executor: new WebUrlExecutor,
                 validator: new WebUrlExecutionArgumentValidator,
-            },
-            {
-                executor: new CustomCommandExecutor(clExecutor),
-                validator: new CustomCommandExecutionArgumentValidator,
-            },
-            {
-                executor: new SpotifyExecutor(globalUELI.webSocketCommandSender),
-                validator: new SpotifyExecutionArgumentValidator,
             },
             {
                 executor: new ProcessExecutor,
@@ -64,7 +43,44 @@ export class ExecutionArgumentValidatorExecutorCombinationManager {
             },
         ];
 
-        if (globalUELI.config.searchOperatingSystemSettings) {
+        if (globalUELI.config.features.ueliCommands) {
+            this.combinations.push({
+                executor: new UeliCommandExecutor,
+                validator: new UeliCommandExecutionArgumentValidator,
+            });
+        }
+
+        if (globalUELI.config.features.webSearch) {
+            this.combinations.push({
+                executor: new WebSearchExecutor(globalUELI.config.webSearches),
+                validator: new WebSearchExecutionArgumentValidator(globalUELI.config.webSearches),
+            });
+        }
+
+        const clExecutor = new CommandLineExecutor(globalUELI.config.powerShellPath);
+
+        if (globalUELI.config.features.commandLine) {
+            this.combinations.push({
+                executor: clExecutor,
+                validator: new CommandLineExecutionArgumentValidator,
+            });
+        }
+
+        if (globalUELI.config.features.customCommands) {
+            this.combinations.push({
+                executor: new CustomCommandExecutor(clExecutor),
+                validator: new CustomCommandExecutionArgumentValidator,
+            });
+        }
+
+        if (globalUELI.config.features.spotify) {
+            this.combinations.push({
+                executor: new SpotifyExecutor(globalUELI.webSocketCommandSender),
+                validator: new SpotifyExecutionArgumentValidator,
+            });
+        }
+
+        if (globalUELI.config.features.systemSettings) {
             switch (OperatingSystemHelpers.getOperatingSystemFromString(platform())) {
                 case OperatingSystem.Windows: {
                     this.combinations.push({

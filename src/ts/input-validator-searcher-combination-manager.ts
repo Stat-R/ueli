@@ -21,38 +21,55 @@ export class InputValidatorSearcherCombinationManager {
     private combinations: InputValidatorSearcherCombination[];
 
     constructor(globalUELI: GlobalUELI) {
-        this.combinations = [
-            {
+        this.combinations = [];
+        if (globalUELI.config.features.calculator) {
+            this.combinations.push({
                 searcher: new CalculatorSearcher,
                 validator: new CalculatorInputValidator,
-            },
-            {
+            });
+        }
+
+        if (globalUELI.config.features.environmentVariables) {
+            this.combinations.push({
                 searcher: new VariableSearcher,
                 validator: new PrefixInputValidator("$", "Variable"),
-            },
-            {
+            });
+        }
+
+        if (globalUELI.config.features.commandLine) {
+            this.combinations.push({
                 completer: new CommandLineCompleter,
                 searcher: new CommandLineSearcher(globalUELI.config.powerShellPath),
                 validator: new CommandLineInputValidator,
-            },
-            {
+            });
+        }
+
+        if (globalUELI.config.features.webSearch) {
+            this.combinations.push({
                 searcher: new WebSearchSearcher(globalUELI.config.webSearches),
                 validator: new WebSearchInputValidator(globalUELI.config.webSearches),
-            },
-            {
+            });
+        }
+
+        if (globalUELI.config.features.fileBrowser) {
+            this.combinations.push({
                 completer: new FilePathCompleter,
                 searcher: new FilePathSearcher(globalUELI.config.applicationFileExtensions, globalUELI.config.textEditor.name),
                 validator: new FilePathInputValidator,
-            },
-            {
+            });
+        }
+
+        if (globalUELI.config.features.webUrl) {
+            this.combinations.push({
                 searcher: new WebUrlSearcher,
                 validator: new WebUrlInputValidator,
-            },
-            {
-                searcher: new SearchPluginsSearcher(globalUELI.config),
-                validator: new SearchPluginsInputValidator,
-            },
-        ];
+            });
+        }
+
+        this.combinations.push({
+            searcher: new SearchPluginsSearcher(globalUELI.config),
+            validator: new SearchPluginsInputValidator,
+        });
 
         for (const plugin of globalUELI.runPluginCollection) {
             this.combinations.push({

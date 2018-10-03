@@ -10,17 +10,21 @@ export class OnlineInputValidatorSearcherCombinationManager {
     private combinations: InputValidatorSearcherCombination[];
 
     constructor(globalUELI: GlobalUELI) {
-        this.combinations = [
-            {
+        this.combinations = [];
+        if (globalUELI.config.features.spotify) {
+            this.combinations.push({
                 completer: new SpotifyCompleter,
                 searcher: new SpotifySearcher(globalUELI.webSocketSearch),
                 validator: new SpotifyInputValidator,
-            },
-            {
+            });
+        }
+
+        if (globalUELI.config.features.youtube) {
+            this.combinations.push({
                 searcher: new YoutubeSearcher,
                 validator: new PrefixInputValidator("y!", "Youtube"),
-            },
-        ];
+            });
+        }
 
         for (const plugin of globalUELI.onlinePluginCollection) {
             this.combinations.push({

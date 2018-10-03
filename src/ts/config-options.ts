@@ -1,6 +1,23 @@
 import { CustomCommand } from "./custom-command";
 import { WebSearch } from "./web-search";
 
+interface FeatureOptions {
+    bookmark: boolean;
+    calculator: boolean;
+    commandLine: boolean;
+    customCommands: boolean;
+    environmentVariables: boolean;
+    fileBrowser: boolean;
+    homeFolder: boolean;
+    programs: boolean;
+    spotify: boolean;
+    systemSettings: boolean;
+    ueliCommands: boolean;
+    webSearch: boolean;
+    webUrl: boolean;
+    youtube: boolean;
+}
+
 export interface ConfigOptions {
     applicationFileExtensions: string[];
     applicationFolders: Array<[string, string]>;
@@ -13,6 +30,7 @@ export interface ConfigOptions {
     customCommands: CustomCommand[];
     directorySeparator: string;
     everythingFilterFilePath: string;
+    features: FeatureOptions;
     hotkeyEverythingMode: string;
     hotkeyOnlineMode: string;
     hotkeyRunMode: string;
@@ -30,7 +48,6 @@ export interface ConfigOptions {
     musicPlayerHotkeyMute: string;
     onlineModeDelay: number;
     powerShellPath: string;
-    searchOperatingSystemSettings: boolean;
     searchResultExecutionArgumentFontSize: number;
     searchResultHeight: number;
     searchResultNameFontSize: number;

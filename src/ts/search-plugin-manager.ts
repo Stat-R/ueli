@@ -13,18 +13,31 @@ export class SearchPluginManager {
     private plugins: SearchPlugin[];
 
     public constructor(config: ConfigOptions) {
-        this.plugins = [
-            new HomeFolderSearchPlugin(),
-            new UeliCommandsSearchPlugin(),
-            new CustomCommandsPlugin(config.customCommands),
-            new BrowserBookmark(config.bookmarkFromBrowser, config.bookmarkProfileName),
-        ];
+        this.plugins = [];
 
-        config.applicationFolders.forEach((folder) => {
-            this.plugins.push(new ProgramsPlugin(new ProgramFileRepository(folder, config.applicationFileExtensions, config.applicationKeywordBlacklist)));
-        });
+        if (config.features.homeFolder) {
+            this.plugins.push(new HomeFolderSearchPlugin());
+        }
 
-        if (config.searchOperatingSystemSettings) {
+        if (config.features.ueliCommands) {
+            this.plugins.push(new UeliCommandsSearchPlugin());
+        }
+
+        if (config.features.customCommands) {
+            this.plugins.push(new CustomCommandsPlugin(config.customCommands));
+        }
+
+        if (config.features.bookmark) {
+            this.plugins.push(new BrowserBookmark(config.bookmarkFromBrowser, config.bookmarkProfileName));
+        }
+
+        if (config.features.programs) {
+            config.applicationFolders.forEach((folder) => {
+                this.plugins.push(new ProgramsPlugin(new ProgramFileRepository(folder, config.applicationFileExtensions, config.applicationKeywordBlacklist)));
+            });
+        }
+
+        if (config.features.systemSettings) {
             this.plugins.push(Injector.getOperatingSystemSettingsPlugin(platform()));
         }
     }

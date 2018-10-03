@@ -1,5 +1,5 @@
-import * as fs from "fs";
 import { ConfigOptions } from "./config-options";
+import * as fs from "fs";
 
 export class ConfigFileRepository {
     private configFilePath: string;
@@ -27,6 +27,13 @@ export class ConfigFileRepository {
             Object.keys(this.defaultConfig).forEach((option: keyof ConfigOptions) => {
                 if (mergedConfig[option] === undefined) {
                     mergedConfig[option] = this.defaultConfig[option];
+                    needRewrite = true;
+                }
+            });
+
+            Object.keys(this.defaultConfig.features).forEach((option: keyof ConfigOptions["features"]) => {
+                if (mergedConfig.features[option] === undefined) {
+                    mergedConfig.features[option] = this.defaultConfig.features[option];
                     needRewrite = true;
                 }
             });
