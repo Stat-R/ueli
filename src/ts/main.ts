@@ -154,6 +154,9 @@ function createMainWindow(): void {
     });
 
     mainWindow.loadURL(`file://${__dirname}/../main.html`);
+
+    nativeUtil.storeBrowserHwnd();
+
     mainWindow.setSize(config.windowWidth, config.userInputHeight);
 
     mainWindow.on("close", quitApp);

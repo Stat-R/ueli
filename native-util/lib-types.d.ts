@@ -6,6 +6,9 @@ export class NativeUtil extends NBindBase {
 	/** NativeUtil(); */
 	constructor();
 
+	/** void storeBrowserHwnd(); */
+	storeBrowserHwnd(): void;
+
 	/** void elevateExecute(std::string); */
 	elevateExecute(p0: string): void;
 

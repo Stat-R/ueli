@@ -3,13 +3,17 @@ const binary = require("./nbind.node");
 
 const lib = binary as {
     NativeUtil: typeof LibTypes.NativeUtil;
-}
+};
 
 export class NativeUtil {
     private instance: LibTypes.NativeUtil;
 
     constructor() {
         this.instance = new lib.NativeUtil();
+    }
+
+    public storeBrowserHwnd(): void {
+        this.instance.storeBrowserHwnd();
     }
 
     public elevateExecute(arg: string): void {
@@ -20,7 +24,7 @@ export class NativeUtil {
         this.instance.queryEverything(query, maxResults, matchOptions);
     }
 
-    public resolveEverything(): Array<string[]> {
+    public resolveEverything(): string[][] {
         return this.instance.resolveEverything();
     }
 
@@ -28,7 +32,7 @@ export class NativeUtil {
         this.instance.activateContextMenu(filePath);
     }
 
-	public takeScreenshot(width: number, height: number, outFilePath: string): void {
+    public takeScreenshot(width: number, height: number, outFilePath: string): void {
         this.instance.takeScreenshot(width, height, outFilePath);
     }
 }

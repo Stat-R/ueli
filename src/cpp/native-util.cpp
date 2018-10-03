@@ -41,8 +41,6 @@ class NativeUtil
         if (!GetEncoderClsid(&myClsId)) {
             printf("Cannot find Encoder Clsid\n");
         }
-
-        browserHwnd = FindWindow(NULL, L"ueli");
     }
 
     ~NativeUtil()
@@ -50,6 +48,11 @@ class NativeUtil
         DestroyWindow(ipcHwnd);
         Gdiplus::GdiplusShutdown(gdiplusToken);
     };
+
+    void storeBrowserHwnd()
+    {
+        browserHwnd = FindWindow(NULL, L"ueli");
+    }
 
     void elevateExecute(std::string arg)
     {
@@ -253,6 +256,7 @@ class NativeUtil
 NBIND_CLASS(NativeUtil)
 {
     construct();
+    method(storeBrowserHwnd);
     method(elevateExecute);
     method(queryEverything);
     method(resolveEverything);
