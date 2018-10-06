@@ -9,10 +9,16 @@ export class CalculatorSearcher implements Searcher {
 
     public async getSearchResult(userInput: string): Promise<SearchResultItem[]> {
         const result = math.eval(userInput);
-        let resultString: string = result.toString();
+        let resultString = "";
 
-        if (resultString === "[object Object]") {
-            resultString = JSON.stringify(result);
+        if (result === null) {
+            resultString = "null";
+        } else {
+            resultString = result.toString();
+
+            if (resultString === "[object Object]") {
+                resultString = JSON.stringify(result);
+            }
         }
 
         resultString = resultString.replace(/\^(\d+)/g, (_, num: string) => num.sup());

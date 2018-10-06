@@ -3,7 +3,7 @@ import * as math from "mathjs";
 
 export class CalculatorInputValidator implements InputValidator {
     public isValidForSearchResults(userInput: string): boolean {
-        let result;
+        let result: any;
         try {
             // Mathjs throws an error when input cannot be evaluated
             result = math.eval(userInput);
@@ -14,6 +14,10 @@ export class CalculatorInputValidator implements InputValidator {
     }
 
     private isValidMathType(input: any): boolean {
+        if (input === undefined) {
+            return false;
+        }
+
         const mathType = math.typeof(input);
 
         if ((mathType === "Unit" && input.value === null)
