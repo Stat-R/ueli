@@ -1,11 +1,11 @@
 import { Searcher } from "./searcher";
-import { DirectorySeparator } from "../directory-separator";
+import { FileHelpers } from "../helpers/file-helpers";
 import { Icons } from "../icon-manager/icon-manager";
 import { FilePathInputValidator } from "../input-validators/file-path-input-validator";
-import { SearchResultItem } from "../search-result-item";
+import { BareSearchResultItem, SearchResultItem } from "../search-result-item";
 
 export class VariableSearcher implements Searcher {
-    public readonly needSort = true;
+    public readonly needSort = false;
     public readonly shouldIsolate = true;
 
     private collection: SearchResultItem[];
@@ -20,7 +20,7 @@ export class VariableSearcher implements Searcher {
             const value = env[varName];
             if (validator.isValidForSearchResults(value)) {
                 this.collection.push({
-                    breadCrumb: value.split(DirectorySeparator.WindowsDirectorySeparator),
+                    breadCrumb: FileHelpers.filePathToBreadCrumbs(value),
                     executionArgument: value,
                     icon: Icons.VARIABLE,
                     name: varName,
@@ -29,7 +29,17 @@ export class VariableSearcher implements Searcher {
         }
     }
 
-    public async getSearchResult(): Promise<SearchResultItem[]> {
-        return this.collection;
+    public fuzzySearcher<T extends BareSearchResultItem | SearchResultItem>(_unsortedSearchResults: T[], _searchTerm: string): T[] {
+        return [];
+    }
+
+    public async getSearchResult(userInput: string): Promise<SearchResultItem[]> {
+        userInput = userInput.substr(1);
+
+        if (userInput.length === 0) {
+            return this.collection;
+        }
+
+        return this.fuzzySearcher(this.collection, userInput);
     }
 }
