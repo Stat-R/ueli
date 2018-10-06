@@ -31,6 +31,7 @@ let cavetPosition: number | null = null;
 const isValidFilePath = new FilePathExecutionArgumentValidator().isValidForExecution;
 const inputHistory = [] as string[];
 let historyIndex = -1;
+const screenshotLink = new URL(join(homedir(), "acrylic.bmp")).href;
 
 const customCSSPath = `${homedir()}/ueli.custom.css`;
 const vue = new Vue({
@@ -178,6 +179,8 @@ if (!existsSync(customCSSPath)) {
     --font-icon: "Segoe MDL2 Assets";
 }`, "utf-8");
 }
+
+onMainWindowShow();
 
 const playerType = config.musicPlayerType.toLowerCase();
 
@@ -541,6 +544,13 @@ function handleLinkClick(link: string): void {
     execute(link, false);
 }
 
+function onMainWindowShow() {
+    if (config.blurBackground) {
+        vue.screenshotFile =  `${screenshotLink}?${Date.now()}`;
+    }
+    focusOnInput();
+}
+
 (global as any).handleLinkClick = handleLinkClick;
 
 ipcRenderer.on(IpcChannels.getSearchIconResponse, (_event: Electron.Event, arg: string): void => {
@@ -559,14 +569,7 @@ ipcRenderer.on(IpcChannels.onMove, (_event: Electron.Event, arg: [number, number
     ele.style.top = `${-arg[1] - 20}px`;
 });
 
-const screenshotLink = new URL(join(homedir(), "acrylic.bmp")).href;
-
-ipcRenderer.on(IpcChannels.mainShow, () => {
-    if (config.blurBackground) {
-        vue.screenshotFile =  `${screenshotLink}?${Date.now()}`;
-    }
-    focusOnInput();
-});
+ipcRenderer.on(IpcChannels.mainShow, onMainWindowShow);
 
 ipcRenderer.on(IpcChannels.websocketPlayURL, (_event: Event, arg: string) => {
     const player = musicInfoCrawler as MusicPlayerWebSocket;
