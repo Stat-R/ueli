@@ -13,12 +13,12 @@ export class FilePathCompleter implements ArgumentCompleter {
         return this.isValidFilePath(selectingResult.executionArgument);
     }
 
-    public complete(_userInput: string,  _cavetPosition: number, selectingResult: SearchResultItem): string {
+    public complete(_userInput: string,  _cavetPosition: number, selectingResult: SearchResultItem): string[] {
         const arg = selectingResult.executionArgument;
         if (!arg.endsWith(this.dirSeparator) && lstatSync(arg).isDirectory()) {
-            return `${arg}${this.dirSeparator}`;
+            return [`${arg}${this.dirSeparator}`];
         }
 
-        return arg;
+        return [arg];
     }
 }

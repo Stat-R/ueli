@@ -228,7 +228,7 @@ module.exports.completer = class ArgumentCompleter {
      * @param {SearchResultItem} selectingResult
      */
     complete(userInput, cavetPosition, selectingResult) {
-        return `${selectingResult.executionArgument} `;
+        return [`${selectingResult.executionArgument} `];
     }
 }
 

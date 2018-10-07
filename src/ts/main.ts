@@ -495,7 +495,7 @@ ipcMain.on(IpcChannels.activateContextMenu, (_event: Event, arg: string) => {
 });
 
 ipcMain.on(IpcChannels.autoComplete, (_event: Event, userInput: string, cavetPosition: number, selectingResult: SearchResultItem) => {
-    let result = "";
+    let result: string[] = [];
     switch (currentInputMode) {
         case InputMode.RUN:
             result = inputValidationService.complete(userInput, cavetPosition, selectingResult);

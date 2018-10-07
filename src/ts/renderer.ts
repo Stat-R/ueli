@@ -32,6 +32,9 @@ const isValidFilePath = new FilePathExecutionArgumentValidator().isValidForExecu
 const inputHistory = [] as string[];
 let historyIndex = -1;
 const screenshotLink = new URL(join(homedir(), "acrylic.bmp")).href;
+let shouldRotateCompletions = false;
+let autoCompList: string [] = [];
+let autoCompIndex = 0;
 
 const customCSSPath = `${homedir()}/ueli.custom.css`;
 const vue = new Vue({
@@ -83,9 +86,12 @@ const vue = new Vue({
                 vue.isMouseMoving = false;
                 const direction = event.key === "ArrowDown" ? 1 : -1;
                 changeActiveItem(direction);
+            } else if (event.shiftKey && event.key === "Tab") {
+                event.preventDefault();
+                handleAutoCompletion(-1);
             } else if (event.key === "Tab") {
                 event.preventDefault();
-                handleAutoCompletion();
+                handleAutoCompletion(1);
             } else if (event.key === "Escape") {
                 ipcRenderer.send(IpcChannels.hideWindow);
             } else if (event.key === "Backspace") {
@@ -98,7 +104,14 @@ const vue = new Vue({
                 } else {
                     autoDeleteSymbolPairs();
                 }
-            } else {
+            } else if (event.key !== "Shift"
+             && event.key !== "Ctrl"
+             && event.key !== "Alt"
+             && event.key !== "Meta"
+            ) {
+                shouldRotateCompletions = false;
+                autoCompList.length = 0;
+                autoCompIndex = 0;
                 autoCompleteSymbolPairs(event.key);
             }
         },
@@ -338,8 +351,21 @@ function handleOpenFileLocation(): void {
     }
 }
 
-function handleAutoCompletion(): void {
+function handleAutoCompletion(direction: 1 | -1): void {
     const activeItem = getActiveItem();
+
+    if (shouldRotateCompletions && autoCompList.length > 1) {
+        autoCompIndex = autoCompIndex + direction;
+        if (autoCompIndex > (autoCompList.length - 1)) {
+            autoCompIndex = 0;
+        } else if (autoCompIndex < 0) {
+            autoCompIndex = autoCompList.length - 1;
+        }
+        prefix = "";
+        vue.userInput = autoCompList[autoCompIndex];
+
+        return;
+    }
 
     if (activeItem !== undefined) {
         const userInput = `${prefix}${vue.userInput}`;
@@ -349,7 +375,10 @@ function handleAutoCompletion(): void {
         if (inputElement.selectionStart !== null) {
             currentCavetPosition = inputElement.selectionStart;
         }
+
         ipcRenderer.send(IpcChannels.autoComplete, userInput, currentCavetPosition, activeItem);
+
+        shouldRotateCompletions = true;
     }
 }
 
@@ -609,7 +638,9 @@ ipcRenderer.on(IpcChannels.getScopes, (_event: Event, arg: string[]): void => {
     }
 });
 
-ipcRenderer.on(IpcChannels.autoCompleteResponse, (_event: Event, arg: string): void => {
+ipcRenderer.on(IpcChannels.autoCompleteResponse, (_event: Event, arg: string[]): void => {
     prefix = "";
-    vue.userInput = arg;
+    autoCompList = arg;
+    autoCompIndex = 0;
+    vue.userInput = arg[0];
 });

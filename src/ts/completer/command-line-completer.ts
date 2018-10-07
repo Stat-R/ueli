@@ -8,7 +8,7 @@ export class CommandLineCompleter implements ArgumentCompleter {
         return this.isValid(selectingResult.executionArgument);
     }
 
-    public complete(_userInput: string, _cavetPosition: number, selectingResult: SearchResultItem): string {
-        return `${selectingResult.executionArgument} `;
+    public complete(_userInput: string, _cavetPosition: number, selectingResult: SearchResultItem): string[] {
+        return [`${selectingResult.executionArgument} `];
     }
 }

@@ -11,23 +11,25 @@ export class SpotifyCompleter implements ArgumentCompleter {
         `${SpotifySearcher.prefix}podcast!`,
     ];
 
+    private toCompleteString: string[] = [];
+
     public isCompletable(userInput: string, _cavetPosition: number, _selectingResult: SearchResultItem): boolean {
+        this.toCompleteString.length = 0;
+
         for (const prefix of this.prefixList) {
             if (prefix.startsWith(userInput)) {
-                return true;
+                this.toCompleteString.push(prefix);
             }
+        }
+
+        if (this.toCompleteString.length > 0) {
+            return true;
         }
 
         return false;
     }
 
-    public complete(userInput: string,  _cavetPosition: number, _selectingResult: SearchResultItem): string {
-        for (const prefix of this.prefixList) {
-            if (prefix.startsWith(userInput)) {
-                return prefix;
-            }
-        }
-
-        return "";
+    public complete(_userInput: string,  _cavetPosition: number, _selectingResult: SearchResultItem): string[] {
+        return this.toCompleteString;
     }
 }
