@@ -503,6 +503,9 @@ ipcMain.on(IpcChannels.autoComplete, (_event: Event, userInput: string, cavetPos
         case InputMode.ONLINE:
             result = onlineInputValidationService.complete(userInput, cavetPosition, selectingResult);
             break;
+        case InputMode.EVERYTHING:
+            result = everythingInputValidationService.complete(userInput);
+            break;
     }
 
     if (result.length > 0) {

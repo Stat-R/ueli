@@ -24,6 +24,7 @@ export class EverythingInputValidationService {
     private nativeUtil: NativeUtil;
     private maxResults: number;
     private filters: EverythingFilter | undefined;
+    private filterPrefixes: string[] = [];
 
     constructor(nativeUtil: NativeUtil, maxResults: number, filterFile: string) {
         this.nativeUtil = nativeUtil;
@@ -31,6 +32,10 @@ export class EverythingInputValidationService {
 
         if (filterFile) {
             this.filters = this.parseFilterCSV(filterFile);
+
+            if (this.filters) {
+                this.filterPrefixes = Object.keys(this.filters).map((filterName) => `${filterName}:`);
+            }
         }
     }
 
@@ -137,6 +142,21 @@ export class EverythingInputValidationService {
             userInput = userInput.replace(/^.+?\:/, "");
         }
         return [storedPrefix, userInput, ...scopes];
+    }
+
+    public complete(userInput: string): string[] {
+        if (userInput.length === 0) {
+            return this.filterPrefixes;
+        }
+
+        const results: string[] = [];
+        this.filterPrefixes.forEach((filterName) => {
+            if (filterName.startsWith(userInput)) {
+                results.push(filterName);
+            }
+        });
+
+        return results;
     }
 
     private addScope(scopeContainer: string[], detail: string) {
