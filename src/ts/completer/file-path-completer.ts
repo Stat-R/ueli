@@ -9,16 +9,25 @@ export class FilePathCompleter implements ArgumentCompleter {
     private isValidFilePath = new FilePathExecutionArgumentValidator().isValidForExecution;
     private dirSeparator = Injector.getDirectorySeparator(platform());
 
-    public isCompletable(_userInput: string, _cavetPosition: number, selectingResult: SearchResultItem): boolean {
-        return this.isValidFilePath(selectingResult.executionArgument);
-    }
-
-    public complete(_userInput: string,  _cavetPosition: number, selectingResult: SearchResultItem): string[] {
-        const arg = selectingResult.executionArgument;
-        if (!arg.endsWith(this.dirSeparator) && lstatSync(arg).isDirectory()) {
-            return [`${arg}${this.dirSeparator}`];
+    public isCompletable(_userInput: string, _cavetPosition: number, selectingResult?: SearchResultItem): boolean {
+        if (selectingResult) {
+            return this.isValidFilePath(selectingResult.executionArgument);
         }
 
-        return [arg];
+        return false;
+    }
+
+    public complete(_userInput: string,  _cavetPosition: number, selectingResult?: SearchResultItem): string[] {
+        if (selectingResult) {
+            const arg = selectingResult.executionArgument;
+            if (!arg.endsWith(this.dirSeparator)
+             && lstatSync(arg).isDirectory()) {
+                return [`${arg}${this.dirSeparator}`];
+            }
+
+            return [arg];
+        }
+
+        return [];
     }
 }

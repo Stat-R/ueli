@@ -13,7 +13,7 @@ export class SpotifyCompleter implements ArgumentCompleter {
 
     private toCompleteString: string[] = [];
 
-    public isCompletable(userInput: string, _cavetPosition: number, _selectingResult: SearchResultItem): boolean {
+    public isCompletable(userInput: string, _cavetPosition: number, _selectingResult?: SearchResultItem): boolean {
         this.toCompleteString.length = 0;
 
         for (const prefix of this.prefixList) {
@@ -29,7 +29,7 @@ export class SpotifyCompleter implements ArgumentCompleter {
         return false;
     }
 
-    public complete(_userInput: string,  _cavetPosition: number, _selectingResult: SearchResultItem): string[] {
+    public complete(_userInput: string,  _cavetPosition: number, _selectingResult?: SearchResultItem): string[] {
         return this.toCompleteString;
     }
 }

@@ -367,19 +367,17 @@ function handleAutoCompletion(direction: 1 | -1): void {
         return;
     }
 
-    if (activeItem !== undefined) {
-        const userInput = `${prefix}${vue.userInput}`;
+    const userInput = `${prefix}${vue.userInput}`;
 
-        const inputElement = document.getElementsByTagName("input")[0];
-        let currentCavetPosition = userInput.length;
-        if (inputElement.selectionStart !== null) {
-            currentCavetPosition = inputElement.selectionStart;
-        }
-
-        ipcRenderer.send(IpcChannels.autoComplete, userInput, currentCavetPosition, activeItem);
-
-        shouldRotateCompletions = true;
+    const inputElement = document.getElementsByTagName("input")[0];
+    let currentCavetPosition = userInput.length;
+    if (inputElement.selectionStart !== null) {
+        currentCavetPosition = inputElement.selectionStart;
     }
+
+    ipcRenderer.send(IpcChannels.autoComplete, userInput, currentCavetPosition, activeItem);
+
+    shouldRotateCompletions = true;
 }
 
 function getActiveItem(): SearchResultItemViewModel | undefined {

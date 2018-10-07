@@ -216,9 +216,14 @@ module.exports.completer = class ArgumentCompleter {
      * @param {string} userInput
      * @param {number} cavetPosition
      * @param {SearchResultItem} selectingResult
+     * @returns {boolean}
      */
     isCompletable(userInput, cavetPosition, selectingResult) {
-        return selectingResult.executionArgument.startsWith(PREFIX);
+        if (selectingResult) {
+            return selectingResult.executionArgument.startsWith(PREFIX);
+        }
+
+        return false;
     }
 
     /**
@@ -226,9 +231,14 @@ module.exports.completer = class ArgumentCompleter {
      * @param {string} userInput
      * @param {number} cavetPosition
      * @param {SearchResultItem} selectingResult
+     * @returns {string[]}
      */
     complete(userInput, cavetPosition, selectingResult) {
-        return [`${selectingResult.executionArgument} `];
+        if (selectingResult) {
+            return [`${selectingResult.executionArgument} `];
+        }
+
+        return [];
     }
 }
 

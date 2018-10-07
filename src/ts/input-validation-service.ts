@@ -69,7 +69,7 @@ export class InputValidationService {
         return [];
     }
 
-    public complete(userInput: string, cavetPosition: number, selectingResult: SearchResultItem): string[] {
+    public complete(userInput: string, cavetPosition: number, selectingResult?: SearchResultItem): string[] {
         for (const combination of this.combs) {
             if (combination.completer
              && combination.completer.isCompletable(userInput, cavetPosition, selectingResult)) {
