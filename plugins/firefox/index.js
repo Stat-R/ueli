@@ -41,21 +41,38 @@ module.exports.runSearcher = class Searcher {
                 GROUP BY host
             `);
 
+            const places = db.exec(`
+                SELECT url, title
+                FROM moz_places
+                WHERE frecency > 0
+            `);
+
             if (!results[0]
-                && !results[0].values
-                && results.values.length === 0) {
+             && !results[0].values
+             && results.values.length === 0) {
+                return;
+            }
+
+            if (!places[0]
+             && !places[0].values
+             && places.values.length === 0) {
                 return;
             }
 
             (async () => {
+                const placesObj = {};
+                places[0].values.forEach((/**@type {[string, string]} */ row) => {
+                    placesObj[row[0]] = row;
+                })
+
+
                 results[0].values.forEach((/**@type {[string, string]} */row) => {
-                    if (row[1]) {
-                        this.items.push({
-                            executionArgument: `${row[0]}${row[1]}`,
-                            icon: ICON,
-                            name: row[1],
-                        });
-                    }
+                    const url = `${row[0]}${row[1]}/`;
+                    this.items.push({
+                        executionArgument: url,
+                        icon: ICON,
+                        name: (placesObj[url] && placesObj[url][1]) || row[1],
+                    });
                 });
             })();
         });
