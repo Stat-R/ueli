@@ -63,16 +63,16 @@ const globalUELI: GlobalUELI = {
     webSocketSearch,
 };
 
-const externalPluginFolderPath = path.join(homedir(), ".ueli/plugins");
+const extPluginPath = path.join(homedir(), ".ueli/plugins");
 function getExternalPlugins() {
     const runCollection = [] as ExternalRunPlugin[];
     const onlineCollection = [] as ExternalOnlinePlugin[];
 
-    if (existsSync(externalPluginFolderPath)) {
-        const pluginNameCollection = readdirSync(externalPluginFolderPath);
+    if (existsSync(extPluginPath)) {
+        const pluginNameCollection = readdirSync(extPluginPath);
         for (const pluginName of pluginNameCollection) {
             try {
-                const pluginFullPath = path.join(externalPluginFolderPath, pluginName);
+                const pluginFullPath = path.join(extPluginPath, pluginName);
                 const obj = __non_webpack_require__(pluginFullPath);
                 if (obj.runSearcher && obj.inputValidator) {
                     runCollection.push(obj as ExternalRunPlugin);
@@ -92,7 +92,7 @@ function getExternalPlugins() {
         if (!existsSync(dotUeliPath)) {
             mkdirSync(dotUeliPath);
         }
-        mkdirSync(externalPluginFolderPath);
+        mkdirSync(extPluginPath);
     }
 
     return { runCollection, onlineCollection };
@@ -104,8 +104,8 @@ function getExternalPlugins() {
     globalUELI.onlinePluginCollection = externalPlugins.onlineCollection;
 }
 
-let currentInputMode = 0;
-let currentInputString = "";
+let inputMode = 0;
+let inputString = "";
 let onlineInputTimeout: NodeJS.Timer | number | null = null;
 
 const screenshotFile = path.join(homedir(), "acrylic.bmp");
@@ -114,21 +114,21 @@ let screenshotSize: Electron.Size | null = null;
 function webSocketSearch(userInput: string): Promise<WebSocketSearchResult[]> {
     return new Promise((resolve) => {
         mainWindow.webContents.send(IpcChannels.searchWebsocket, userInput);
-        ipcMain.on(IpcChannels.getWebsocketSearchResponse, (_event: Event, arg: WebSocketSearchResult[]) => {
+        ipcMain.on(IpcChannels.getWebsocketSearchResponse, (_: Event, arg: WebSocketSearchResult[]) => {
             resolve(arg);
         });
     });
 }
 
-let inputValidationService = new InputValidationService(
+let runIVS = new InputValidationService(
     new InputValidatorSearcherCombinationManager(globalUELI).getCombinations());
 
-let onlineInputValidationService = new OnlineInputValidationService(
+let onlineIVS = new OnlineInputValidationService(
     new OnlineInputValidatorSearcherCombinationManager(globalUELI).getCombinations());
 
-let processInputValidationService = new ProcessInputValidationService();
+let processIVS = new ProcessInputValidationService();
 
-let everythingInputValidationService = new EverythingInputValidationService(nativeUtil, config.maxTotalSearchResult, config.everythingFilterFilePath);
+let everythingIVS = new EverythingInputValidationService(nativeUtil, config.maxTotalSearchResult, config.everythingFilterFilePath);
 
 let executionService = new ExecutionService(
     new ExecutionArgumentValidatorExecutorCombinationManager(globalUELI).getCombinations(),
@@ -162,11 +162,13 @@ function createMainWindow(): void {
     mainWindow.on("close", quitApp);
     mainWindow.on("blur", hideMainWindow);
 
-    mainWindow.on("move", moveWindow);
+    if (config.blurBackground) {
+        mainWindow.on("move", moveWindow);
+    }
+
     mainWindow.on("show", () => {
         setTimeout(() => mainWindow.setOpacity(1), 50);
     });
-    moveWindow();
 
     createTrayIcon();
     registerGlobalShortCuts();
@@ -226,12 +228,12 @@ function changeModeWithHotkey(mode: number) {
         showMainWindow();
     }
 
-    if (isVisible && mode === currentInputMode) {
+    if (isVisible && mode === inputMode) {
         hideMainWindow();
         return;
     }
 
-    switchMode(mode, currentInputString);
+    switchMode(mode, inputString);
 }
 
 function setAutostartSettings() {
@@ -267,17 +269,17 @@ function updateWindowSize(searchResultCount: number): void {
 }
 
 function hideMainWindow(): void {
-    mainWindow.webContents.send(IpcChannels.resetCommandlineOutput);
-    mainWindow.webContents.send(IpcChannels.resetUserInput);
+    if (mainWindow && mainWindow.isVisible()) {
+        updateWindowSize(0);
+        mainWindow.setOpacity(0);
+        mainWindow.minimize();
+        mainWindow.hide();
+    }
 
     destructTaskbar();
 
-    if (mainWindow !== null && mainWindow !== undefined && mainWindow.isVisible()) {
-        updateWindowSize(0);
-        mainWindow.minimize();
-        mainWindow.hide();
-        mainWindow.setOpacity(0);
-    }
+    mainWindow.webContents.send(IpcChannels.resetCommandlineOutput);
+    mainWindow.webContents.send(IpcChannels.resetUserInput);
 }
 
 function reloadApp(): void {
@@ -285,8 +287,8 @@ function reloadApp(): void {
     globalUELI.config = config;
 
     executionService.destruct();
-    inputValidationService.destruct();
-    onlineInputValidationService.destruct();
+    runIVS.destruct();
+    onlineIVS.destruct();
 
     const externalPlugins = getExternalPlugins();
     globalUELI.runPluginCollection = externalPlugins.runCollection;
@@ -296,15 +298,15 @@ function reloadApp(): void {
         new ExecutionArgumentValidatorExecutorCombinationManager(globalUELI).getCombinations(),
         new CountManager(new CountFileRepository(UeliHelpers.countFilePath)));
 
-    inputValidationService = new InputValidationService(
+    runIVS = new InputValidationService(
         new InputValidatorSearcherCombinationManager(globalUELI).getCombinations());
 
-    onlineInputValidationService = new OnlineInputValidationService(
+    onlineIVS = new OnlineInputValidationService(
         new OnlineInputValidatorSearcherCombinationManager(globalUELI).getCombinations());
 
-    processInputValidationService = new ProcessInputValidationService();
+    processIVS = new ProcessInputValidationService();
 
-    everythingInputValidationService = new EverythingInputValidationService(nativeUtil, config.maxTotalSearchResult, config.everythingFilterFilePath);
+    everythingIVS = new EverythingInputValidationService(nativeUtil, config.maxTotalSearchResult, config.everythingFilterFilePath);
 
     destructTaskbar();
 
@@ -320,8 +322,8 @@ function resetWindowToDefaultSizeAndPosition(): void {
 
 function quitApp(): void {
     executionService.destruct();
-    inputValidationService.destruct();
-    onlineInputValidationService.destruct();
+    runIVS.destruct();
+    onlineIVS.destruct();
     destructTaskbar();
 
     mainWindow.webContents.session.clearCache(() => {/**/});
@@ -333,15 +335,15 @@ function quitApp(): void {
 }
 
 function getSearch(userInput: string): void {
-    currentInputString = userInput;
-    switch (currentInputMode) {
+    inputString = userInput;
+    switch (inputMode) {
         case InputMode.RUN: {
             mainWindow.webContents.send(
                 IpcChannels.getScopes,
-                inputValidationService.getScopes(userInput),
+                runIVS.getScopes(userInput),
             );
 
-            inputValidationService.getSearchResult(userInput)
+            runIVS.getSearchResult(userInput)
                 .then(sendResult);
 
             break;
@@ -353,14 +355,14 @@ function getSearch(userInput: string): void {
 
             mainWindow.webContents.send(
                 IpcChannels.getScopes,
-                onlineInputValidationService.getScopes(userInput),
+                onlineIVS.getScopes(userInput),
             );
 
             onlineInputTimeout = setTimeout(() => {
                 setLoadingIcon();
 
                 const result: SearchResultItem[] = [];
-                Promise.all(onlineInputValidationService.getSearchResult(userInput))
+                Promise.all(onlineIVS.getSearchResult(userInput))
                     .then((allResults) => {
                         allResults.forEach((field) => {
                             result.push(...field);
@@ -378,17 +380,17 @@ function getSearch(userInput: string): void {
             if (taskbar === undefined) {
                 taskbar = new Taskbar();
             }
-            processInputValidationService.taskbar = taskbar;
-            sendResult(processInputValidationService.getSearchResult(userInput));
+            processIVS.taskbar = taskbar;
+            sendResult(processIVS.getSearchResult(userInput));
             break;
         }
         case InputMode.EVERYTHING: {
             mainWindow.webContents.send(
                 IpcChannels.getScopes,
-                everythingInputValidationService.getScopes(userInput),
+                everythingIVS.getScopes(userInput),
             );
             setLoadingIcon();
-            everythingInputValidationService.getSearchResult(userInput)
+            everythingIVS.getSearchResult(userInput)
                 .then((allResults) => {
                     sendResult(allResults);
                     setModeIcon();
@@ -414,42 +416,12 @@ function sendResult(results: SearchResultItem[]) {
     mainWindow.webContents.send(IpcChannels.getSearchResponse, results);
 }
 
-ipcMain.on(IpcChannels.hideWindow, hideMainWindow);
-ipcMain.on(IpcChannels.ueliReload, reloadApp);
-ipcMain.on(IpcChannels.ueliExit, quitApp);
-
-ipcMain.on(IpcChannels.getSearch, (_event: Event, arg: string) => getSearch(arg));
-
-ipcMain.on(IpcChannels.execute, (_event: Event, arg: string, alternative: boolean): void => {
-    executionService.execute(arg, alternative);
-});
-
-ipcMain.on(IpcChannels.setModeIcon, setModeIcon);
-
-ipcMain.on(IpcChannels.setLoadingIcon, setLoadingIcon);
-
-ipcMain.on(IpcChannels.commandLineExecution, (arg: string): void => {
-    mainWindow.webContents.send(IpcChannels.commandLineOutput, arg);
-    updateWindowSize(config.maxSearchResultCount);
-});
-
-ipcMain.on(IpcChannels.resetUserInput, (): void => {
-    mainWindow.webContents.send(IpcChannels.resetUserInput);
-});
-
-ipcMain.on(IpcChannels.playerConnectStatus, (_event: Event, arg: boolean): void => {
-    playerConnectStatus = arg;
-    if (mainWindow.getSize()[1] === config.userInputHeight) {
-        updateWindowSize(0);
-    }
-});
-
 function setLoadingIcon(): void {
     mainWindow.webContents.send(IpcChannels.getSearchIconResponse, Icons.LOADING);
 }
 
 function setModeIcon(): void {
-    switch (currentInputMode) {
+    switch (inputMode) {
         case InputMode.RUN:
             mainWindow.webContents.send(IpcChannels.getSearchIconResponse, Icons.SEARCH);
             break;
@@ -467,13 +439,43 @@ function setModeIcon(): void {
 
 function switchMode(mode: number, userInput = "") {
     mainWindow.webContents.send(IpcChannels.getSearchResponse, []);
-    currentInputMode = mode;
+    inputMode = mode;
     getSearch(userInput);
     setModeIcon();
 }
 
-ipcMain.on(IpcChannels.rotateMode, (_event: Event, arg: number, currentInput: string): void => {
-    let newMode = currentInputMode + arg;
+ipcMain.on(IpcChannels.hideWindow, hideMainWindow);
+ipcMain.on(IpcChannels.ueliReload, reloadApp);
+ipcMain.on(IpcChannels.ueliExit, quitApp);
+
+ipcMain.on(IpcChannels.getSearch, (_: Event, arg: string): void => getSearch(arg));
+
+ipcMain.on(IpcChannels.execute, (_: Event, arg: string, alternative: boolean): void => {
+    executionService.execute(arg, alternative);
+});
+
+ipcMain.on(IpcChannels.setModeIcon, setModeIcon);
+
+ipcMain.on(IpcChannels.setLoadingIcon, setLoadingIcon);
+
+ipcMain.on(IpcChannels.commandLineExecution, (arg: string): void => {
+    mainWindow.webContents.send(IpcChannels.commandLineOutput, arg);
+    updateWindowSize(config.maxSearchResultCount);
+});
+
+ipcMain.on(IpcChannels.resetUserInput, (): void => {
+    mainWindow.webContents.send(IpcChannels.resetUserInput);
+});
+
+ipcMain.on(IpcChannels.playerConnectStatus, (_: Event, arg: boolean): void => {
+    playerConnectStatus = arg;
+    if (mainWindow.getSize()[1] === config.userInputHeight) {
+        updateWindowSize(0);
+    }
+});
+
+ipcMain.on(IpcChannels.rotateMode, (_: Event, arg: number, currentInput: string): void => {
+    let newMode = inputMode + arg;
     if (newMode < 0) {
         newMode = InputMode.TOTALMODE - 1;
     } else {
@@ -486,25 +488,23 @@ ipcMain.on(IpcChannels.elevatedExecute, (arg: string): void => {
     nativeUtil.elevateExecute(arg);
 });
 
-ipcMain.on(IpcChannels.rendererInit, (): void => {
-    moveWindow();
-});
+ipcMain.on(IpcChannels.rendererInit, moveWindow);
 
-ipcMain.on(IpcChannels.activateContextMenu, (_event: Event, arg: string) => {
+ipcMain.on(IpcChannels.activateContextMenu, (_: Event, arg: string) => {
     nativeUtil.activateContextMenu(arg);
 });
 
-ipcMain.on(IpcChannels.autoComplete, (_event: Event, userInput: string, cavetPosition: number, selectingResult: SearchResultItem) => {
+ipcMain.on(IpcChannels.autoComplete, (_: Event, userInput: string, cavetPosition: number, selectingResult: SearchResultItem) => {
     let result: string[] = [];
-    switch (currentInputMode) {
+    switch (inputMode) {
         case InputMode.RUN:
-            result = inputValidationService.complete(userInput, cavetPosition, selectingResult);
+            result = runIVS.complete(userInput, cavetPosition, selectingResult);
             break;
         case InputMode.ONLINE:
-            result = onlineInputValidationService.complete(userInput, cavetPosition, selectingResult);
+            result = onlineIVS.complete(userInput, cavetPosition, selectingResult);
             break;
         case InputMode.EVERYTHING:
-            result = everythingInputValidationService.complete(userInput);
+            result = everythingIVS.complete(userInput);
             break;
     }
 

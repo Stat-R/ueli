@@ -20,23 +20,37 @@ import { homedir, platform } from "os";
 import { join } from "path";
 import Vue from "vue";
 
-ipcRenderer.send(IpcChannels.rendererInit);
-
 const config = new ConfigFileRepository(defaultConfig, UeliHelpers.configFilePath).getConfig();
+
+if (config.blurBackground) {
+    ipcRenderer.send(IpcChannels.rendererInit);
+}
 
 document.addEventListener("keyup", handleGlobalKeyPress);
 document.addEventListener("keydown", handleHoldingKey);
+
 let prefix = "";
 let cavetPosition: number | null = null;
 const isValidFilePath = new FilePathExecutionArgumentValidator().isValidForExecution;
+
 const inputHistory = [] as string[];
 let historyIndex = -1;
+
 const screenshotLink = new URL(join(homedir(), "acrylic.bmp")).href;
+
 let shouldRotateCompletions = false;
 let autoCompList: string [] = [];
 let autoCompIndex = 0;
 
-const customCSSPath = `${homedir()}/ueli.custom.css`;
+const iconManager = Injector.getIconManager(platform());
+type IconKeys = keyof WindowsIconManager & keyof MacOsIconManager;
+
+const nextHotKey = new Hotkey(config.musicPlayerHotkeyNext);
+const backHotKey = new Hotkey(config.musicPlayerHotkeyBack);
+const playPauseHotKey = new Hotkey(config.musicPlayerHotkeyPlayPause);
+const likeHotKey = new Hotkey(config.musicPlayerHotkeyLike);
+
+const customCSSPath = join(homedir(), "ueli.custom.css");
 const vue = new Vue({
     data: {
         autoFocus: true,
@@ -69,6 +83,8 @@ const vue = new Vue({
             focusOnInput();
         },
         handleKeyPress: (event: KeyboardEvent): void => {
+            vue.isMouseMoving = false;
+
             if (event.key === "Enter" && event.altKey) {
                 handleEnterPress(true);
             } else if (event.key === "Enter") {
@@ -83,7 +99,6 @@ const vue = new Vue({
                 changeHistoryIndex(-1);
             } else if (event.key === "ArrowDown" || event.key === "ArrowUp") {
                 event.preventDefault();
-                vue.isMouseMoving = false;
                 const direction = event.key === "ArrowDown" ? 1 : -1;
                 changeActiveItem(direction);
             } else if (event.shiftKey && event.key === "Tab") {
@@ -122,7 +137,6 @@ const vue = new Vue({
         },
         handleMouseOver: (index: number): void => {
             if (vue.isMouseMoving) {
-                vue.isMouseMoving = false;
                 vue.searchResults.forEach((searchResultItem: SearchResultItemViewModel) => {
                     searchResultItem.active = false;
                 });
@@ -197,19 +211,19 @@ onMainWindowShow();
 
 const playerType = config.musicPlayerType.toLowerCase();
 
-let musicInfoCrawler: MusicPlayer | undefined;
+let player: MusicPlayer | undefined;
 
 if (playerType === "local") {
-    musicInfoCrawler = new MusicPlayerNowPlaying(config.musicPlayerLocalName.toLowerCase());
+    player = new MusicPlayerNowPlaying(config.musicPlayerLocalName.toLowerCase());
 } else if (playerType === "websocket") {
-    musicInfoCrawler = new MusicPlayerWebSocket(config.musicPlayerWebSocketPort);
+    player = new MusicPlayerWebSocket(config.musicPlayerWebSocketPort);
 } else {
-    musicInfoCrawler = undefined;
+    player = undefined;
 }
 
-if (musicInfoCrawler !== undefined) {
-    musicInfoCrawler.artist.onChange = (info) => vue.musicPlayer.artist = info;
-    musicInfoCrawler.cover.onChange = (info) => {
+if (player !== undefined) {
+    player.artist.onChange = (info) => vue.musicPlayer.artist = info;
+    player.cover.onChange = (info) => {
         try {
             const url = new URL(info);
             vue.musicPlayer.albumCover = "url(" + url.href + ")";
@@ -217,10 +231,10 @@ if (musicInfoCrawler !== undefined) {
             // nah
         }
     };
-    musicInfoCrawler.state.onChange = (info) => vue.musicPlayer.state = info;
-    musicInfoCrawler.rating.onChange = (info) => vue.musicPlayer.liked = info >= 3;
-    musicInfoCrawler.title.onChange = (info) => vue.musicPlayer.track = info;
-    musicInfoCrawler.connectStatus.onChange = (info) => {
+    player.state.onChange = (info) => vue.musicPlayer.state = info;
+    player.rating.onChange = (info) => vue.musicPlayer.liked = info >= 3;
+    player.title.onChange = (info) => vue.musicPlayer.track = info;
+    player.connectStatus.onChange = (info) => {
         vue.musicPlayer.playerConnectStatus = info;
         ipcRenderer.send(IpcChannels.playerConnectStatus, info);
     };
@@ -228,16 +242,7 @@ if (musicInfoCrawler !== undefined) {
 
 ipcRenderer.send(IpcChannels.setModeIcon);
 
-const iconManager = Injector.getIconManager(platform());
-const coverContainerElement = document.getElementById("cover-container");
-
-const nextHotKey = new Hotkey(config.musicPlayerHotkeyNext);
-const backHotKey = new Hotkey(config.musicPlayerHotkeyBack);
-const playPauseHotKey = new Hotkey(config.musicPlayerHotkeyPlayPause);
-const likeHotKey = new Hotkey(config.musicPlayerHotkeyLike);
-
 function onChangeUserInput(val: string): void {
-    vue.isMouseMoving = false;
     vue.commandLineOutput = [] as string[];
     if (cavetPosition !== null) {
         const inputElement = document.getElementsByTagName("input")[0];
@@ -256,8 +261,8 @@ function updateSearchResults(searchResults: SearchResultItemViewModel[]): void {
         searchResultItem.id = `search-result-item-${index}`;
         searchResultItem.active = false;
 
-        if (iconManager[searchResultItem.icon as keyof WindowsIconManager & keyof MacOsIconManager]) {
-            searchResultItem.icon = iconManager[searchResultItem.icon as keyof WindowsIconManager & keyof MacOsIconManager].call(iconManager);
+        if (iconManager[searchResultItem.icon as IconKeys]) {
+            searchResultItem.icon = iconManager[searchResultItem.icon as IconKeys].call(iconManager);
         }
 
         if (!searchResultItem.hideDescription) {
@@ -290,7 +295,7 @@ function changeActiveItem(direction: -1 | 1): void {
         return;
     }
 
-    let nextIndex;
+    let nextIndex: number | undefined;
 
     for (let i = 0; i < vue.searchResults.length; i++) {
         if (vue.searchResults[i].active) {
@@ -327,27 +332,31 @@ function scrollIntoView(searchResult: SearchResultItemViewModel): void {
 function handleEnterPress(alternative = false): void {
     const activeItem = getActiveItem();
 
-    if (activeItem !== undefined) {
-        if (alternative) {
-            if (activeItem.alternativeExecutionArgument) {
-                execute(activeItem.alternativeExecutionArgument, true);
-            } else {
-                execute(activeItem.executionArgument, true);
-            }
+    if (activeItem === undefined) {
+        return;
+    }
+
+    if (alternative) {
+        if (activeItem.alternativeExecutionArgument) {
+            execute(activeItem.alternativeExecutionArgument, true);
         } else {
-            execute(activeItem.executionArgument, false);
+            execute(activeItem.executionArgument, true);
         }
+    } else {
+        execute(activeItem.executionArgument, false);
     }
 }
 
 function handleOpenFileLocation(): void {
     const activeItem = getActiveItem();
 
-    if (activeItem !== undefined) {
-        const filePath = activeItem.executionArgument;
-        if (isValidFilePath(filePath)) {
-            FilePathExecutor.openFileLocation(filePath);
-        }
+    if (activeItem === undefined) {
+        return;
+    }
+
+    const filePath = activeItem.executionArgument;
+    if (isValidFilePath(filePath)) {
+        FilePathExecutor.openFileLocation(filePath);
     }
 }
 
@@ -415,6 +424,7 @@ function handleGlobalKeyPress(event: KeyboardEvent): void {
         playPauseTrack();
     } else if (likeHotKey.validateWithEvent(event)) {
         likeTrack();
+        const coverContainerElement = document.getElementById("cover-container");
         if (coverContainerElement) {
             coverContainerElement.classList.add("hover");
             setTimeout(() => {
@@ -436,26 +446,26 @@ function focusOnInput(): void {
 }
 
 function previousTrack() {
-    if (musicInfoCrawler) {
-        musicInfoCrawler.prevTrack();
+    if (player) {
+        player.prevTrack();
     }
 }
 function nextTrack() {
-    if (musicInfoCrawler) {
-        musicInfoCrawler.nextTrack();
+    if (player) {
+        player.nextTrack();
     }
 }
 function playPauseTrack() {
-    if (musicInfoCrawler) {
-        musicInfoCrawler.playPause();
+    if (player) {
+        player.playPause();
     }
 }
 function likeTrack() {
-    if (musicInfoCrawler) {
-        if (musicInfoCrawler.rating.value >= 3) {
-            musicInfoCrawler.setRating(0);
+    if (player) {
+        if (player.rating.value >= 3) {
+            player.setRating(0);
         } else {
-            musicInfoCrawler.setRating(5);
+            player.setRating(5);
         }
     }
 }
@@ -581,7 +591,7 @@ function onMainWindowShow() {
 (global as any).handleLinkClick = handleLinkClick;
 
 ipcRenderer.on(IpcChannels.getSearchIconResponse, (_event: Electron.Event, arg: string): void => {
-    vue.searchIcon = iconManager[arg as keyof WindowsIconManager & keyof MacOsIconManager].call(iconManager);
+    vue.searchIcon = iconManager[arg as IconKeys].call(iconManager);
 });
 
 ipcRenderer.on(IpcChannels.commandLineOutput, (_event: Electron.Event, arg: string): void => {
@@ -599,14 +609,14 @@ ipcRenderer.on(IpcChannels.onMove, (_event: Electron.Event, arg: [number, number
 ipcRenderer.on(IpcChannels.mainShow, onMainWindowShow);
 
 ipcRenderer.on(IpcChannels.websocketPlayURL, (_event: Event, arg: string) => {
-    const player = musicInfoCrawler as MusicPlayerWebSocket;
-    if (player && player.playURL) {
-        player.playURL(arg);
+    const tempPlayer = player as MusicPlayerWebSocket;
+    if (tempPlayer && tempPlayer.playURL) {
+        tempPlayer.playURL(arg);
     }
 });
 
 ipcRenderer.on(IpcChannels.searchWebsocket, (_event: Electron.Event, query: string): void => {
-    const crawler = (musicInfoCrawler as MusicPlayerWebSocket);
+    const crawler = (player as MusicPlayerWebSocket);
     if (query && crawler.sendCommand) {
         crawler.sendCommand("search " + query);
         let counter = 0;
