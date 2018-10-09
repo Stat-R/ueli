@@ -102,7 +102,7 @@
                     v-on:mousemove="handleMouseMove"
                 >
                     <div
-                        :id="searchResult.id"
+                        :id="'search-result-item-' + searchResult.id"
                         class="search-result"
                         :class="{ 'active' : searchResult.active }"
                         :style="searchResultHeight()"
@@ -130,7 +130,7 @@
                             <div class="search-result-header-container">
                                 <span
                                     class="search-result-alternative-prefix"
-                                    :class="{ 'active' : searchResult.active && searchResult.alternativePrefix && showAlternativePrefix }"
+                                    :class="{ 'active' : (searchResult.active || showIndexNum) && searchResult.alternativePrefix && showAlternativePrefix }"
                                     :style="searchResultAlternativePrefixStyle()"
                                     v-html="searchResult.alternativePrefix"
                                 >
@@ -148,6 +148,17 @@
                                 :style="searchResultExecutionArgumentStyle()"
                                 :class="{ 'active' : searchResult.active } "
                                 v-html="searchResult.description"
+                            >
+                            </span>
+                        </div>
+                        <div
+                            class="search-result-index-num"
+                            v-if="searchResult.id <= 9"
+                            :class="{ 'active':  showIndexNum}"
+                            :style="searchResultIndexNumStyle()"
+                        >
+                            <span
+                                v-html="(searchResult.id + 1) % 10"
                             >
                             </span>
                         </div>

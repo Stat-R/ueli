@@ -153,6 +153,7 @@ div.search-result-information {
     display: flex;
     flex-direction: column;
     justify-content: center;
+    width: 100%;
 }
 
 div.hidden {
@@ -199,6 +200,40 @@ span {
 
         &.active {
             display: block;
+        }
+    }
+}
+
+div.search-result-index-num {
+    display: flex;
+    vertical-align: middle;
+    align-items: center;
+    font-family: var(--font-family);
+    font-weight: 500;
+    color: var(--text-color);
+    padding: 0;
+    opacity: 0;
+    width: 0;
+    @include transitions();
+
+    & span {
+        display: block;
+        border-radius: 5px;
+        padding: 7px 10px;
+
+        &::after {
+            box-shadow: inset 0 0 0 2px var(--text-color);
+        }
+    }
+
+    &.active {
+        width: unset;
+        padding: 0px 15px;
+        opacity: 1;
+        color: var(--active-item-text-color);
+
+        & span {
+            box-shadow: inset 0 0 0 2px var(--active-item-text-color);
         }
     }
 }

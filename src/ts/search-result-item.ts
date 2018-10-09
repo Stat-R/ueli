@@ -13,7 +13,7 @@ export interface SearchResultItem extends BareSearchResultItem {
 }
 
 export interface SearchResultItemViewModel extends SearchResultItem {
-    id: string;
+    id: number;
     active: boolean;
     description?: string;
 }
