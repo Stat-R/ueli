@@ -12,13 +12,14 @@ import { IpcChannels } from "./ipc-channels";
 import { MusicPlayer } from "./music-player/music-player";
 import { MusicPlayerNowPlaying } from "./music-player/music-player-nowplaying";
 import { MusicPlayerWebSocket } from "./music-player/music-player-websocket";
-import { SearchResultItemViewModel } from "./search-result-item";
+import { SearchResultItemViewModel, SearchResultItem } from "./search-result-item";
 import * as defaultCSS from "../scss/default.scss";
 import { clipboard, ipcRenderer } from "electron";
 import { existsSync, writeFileSync } from "fs";
 import { homedir, platform } from "os";
 import { join } from "path";
 import Vue from "vue";
+import { InputModes } from "./input-modes";
 
 const config = new ConfigFileRepository(defaultConfig, UeliHelpers.configFilePath).getConfig();
 
@@ -32,8 +33,14 @@ document.addEventListener("keydown", handleHoldingKey);
 let prefix = "";
 let cavetPosition: number | null = null;
 const isValidFilePath = new FilePathExecutionArgumentValidator().isValidForExecution;
+let inputMode: InputModes = InputModes.RUN;
 
-const inputHistory = [] as string[];
+interface HistoryItem {
+    input: string;
+    mode: InputModes;
+}
+
+const inputHistory = [] as HistoryItem[];
 let historyIndex = -1;
 
 const screenshotLink = new URL(join(homedir(), "acrylic.bmp")).href;
@@ -101,6 +108,10 @@ const vue = new Vue({
                 event.preventDefault();
                 const direction = event.key === "ArrowDown" ? 1 : -1;
                 changeActiveItem(direction);
+            } else if (event.ctrlKey && event.shiftKey && event.key === "Tab") {
+                rotateMode(-1);
+            } else if (event.ctrlKey && event.key === "Tab") {
+                rotateMode(1);
             } else if (event.shiftKey && event.key === "Tab") {
                 event.preventDefault();
                 handleAutoCompletion(-1);
@@ -256,42 +267,44 @@ function onChangeUserInput(val: string): void {
     }
 }
 
-function updateSearchResults(searchResults: SearchResultItemViewModel[]): void {
-    searchResults.forEach((searchResultItem: SearchResultItemViewModel, index: number): void => {
-        searchResultItem.id = `search-result-item-${index}`;
-        searchResultItem.active = false;
-
-        if (iconManager[searchResultItem.icon as IconKeys]) {
-            searchResultItem.icon = iconManager[searchResultItem.icon as IconKeys].call(iconManager);
-        }
-
-        if (!searchResultItem.hideDescription) {
-            if (searchResultItem.breadCrumb) {
-                const descFromBreadCrumb = searchResultItem.breadCrumb.join(config.directorySeparator);
-                if (descFromBreadCrumb) {
-                    searchResultItem.description = descFromBreadCrumb;
-                    return;
-                }
-            }
-
-            searchResultItem.description = searchResultItem.executionArgument;
-        }
-    });
-
-    if (searchResults.length > 0) {
-        searchResults[0].active = true;
+function updateSearchResults(searchResults: SearchResultItem[] | null): void {
+    if (searchResults === null) {
+        vue.searchResults.length = 0;
+        return;
     }
 
-    vue.searchResults = searchResults;
+    vue.searchResults = searchResults.map((searchResultItem: SearchResultItem, index: number): SearchResultItemViewModel => {
+        const viewModel = searchResultItem as SearchResultItemViewModel;
+        viewModel.id = `search-result-item-${index}`;
+        viewModel.active = false;
+
+        if (iconManager[searchResultItem.icon as IconKeys]) {
+            viewModel.icon = iconManager[searchResultItem.icon as IconKeys].call(iconManager);
+        }
+
+        if (!viewModel.hideDescription) {
+            if (viewModel.breadCrumb) {
+                const crumbString = viewModel.breadCrumb.join(config.directorySeparator);
+
+                if (crumbString) {
+                    viewModel.description = crumbString;
+                }
+            } else {
+                viewModel.description = searchResultItem.executionArgument;
+            }
+        }
+
+        return viewModel;
+    });
 
     if (vue.searchResults.length > 0) {
+        vue.searchResults[0].active = true;
         scrollIntoView(vue.searchResults[0]);
     }
 }
 
 function changeActiveItem(direction: -1 | 1): void {
     if (vue.searchResults.length === 0) {
-        vue.isMouseMoving = false;
         return;
     }
 
@@ -400,7 +413,10 @@ function execute(executionArgument: string, alternative: boolean): void {
 
 function resetUserInput(): void {
     if (vue.userInput) {
-        inputHistory.unshift(`${prefix}${vue.userInput}`);
+        inputHistory.unshift({
+            input: `${prefix}${vue.userInput}`,
+            mode: inputMode,
+        });
         historyIndex = -1;
     }
 
@@ -431,10 +447,6 @@ function handleGlobalKeyPress(event: KeyboardEvent): void {
                 coverContainerElement.classList.remove("hover");
             }, 2000);
         }
-    } else if (key === "tab" && event.ctrlKey && event.shiftKey) {
-        rotateMode(-1);
-    } else if (key === "tab" && event.ctrlKey) {
-        rotateMode(1);
     }
 }
 
@@ -471,7 +483,14 @@ function likeTrack() {
 }
 
 function rotateMode(direction: -1 | 0 | 1) {
-    ipcRenderer.send(IpcChannels.rotateMode, direction);
+    let newMode = inputMode + direction;
+    if (newMode < 0) {
+        newMode = InputModes.TOTALMODE - 1;
+    } else {
+        newMode = newMode % InputModes.TOTALMODE;
+    }
+
+    ipcRenderer.send(IpcChannels.changeMode, newMode, `${prefix}${vue.userInput}`);
 }
 
 function handleHoldingKey(event: KeyboardEvent) {
@@ -573,7 +592,12 @@ function changeHistoryIndex(direction: 1 | -1) {
     if (nextIndex >= 0 && nextIndex < inputHistory.length && inputHistory[nextIndex]) {
         historyIndex = nextIndex;
         prefix = "";
-        vue.userInput = inputHistory[historyIndex];
+        vue.userInput = inputHistory[historyIndex].input;
+        ipcRenderer.send(
+            IpcChannels.changeMode,
+            inputHistory[historyIndex].mode,
+            inputHistory[historyIndex].input,
+        );
     }
 }
 
@@ -632,7 +656,7 @@ ipcRenderer.on(IpcChannels.searchWebsocket, (_event: Electron.Event, query: stri
     }
 });
 
-ipcRenderer.on(IpcChannels.getSearchResponse, (_event: Electron.Event, arg: SearchResultItemViewModel[]): void => {
+ipcRenderer.on(IpcChannels.getSearchResponse, (_event: Electron.Event, arg: SearchResultItem[] | null): void => {
     updateSearchResults(arg);
 });
 
@@ -651,4 +675,8 @@ ipcRenderer.on(IpcChannels.autoCompleteResponse, (_event: Event, arg: string[]):
     autoCompList = arg;
     autoCompIndex = 0;
     vue.userInput = arg[0];
+});
+
+ipcRenderer.on(IpcChannels.inputMode, (_: Event, mode: InputModes) => {
+    inputMode = mode;
 });

@@ -24,6 +24,7 @@ import { existsSync, mkdirSync, readdirSync } from "fs";
 import { homedir, platform } from "os";
 import * as path from "path";
 import { Taskbar } from "taskbar-node";
+import { InputModes } from "./input-modes";
 
 import {
     app,
@@ -35,14 +36,6 @@ import {
     Tray,
     dialog,
 } from "electron";
-
-export enum InputMode {
-    RUN,
-    ONLINE,
-    WINDOWS,
-    EVERYTHING,
-    TOTALMODE, // Number of modes
-}
 
 let mainWindow: BrowserWindow;
 let trayIcon: Tray;
@@ -202,22 +195,22 @@ function createTrayIcon(): void {
 function registerGlobalShortCuts(): void {
     if (config.hotkeyRunMode) {
         globalShortcut.register(config.hotkeyRunMode, () => {
-            changeModeWithHotkey(InputMode.RUN);
+            changeModeWithHotkey(InputModes.RUN);
         });
     }
     if (config.hotkeyWindowsMode) {
         globalShortcut.register(config.hotkeyWindowsMode, () => {
-            changeModeWithHotkey(InputMode.WINDOWS);
+            changeModeWithHotkey(InputModes.WINDOWS);
         });
     }
     if (config.hotkeyOnlineMode) {
         globalShortcut.register(config.hotkeyOnlineMode, () => {
-            changeModeWithHotkey(InputMode.ONLINE);
+            changeModeWithHotkey(InputModes.ONLINE);
         });
     }
     if (config.hotkeyEverythingMode) {
         globalShortcut.register(config.hotkeyEverythingMode, () => {
-            changeModeWithHotkey(InputMode.EVERYTHING);
+            changeModeWithHotkey(InputModes.EVERYTHING);
         });
     }
 }
@@ -337,7 +330,7 @@ function quitApp(): void {
 function getSearch(userInput: string): void {
     inputString = userInput;
     switch (inputMode) {
-        case InputMode.RUN: {
+        case InputModes.RUN: {
             mainWindow.webContents.send(
                 IpcChannels.getScopes,
                 runIVS.getScopes(userInput),
@@ -348,7 +341,7 @@ function getSearch(userInput: string): void {
 
             break;
         }
-        case InputMode.ONLINE: {
+        case InputModes.ONLINE: {
             if (onlineInputTimeout !== null) {
                 clearTimeout(onlineInputTimeout as number);
             }
@@ -376,7 +369,7 @@ function getSearch(userInput: string): void {
             }, config.onlineModeDelay);
             break;
         }
-        case InputMode.WINDOWS: {
+        case InputModes.WINDOWS: {
             if (taskbar === undefined) {
                 taskbar = new Taskbar();
             }
@@ -384,7 +377,7 @@ function getSearch(userInput: string): void {
             sendResult(processIVS.getSearchResult(userInput));
             break;
         }
-        case InputMode.EVERYTHING: {
+        case InputModes.EVERYTHING: {
             mainWindow.webContents.send(
                 IpcChannels.getScopes,
                 everythingIVS.getScopes(userInput),
@@ -422,23 +415,24 @@ function setLoadingIcon(): void {
 
 function setModeIcon(): void {
     switch (inputMode) {
-        case InputMode.RUN:
+        case InputModes.RUN:
             mainWindow.webContents.send(IpcChannels.getSearchIconResponse, Icons.SEARCH);
             break;
-        case InputMode.ONLINE:
+        case InputModes.ONLINE:
             mainWindow.webContents.send(IpcChannels.getSearchIconResponse, Icons.ONLINE);
             break;
-        case InputMode.WINDOWS:
+        case InputModes.WINDOWS:
             mainWindow.webContents.send(IpcChannels.getSearchIconResponse, Icons.WINDOWS);
             break;
-        case InputMode.EVERYTHING:
+        case InputModes.EVERYTHING:
             mainWindow.webContents.send(IpcChannels.getSearchIconResponse, IconsWindowsSetting.DATAUSAGE);
             break;
     }
 }
 
 function switchMode(mode: number, userInput = "") {
-    mainWindow.webContents.send(IpcChannels.getSearchResponse, []);
+    mainWindow.webContents.send(IpcChannels.getSearchResponse, null);
+    mainWindow.webContents.send(IpcChannels.inputMode, mode);
     inputMode = mode;
     getSearch(userInput);
     setModeIcon();
@@ -474,14 +468,8 @@ ipcMain.on(IpcChannels.playerConnectStatus, (_: Event, arg: boolean): void => {
     }
 });
 
-ipcMain.on(IpcChannels.rotateMode, (_: Event, arg: number, currentInput: string): void => {
-    let newMode = inputMode + arg;
-    if (newMode < 0) {
-        newMode = InputMode.TOTALMODE - 1;
-    } else {
-        newMode = newMode % InputMode.TOTALMODE;
-    }
-    switchMode(newMode, currentInput);
+ipcMain.on(IpcChannels.changeMode, (_: Event, arg: number, currentInput: string): void => {
+    switchMode(arg, currentInput);
 });
 
 ipcMain.on(IpcChannels.elevatedExecute, (arg: string): void => {
@@ -497,13 +485,13 @@ ipcMain.on(IpcChannels.activateContextMenu, (_: Event, arg: string) => {
 ipcMain.on(IpcChannels.autoComplete, (_: Event, userInput: string, cavetPosition: number, selectingResult: SearchResultItem) => {
     let result: string[] = [];
     switch (inputMode) {
-        case InputMode.RUN:
+        case InputModes.RUN:
             result = runIVS.complete(userInput, cavetPosition, selectingResult);
             break;
-        case InputMode.ONLINE:
+        case InputModes.ONLINE:
             result = onlineIVS.complete(userInput, cavetPosition, selectingResult);
             break;
-        case InputMode.EVERYTHING:
+        case InputModes.EVERYTHING:
             result = everythingIVS.complete(userInput);
             break;
     }

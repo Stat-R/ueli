@@ -31,7 +31,7 @@ export class IpcChannels {
     public static readonly searchWebsocket = "search-websocket";
     public static readonly websocketPlayURL = "web-socket-playurl";
 
-    public static readonly rotateMode = "rotate-mode";
+    public static readonly changeMode = "rotate-mode";
     public static readonly onMove = "on-move";
 
     public static readonly elevatedExecute = "elevate-execute";
@@ -44,4 +44,5 @@ export class IpcChannels {
     public static readonly setLoadingIcon = "set-loading-icon";
 
     public static readonly getScopes = "get-scopes";
+    public static readonly inputMode = "input-mode";
 }
