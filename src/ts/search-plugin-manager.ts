@@ -1,6 +1,5 @@
 import { ConfigOptions } from "./config-options";
 import { Injector } from "./injector";
-import { ProgramFileRepository } from "./programs-plugin/program-file-repository";
 import { BrowserBookmark } from "./search-plugins/bookmark-plugin";
 import { CustomCommandsPlugin } from "./search-plugins/custom-commands-plugin";
 import { HomeFolderSearchPlugin } from "./search-plugins/home-folder-plugin";
@@ -32,9 +31,7 @@ export class SearchPluginManager {
         }
 
         if (config.features.programs) {
-            config.applicationFolders.forEach((folder) => {
-                this.plugins.push(new ProgramsPlugin(new ProgramFileRepository(folder, config.applicationFileExtensions, config.applicationKeywordBlacklist)));
-            });
+            this.plugins.push(new ProgramsPlugin(config));
         }
 
         if (config.features.systemSettings) {

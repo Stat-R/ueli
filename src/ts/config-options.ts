@@ -51,6 +51,7 @@ export interface ConfigOptions {
     searchResultExecutionArgumentFontSize: number;
     searchResultHeight: number;
     searchResultNameFontSize: number;
+    useNativeApplicationIcon: boolean;
     userInputHeight: number;
     userInputFontSize: number;
     textEditor: {

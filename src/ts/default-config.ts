@@ -70,6 +70,7 @@ export const defaultConfig: ConfigOptions = {
         name: "Code",
         path: "C:/Program Files/Microsoft VS Code/Code.exe",
     },
+    useNativeApplicationIcon: false,
     userInputFontSize: 36,
     userInputHeight: 80,
     webSearches: [
