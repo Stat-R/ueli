@@ -62,6 +62,7 @@ export class ProgramsPlugin implements SearchPlugin {
                 }
 
                 results.push({
+                    alternativePrefix: "Run as Admin",
                     breadCrumb: file.breadCrumb,
                     executionArgument: file.fullPath,
                     icon: icon || Icons.PROGRAM,
