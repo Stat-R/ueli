@@ -119,7 +119,7 @@ let runIVS = new InputValidationService(
 let onlineIVS = new OnlineInputValidationService(
     new OnlineInputValidatorSearcherCombinationManager(globalUELI).getCombinations());
 
-let processIVS = new ProcessInputValidationService();
+let processIVS = new ProcessInputValidationService(config.useNativeApplicationIcon);
 
 let everythingIVS = new EverythingInputValidationService(nativeUtil, config.maxTotalSearchResult, config.everythingFilterFilePath);
 
@@ -297,7 +297,7 @@ function reloadApp(): void {
     onlineIVS = new OnlineInputValidationService(
         new OnlineInputValidatorSearcherCombinationManager(globalUELI).getCombinations());
 
-    processIVS = new ProcessInputValidationService();
+    processIVS = new ProcessInputValidationService(config.useNativeApplicationIcon);
 
     everythingIVS = new EverythingInputValidationService(nativeUtil, config.maxTotalSearchResult, config.everythingFilterFilePath);
 
@@ -374,7 +374,8 @@ function getSearch(userInput: string): void {
                 taskbar = new Taskbar();
             }
             processIVS.taskbar = taskbar;
-            sendResult(processIVS.getSearchResult(userInput));
+            processIVS.getSearchResult(userInput)
+                .then(sendResult);
             break;
         }
         case InputModes.EVERYTHING: {
