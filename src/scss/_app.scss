@@ -153,7 +153,6 @@ div.search-result-information {
     display: flex;
     flex-direction: column;
     justify-content: center;
-    width: 100%;
 }
 
 div.hidden {
@@ -228,7 +227,7 @@ div.search-result-index-num {
 
     &.active {
         width: unset;
-        padding: 0px 15px;
+        padding: 0px 20px 0 5px;
         opacity: 1;
         color: var(--active-item-text-color);
 

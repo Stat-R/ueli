@@ -126,6 +126,17 @@
                                 ></svg>
                             </div>
                         </div>
+                        <div
+                            class="search-result-index-num"
+                            v-if="searchResult.id <= 9"
+                            :class="{ 'active':  showIndexNum}"
+                            :style="searchResultIndexNumStyle()"
+                        >
+                            <span
+                                v-html="(searchResult.id + 1) % 10"
+                            >
+                            </span>
+                        </div>
                         <div class="search-result-information">
                             <div class="search-result-header-container">
                                 <span
@@ -151,17 +162,7 @@
                             >
                             </span>
                         </div>
-                        <div
-                            class="search-result-index-num"
-                            v-if="searchResult.id <= 9"
-                            :class="{ 'active':  showIndexNum}"
-                            :style="searchResultIndexNumStyle()"
-                        >
-                            <span
-                                v-html="(searchResult.id + 1) % 10"
-                            >
-                            </span>
-                        </div>
+
                     </div>
                 </div>
 
