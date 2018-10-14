@@ -91,12 +91,6 @@ function getExternalPlugins() {
     return { runCollection, onlineCollection };
 }
 
-{
-    const externalPlugins = getExternalPlugins();
-    globalUELI.runPluginCollection = externalPlugins.runCollection;
-    globalUELI.onlinePluginCollection = externalPlugins.onlineCollection;
-}
-
 let inputMode = 0;
 let inputString = "";
 let onlineInputTimeout: NodeJS.Timer | number | null = null;
@@ -113,19 +107,32 @@ function webSocketSearch(userInput: string): Promise<WebSocketSearchResult[]> {
     });
 }
 
-let runIVS = new InputValidationService(
-    new InputValidatorSearcherCombinationManager(globalUELI).getCombinations());
+let runIVS: InputValidationService;
+let onlineIVS: OnlineInputValidationService;
+let processIVS: ProcessInputValidationService;
+let everythingIVS: EverythingInputValidationService;
+let executionService: ExecutionService;
+let isReady = false;
 
-let onlineIVS = new OnlineInputValidationService(
-    new OnlineInputValidatorSearcherCombinationManager(globalUELI).getCombinations());
+function loadSearcher() {
+    isReady = false;
+    const externalPlugins = getExternalPlugins();
+    globalUELI.runPluginCollection = externalPlugins.runCollection;
+    globalUELI.onlinePluginCollection = externalPlugins.onlineCollection;
 
-let processIVS = new ProcessInputValidationService(config.useNativeApplicationIcon);
+    runIVS = new InputValidationService(
+        new InputValidatorSearcherCombinationManager(globalUELI).getCombinations());
+    onlineIVS = new OnlineInputValidationService(
+        new OnlineInputValidatorSearcherCombinationManager(globalUELI).getCombinations());
+    processIVS = new ProcessInputValidationService(config.useNativeApplicationIcon);
+    everythingIVS = new EverythingInputValidationService(nativeUtil, config.maxTotalSearchResult, config.everythingFilterFilePath);
+    executionService = new ExecutionService(
+        new ExecutionArgumentValidatorExecutorCombinationManager(globalUELI).getCombinations(),
+        new CountManager(new CountFileRepository(UeliHelpers.countFilePath)));
+    isReady = true;
+}
 
-let everythingIVS = new EverythingInputValidationService(nativeUtil, config.maxTotalSearchResult, config.everythingFilterFilePath);
-
-let executionService = new ExecutionService(
-    new ExecutionArgumentValidatorExecutorCombinationManager(globalUELI).getCombinations(),
-    new CountManager(new CountFileRepository(UeliHelpers.countFilePath)));
+(async () => loadSearcher())();
 
 let playerConnectStatus: boolean = false;
 
@@ -283,25 +290,9 @@ function reloadApp(): void {
     runIVS.destruct();
     onlineIVS.destruct();
 
-    const externalPlugins = getExternalPlugins();
-    globalUELI.runPluginCollection = externalPlugins.runCollection;
-    globalUELI.onlinePluginCollection = externalPlugins.onlineCollection;
-
-    executionService = new ExecutionService(
-        new ExecutionArgumentValidatorExecutorCombinationManager(globalUELI).getCombinations(),
-        new CountManager(new CountFileRepository(UeliHelpers.countFilePath)));
-
-    runIVS = new InputValidationService(
-        new InputValidatorSearcherCombinationManager(globalUELI).getCombinations());
-
-    onlineIVS = new OnlineInputValidationService(
-        new OnlineInputValidatorSearcherCombinationManager(globalUELI).getCombinations());
-
-    processIVS = new ProcessInputValidationService(config.useNativeApplicationIcon);
-
-    everythingIVS = new EverythingInputValidationService(nativeUtil, config.maxTotalSearchResult, config.everythingFilterFilePath);
-
     destructTaskbar();
+
+    (async () => loadSearcher())();
 
     mainWindow.reload();
     resetWindowToDefaultSizeAndPosition();
@@ -328,6 +319,10 @@ function quitApp(): void {
 }
 
 function getSearch(userInput: string): void {
+    if (!isReady) {
+        return;
+    }
+
     inputString = userInput;
     switch (inputMode) {
         case InputModes.RUN: {
