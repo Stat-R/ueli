@@ -2,7 +2,7 @@ import { Icons } from "../icon-manager/icon-manager";
 import { SearchResultItem } from "../search-result-item";
 import { SearchPlugin } from "./search-plugin";
 import { ConfigOptions } from "../config-options";
-import { FileHelpers, FancyFile } from "../helpers/file-helpers";
+import { FileHelpers } from "../helpers/file-helpers";
 import { StringHelpers } from "../helpers/string-helpers";
 import * as path from "path";
 import { shell, NativeImage, app, ShortcutDetails } from "electron";

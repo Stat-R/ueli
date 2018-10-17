@@ -269,17 +269,19 @@ function updateWindowSize(searchResultCount: number): void {
 }
 
 function hideMainWindow(): void {
+    mainWindow.webContents.send(IpcChannels.resetCommandlineOutput);
+    mainWindow.webContents.send(IpcChannels.resetUserInput);
+
     if (mainWindow && mainWindow.isVisible()) {
-        updateWindowSize(0);
-        mainWindow.setOpacity(0);
-        mainWindow.minimize();
-        mainWindow.hide();
+        setTimeout(() => {
+            updateWindowSize(0);
+            mainWindow.setOpacity(0);
+            mainWindow.minimize();
+            mainWindow.hide();
+        }, 100);
     }
 
     destructTaskbar();
-
-    mainWindow.webContents.send(IpcChannels.resetCommandlineOutput);
-    mainWindow.webContents.send(IpcChannels.resetUserInput);
 }
 
 function reloadApp(): void {

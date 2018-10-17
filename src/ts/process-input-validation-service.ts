@@ -2,7 +2,7 @@ import { StringHelpers } from "./helpers/string-helpers";
 import { Icons } from "./icon-manager/icon-manager";
 import { SearchEngine } from "./search-engine";
 import { SearchResultItem } from "./search-result-item";
-import { App, Taskbar } from "taskbar-node";
+import { Taskbar } from "taskbar-node";
 import { app, NativeImage } from "electron";
 
 export class ProcessInputValidationService {
