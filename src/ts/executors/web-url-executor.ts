@@ -2,6 +2,7 @@ import { Executor } from "./executor";
 import { Injector } from "../injector";
 import { exec } from "child_process";
 import { platform } from "os";
+import { dialog } from "electron";
 
 export class WebUrlExecutor implements Executor {
     public readonly hideAfterExecution = true;
@@ -16,7 +17,7 @@ export class WebUrlExecutor implements Executor {
     private handleCommandExecution(command: string): void {
         exec(command, (err) => {
             if (err) {
-                throw err;
+                dialog.showErrorBox("Execute file/folde path", err.stack || err.message);
             }
         });
     }

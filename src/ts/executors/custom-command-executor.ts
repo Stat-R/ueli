@@ -3,6 +3,7 @@ import { Executor } from "./executor";
 import { CommandLineExecutionArgumentValidator } from "../execution-argument-validators/command-line-execution-argument-validator";
 import { UeliHelpers } from "../helpers/ueli-helpers";
 import { exec } from "child_process";
+import { dialog } from "electron";
 
 export class CustomCommandExecutor implements Executor {
     public hideAfterExecution = true;
@@ -25,7 +26,7 @@ export class CustomCommandExecutor implements Executor {
         this.hideAfterExecution = true;
         exec(executionArgument, (err: Error): void => {
             if (err) {
-                throw err;
+                dialog.showErrorBox("Execute file/folde path", err.stack || err.message);
             }
         });
     }

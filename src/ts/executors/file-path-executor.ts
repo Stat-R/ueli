@@ -50,7 +50,7 @@ export class FilePathExecutor implements Executor {
     private handleAlternativeExecuteDir(filePath: string) {
         childProcess.exec(`"${this.textEditorPath}" "${filePath}"`, (err) => {
             if (err) {
-                throw err;
+                dialog.showErrorBox("Execute file/folde path", err.stack || err.message);
             }
         });
     }

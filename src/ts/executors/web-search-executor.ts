@@ -4,6 +4,7 @@ import { Executor } from "./executor";
 import { platform } from "os";
 import { WebSearchHelpers } from "../helpers/web-search-helper";
 import { WebSearch } from "../web-search";
+import { dialog } from "electron";
 
 export class WebSearchExecutor implements Executor {
     public readonly hideAfterExecution = true;
@@ -22,7 +23,7 @@ export class WebSearchExecutor implements Executor {
                 const command = Injector.getOpenUrlWithDefaultBrowserCommand(platform(), executionArgument);
                 exec(command, (err) => {
                     if (err) {
-                        throw err;
+                        dialog.showErrorBox("Execute file/folde path", err.stack || err.message);
                     }
                 });
             }

@@ -1,6 +1,7 @@
 import { exec } from "child_process";
 import { Executor } from "./executor";
 import { WindowsSettingsHelpers } from "../helpers/windows-settings-helpers";
+import { dialog } from "electron";
 
 export class WindowsSettingsExecutor implements Executor {
     public readonly hideAfterExecution = true;
@@ -12,7 +13,7 @@ export class WindowsSettingsExecutor implements Executor {
 
         exec(`start ${command}`, (err): void => {
             if (err) {
-                throw err;
+                dialog.showErrorBox("Execute file/folde path", err.stack || err.message);
             }
         });
     }
