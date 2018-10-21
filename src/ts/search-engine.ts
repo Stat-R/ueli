@@ -21,10 +21,7 @@ export class SearchEngine {
             threshold: 0.4,
         });
 
-        let fuseResults = fuse.search<{
-            item: T;
-            score: number;
-        }>(searchTerm);
+        let fuseResults: any[] = fuse.search(searchTerm);
 
         if (this.countManager !== undefined) {
             fuseResults = this.sortItemsByCount(fuseResults, this.countManager);
