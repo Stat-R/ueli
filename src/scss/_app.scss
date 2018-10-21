@@ -209,7 +209,6 @@ div.search-result-index-num {
     align-items: center;
     font-family: var(--font-family);
     font-weight: 500;
-    color: var(--text-color);
     padding: 0;
     opacity: 0;
     width: 0;
@@ -220,17 +219,18 @@ div.search-result-index-num {
         border-radius: 5px;
         padding: 7px 10px;
 
-        &::after {
-            box-shadow: inset 0 0 0 2px var(--text-color);
-        }
+        box-shadow: inset 0 0 0 2px var(--text-color);
     }
 
     &.active {
         width: unset;
         padding: 0px 20px 0 5px;
         opacity: 1;
-        color: var(--active-item-text-color);
+    }
+}
 
+div.search-result.active {
+    & div.search-result-index-num {
         & span {
             box-shadow: inset 0 0 0 2px var(--active-item-text-color);
         }
