@@ -1,10 +1,10 @@
 'use strict';
-const path = require("path");
-const loaderUtils = require('loader-utils');
-const fs = require("fs");
+const { join } = require("path");
+const { interpolateName } = require('loader-utils');
+
 module.exports = function(content) {
   var context = this.rootContext || this.options && this.options.context;
-  var url = loaderUtils.interpolateName(this, "[hash].[ext]", {
+  var url = interpolateName(this, "[hash].[ext]", {
     context,
     content,
     regExp: undefined
@@ -13,7 +13,7 @@ module.exports = function(content) {
   this.emitFile(url, content);
 
   var publicPath = `__webpack_public_path__ + ${JSON.stringify(url)}`;
-  var devPath = `__webpack_public_path__ + ${JSON.stringify(path.join("build", url))}`;
+  var devPath = `__webpack_public_path__ + ${JSON.stringify(join("build", url))}`;
 
   return `try {
   global.process.dlopen(module, ${publicPath});
