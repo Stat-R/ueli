@@ -3,6 +3,10 @@ import * as math from "mathjs";
 
 export class CalculatorInputValidator implements InputValidator {
     public isValidForSearchResults(userInput: string): boolean {
+        if (userInput.indexOf("version") > -1) {
+            return false;
+        }
+
         let result: any;
         try {
             // Mathjs throws an error when input cannot be evaluated
