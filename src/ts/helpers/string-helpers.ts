@@ -15,11 +15,15 @@ export class StringHelpers {
         return value.replace(/\s\s+/g, " ").replace(/^\s*/, "");
     }
 
-    public static stringToWords(value: string): string[] {
+    public static stringToWords(value: string, filterEmptyString = true): string[] {
         const words = value.split(/\s/g);
-        return words.filter((w) => {
-            return !StringHelpers.stringIsWhiteSpace(w);
-        });
+        if (filterEmptyString) {
+            return words.filter((w) => {
+                return !StringHelpers.stringIsWhiteSpace(w);
+            });
+        }
+
+        return words;
     }
 
     public static isValidEmailAddress(emailAddress: string) {

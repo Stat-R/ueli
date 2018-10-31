@@ -23,7 +23,7 @@ export class InputValidationService {
         });
     }
 
-    public async getSearchResult(userInput: string): Promise<SearchResultItem[]> {
+    public async getSearchResult(userInput: string, cwd: string | undefined): Promise<SearchResultItem[]> {
         let genericResult = [] as SearchResultItem[];
         const uniqueResult = [] as SearchResultItem[];
         userInput = StringHelpers.trimAndReplaceMultipleWhiteSpacesWithOne(userInput);
@@ -33,8 +33,8 @@ export class InputValidationService {
         }
 
         for (const combination of this.combs) {
-            if (combination.validator.isValidForSearchResults(userInput)) {
-                const getResults = await combination.searcher.getSearchResult(userInput);
+            if (combination.validator.isValidForSearchResults(userInput, cwd)) {
+                const getResults = await combination.searcher.getSearchResult(userInput, cwd);
                 if (combination.searcher.shouldIsolate) {
                     if (combination.searcher.needSort) {
                         return this.searchEngine.search(getResults, userInput);
@@ -58,7 +58,7 @@ export class InputValidationService {
 
     public getScopes(userInput: string): string[] {
         for (const combination of this.combs) {
-            if (combination.validator.isValidForSearchResults(userInput)
+            if (combination.validator.isValidForSearchResults(userInput, "")
              && combination.validator.getScopes) {
                 const scopes = combination.validator.getScopes(userInput);
                 if (scopes.length > 0) {

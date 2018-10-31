@@ -6,5 +6,5 @@ export interface Searcher {
     fuzzySearcher?: SearchEngine["search"];
     needSort?: boolean;
     shouldIsolate?: boolean;
-    getSearchResult(userInput: string): Promise<SearchResultItem[]>;
+    getSearchResult(userInput: string, cwd: string | undefined): Promise<SearchResultItem[]>;
 }

@@ -6,13 +6,13 @@
                 "${workspaceFolder}/src/cpp",
                 "${workspaceFolder}/node_modules/nbind/include",
                 "{env.CompilerPath}",
-                "C:/Users/xuank/.node-gyp/10.4.0/include/node",
-                "C:/Users/xuank/.node-gyp/10.4.0/src",
-                "C:/Users/xuank/.node-gyp/10.4.0/deps/openssl/config",
-                "C:/Users/xuank/.node-gyp/10.4.0/deps/openssl/openssl/include",
-                "C:/Users/xuank/.node-gyp/10.4.0/deps/uv/include",
-                "C:/Users/xuank/.node-gyp/10.4.0/deps/zlib",
-                "C:/Users/xuank/.node-gyp/10.4.0/deps/v8/include",
+                "C:/Users/xuank/.node-gyp/10.11.0/include/node",
+                "C:/Users/xuank/.node-gyp/10.11.0/src",
+                "C:/Users/xuank/.node-gyp/10.11.0/deps/openssl/config",
+                "C:/Users/xuank/.node-gyp/10.11.0/deps/openssl/openssl/include",
+                "C:/Users/xuank/.node-gyp/10.11.0/deps/uv/include",
+                "C:/Users/xuank/.node-gyp/10.11.0/deps/zlib",
+                "C:/Users/xuank/.node-gyp/10.11.0/deps/v8/include",
                 "${workspaceFolder}/node_modules/nan",
                 "${workspaceFolder}/node_modules/nbind/include"
             ],
@@ -30,7 +30,7 @@
                 "UNICODE"
             ],
             "intelliSenseMode": "msvc-x64",
-            "compilerPath": "E:/VisualStudio/VC/Tools/MSVC/14.14.26428/bin/Hostx64/x64/cl.exe",
+            "compilerPath": "E:/Program Files (x86)/Microsoft Visual Studio/VC/Tools/MSVC/14.15.26726/bin/Hostx64/x64/cl.exe",
             "cStandard": "c11",
             "cppStandard": "c++17"
         }

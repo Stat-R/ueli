@@ -18,7 +18,7 @@ export class VariableSearcher implements Searcher {
 
         for (const varName of Object.keys(env)) {
             const value = env[varName];
-            if (validator.isValidForSearchResults(value)) {
+            if (validator.isValidForSearchResults(value, undefined)) {
                 this.collection.push({
                     breadCrumb: FileHelpers.filePathToBreadCrumbs(value),
                     executionArgument: value,

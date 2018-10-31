@@ -32,8 +32,10 @@ export interface ConfigOptions {
     everythingFilterFilePath: string;
     features: FeatureOptions;
     hotkeyEverythingMode: string;
+    hotkeyEverythingModeCwd: string;
     hotkeyOnlineMode: string;
     hotkeyRunMode: string;
+    hotkeyRunModeCwd: string;
     hotkeyWindowsMode: string;
     maxSearchResultCount: number;
     maxTotalSearchResult: number;

@@ -15,11 +15,11 @@ export class CustomCommandExecutor implements Executor {
         this.commandLineExecutor = commandLineExecutor;
     }
 
-    public execute(executionArgument: string): void {
+    public execute(executionArgument: string, _: boolean, cwd: string | undefined): void {
         executionArgument = executionArgument.replace(UeliHelpers.customCommandPrefix, "");
         if (new CommandLineExecutionArgumentValidator().isValidForExecution(executionArgument)) {
             this.hideAfterExecution = false;
-            this.commandLineExecutor.execute(executionArgument);
+            this.commandLineExecutor.execute(executionArgument, false, cwd);
             return;
         }
 

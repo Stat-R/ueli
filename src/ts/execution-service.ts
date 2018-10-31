@@ -15,10 +15,10 @@ export class ExecutionService {
         }
     }
 
-    public execute(executionArgument: string, alternative: boolean): void {
+    public execute(executionArgument: string, alternative: boolean, cwd: string | undefined): void {
         for (const combi of this.validatorExecutorCombinations) {
             if (combi.validator.isValidForExecution(executionArgument)) {
-                combi.executor.execute(executionArgument, alternative);
+                combi.executor.execute(executionArgument, alternative, cwd);
 
                 if (combi.executor.resetUserInputAfterExecution) {
                     ipcMain.emit(IpcChannels.resetUserInput);

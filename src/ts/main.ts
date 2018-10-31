@@ -113,6 +113,7 @@ let processIVS: ProcessInputValidationService;
 let everythingIVS: EverythingInputValidationService;
 let executionService: ExecutionService;
 let isReady = false;
+let currentWorkingDirectory: string = "";
 
 function loadSearcher() {
     isReady = false;
@@ -215,17 +216,38 @@ function registerGlobalShortCuts(): void {
             changeModeWithHotkey(InputModes.ONLINE);
         });
     }
+
     if (config.hotkeyEverythingMode) {
         globalShortcut.register(config.hotkeyEverythingMode, () => {
             changeModeWithHotkey(InputModes.EVERYTHING);
         });
     }
+
+    if (config.hotkeyRunModeCwd) {
+        globalShortcut.register(config.hotkeyRunModeCwd, () => {
+            changeModeWithHotkey(InputModes.RUN, true);
+        });
+    }
+
+    if (config.hotkeyEverythingModeCwd) {
+        globalShortcut.register(config.hotkeyEverythingModeCwd, () => {
+            changeModeWithHotkey(InputModes.EVERYTHING, true);
+        });
+    }
 }
 
-function changeModeWithHotkey(mode: number) {
+function changeModeWithHotkey(mode: number, setCurrentWorkingDirectory = false) {
     const isVisible = mainWindow.isVisible();
+
     if (!isVisible) {
+        nativeUtil.storeLastForegroundWindow();
         showMainWindow();
+    }
+
+    if (setCurrentWorkingDirectory) {
+        currentWorkingDirectory = nativeUtil.getExplorerPath();
+    } else {
+        currentWorkingDirectory = "";
     }
 
     if (isVisible && mode === inputMode) {
@@ -333,7 +355,7 @@ function getSearch(userInput: string): void {
                 runIVS.getScopes(userInput),
             );
 
-            runIVS.getSearchResult(userInput)
+            runIVS.getSearchResult(userInput, currentWorkingDirectory)
                 .then(sendResult);
 
             break;
@@ -381,7 +403,7 @@ function getSearch(userInput: string): void {
                 everythingIVS.getScopes(userInput),
             );
             setLoadingIcon();
-            everythingIVS.getSearchResult(userInput)
+            everythingIVS.getSearchResult(userInput, currentWorkingDirectory)
                 .then((allResults) => {
                     sendResult(allResults);
                     setModeIcon();
@@ -443,7 +465,7 @@ ipcMain.on(IpcChannels.ueliExit, quitApp);
 ipcMain.on(IpcChannels.getSearch, (_: Event, arg: string): void => getSearch(arg));
 
 ipcMain.on(IpcChannels.execute, (_: Event, arg: string, alternative: boolean): void => {
-    executionService.execute(arg, alternative);
+    executionService.execute(arg, alternative, currentWorkingDirectory);
 });
 
 ipcMain.on(IpcChannels.setModeIcon, setModeIcon);

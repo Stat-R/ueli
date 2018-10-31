@@ -28,8 +28,8 @@ export class OnlineInputValidationService {
         }
 
         for (const combination of this.combs) {
-            if (combination.validator.isValidForSearchResults(userInput)) {
-                result.push(combination.searcher.getSearchResult(userInput));
+            if (combination.validator.isValidForSearchResults(userInput, undefined)) {
+                result.push(combination.searcher.getSearchResult(userInput, undefined));
             }
         }
 
@@ -38,7 +38,7 @@ export class OnlineInputValidationService {
 
     public getScopes(userInput: string): string[] {
         for (const combination of this.combs) {
-            if (combination.validator.isValidForSearchResults(userInput)) {
+            if (combination.validator.isValidForSearchResults(userInput, undefined)) {
                 if (combination.validator.getScopes) {
                     return combination.validator.getScopes(userInput);
                 }

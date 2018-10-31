@@ -16,12 +16,13 @@ export class CommandLineExecutor implements Executor {
         this.shellPath = shellPath;
     }
 
-    public execute(executionArgument: string): void {
+    public execute(executionArgument: string, _: boolean, cwd: string | undefined): void {
         const words = StringHelpers.stringToWords(executionArgument);
         words[0] = words[0].replace(CommandLineHelpers.commandLinePrefix, "");
         words.unshift("-Command");
 
         const clOptions: SpawnOptions = {
+            cwd,
             env: process.env,
         };
 

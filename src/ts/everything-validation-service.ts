@@ -39,7 +39,7 @@ export class EverythingInputValidationService {
         }
     }
 
-    public getSearchResult(userInput: string): Promise<SearchResultItem[]> {
+    public getSearchResult(userInput: string, cwd: string | undefined): Promise<SearchResultItem[]> {
         return new Promise((resolve) => {
             userInput = StringHelpers.trimAndReplaceMultipleWhiteSpacesWithOne(userInput);
 
@@ -89,7 +89,11 @@ export class EverythingInputValidationService {
             matchOptions = this.mergeOptions(matchOptions, matchAccents, EverythingMatchOptions.ACCENTS);
             matchOptions = this.mergeOptions(matchOptions, regExp, EverythingMatchOptions.REGEX);
 
-            this.nativeUtil.queryEverything(userInput, this.maxResults, matchOptions);
+            if (cwd) {
+                this.nativeUtil.queryEverything(`${cwd} ${userInput}`, this.maxResults, matchOptions);
+            } else {
+                this.nativeUtil.queryEverything(userInput, this.maxResults, matchOptions);
+            }
             const interval = setInterval(() => {
                 const rawList = this.nativeUtil.resolveEverything();
 

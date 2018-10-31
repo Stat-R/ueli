@@ -3,5 +3,5 @@ export interface Executor {
     hideAfterExecution: boolean;
     resetUserInputAfterExecution: boolean;
     logExecution: boolean;
-    execute(executionArgument: string, alternative: boolean): void;
+    execute(executionArgument: string, alternative: boolean, cwd: string | undefined): void;
 }

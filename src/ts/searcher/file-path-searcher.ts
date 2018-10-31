@@ -18,7 +18,11 @@ export class FilePathSearcher implements Searcher {
         this.executableExtension = executableExtension.map((ext) => ext.toLowerCase());
     }
 
-    public async getSearchResult(userInput: string): Promise<SearchResultItem[]> {
+    public async getSearchResult(userInput: string, cwd: string | undefined): Promise<SearchResultItem[]> {
+        if (cwd) {
+            userInput = `${cwd}${userInput}`;
+        }
+
         let filePath;
 
         if (fs.existsSync(userInput)) {
