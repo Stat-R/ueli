@@ -35,4 +35,17 @@ export class NativeUtil {
     public takeScreenshot(width: number, height: number, outFilePath: string): void {
         this.instance.takeScreenshot(width, height, outFilePath);
     }
+
+    public getExplorerPath(): string {
+        let rawPath: string = this.instance.getExplorerPath();
+        if (rawPath) {
+            rawPath = rawPath.replace("file:///", "").replace(/\//g, "\\") + "\\";
+        }
+
+        return rawPath;
+    }
+
+    public storeLastForegroundWindow(): void {
+        this.instance.storeLastFgWindow();
+    }
 }

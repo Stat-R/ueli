@@ -7,6 +7,8 @@
 #include <Shlobj.h>
 #include <wrl/client.h>
 #include <algorithm>
+#include <Shldisp.h>
+#include <comdef.h>
 
 namespace Gdiplus
 {
@@ -26,7 +28,6 @@ LRESULT CALLBACK window_proc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
 std::vector<std::vector<std::string>> ipcResultList;
 bool ipcGotResult = false;
 
-bool ShowContextMenu(HWND hwnd, std::string &path);
 bool GetEncoderClsid(CLSID *pClsid);
 
 class NativeUtil
@@ -41,12 +42,25 @@ class NativeUtil
         if (!GetEncoderClsid(&myClsId)) {
             printf("Cannot find Encoder Clsid\n");
         }
+
+        if (FAILED(CoCreateInstance(
+            CLSID_Shell,
+            NULL,
+            CLSCTX_ALL,
+            IID_IShellDispatch,
+            reinterpret_cast<void**>(&shellDispatch)
+        )))
+        {
+            printf("Cannot create shellDispatch Com Object.\n");
+        }
     }
 
     ~NativeUtil()
     {
         DestroyWindow(ipcHwnd);
         Gdiplus::GdiplusShutdown(gdiplusToken);
+        shellDispatch->Release();
+        shellDispatch = nullptr;
     };
 
     void storeBrowserHwnd()
@@ -213,6 +227,73 @@ class NativeUtil
         delete image;
     }
 
+    std::string getExplorerPath()
+    {
+        std::string result = "";
+        if (shellDispatch == nullptr)
+        {
+            return result;
+        }
+
+        IDispatch* shellWinDisp = nullptr;
+        shellDispatch->Windows(&shellWinDisp);
+
+        IShellWindows* shellWindows = nullptr;
+        HRESULT hr = shellWinDisp->QueryInterface(IID_IShellWindows, reinterpret_cast<void**>(&shellWindows));
+        shellWinDisp->Release();
+
+        if (FAILED(hr))
+        {
+            printf("Query ShellWindows failed\n");
+            return result;
+        }
+
+        VARIANT count = { VT_I4 };
+        if (FAILED(shellWindows->get_Count(&count.lVal)))
+        {
+            printf("Could not get instances count\n");
+            return result;
+        }
+
+        while (--count.lVal >= 0)
+        {
+            IDispatch* explorerDisp;
+            if (FAILED(shellWindows->Item(count, &explorerDisp)))
+            {
+                continue;
+            }
+
+            IWebBrowser2 *explorer;
+            if (SUCCEEDED(explorerDisp->QueryInterface(IID_PPV_ARGS(&explorer))))
+            {
+                long long hwnd;
+                explorer->get_HWND(&hwnd);
+
+                if (hwnd == fgHwnd)
+                {
+                    BSTR url;
+                    explorer->get_LocationURL(&url);
+                    result = _bstr_t(url, false);
+                    explorer->Release();
+                    explorerDisp->Release();
+                    break;
+                }
+
+                explorer->Release();
+            }
+            explorerDisp->Release();
+        }
+
+        shellWindows->Release();
+
+        return result;
+    }
+
+    void storeLastFgWindow()
+    {
+        fgHwnd = (long long)GetForegroundWindow();
+    }
+
   private:
     void CreateEverythingIPCWindow()
     {
@@ -251,6 +332,8 @@ class NativeUtil
     HWND ipcHwnd;
     ULONG_PTR gdiplusToken;
     CLSID myClsId;
+    IShellDispatch* shellDispatch = nullptr;
+    long long fgHwnd = 0;
 };
 
 NBIND_CLASS(NativeUtil)
@@ -262,6 +345,8 @@ NBIND_CLASS(NativeUtil)
     method(resolveEverything);
     method(activateContextMenu);
     method(takeScreenshot);
+    method(getExplorerPath);
+    method(storeLastFgWindow);
 }
 
 std::wstring StrToWStr(const std::string &str)

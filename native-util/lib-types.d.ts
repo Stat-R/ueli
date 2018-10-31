@@ -23,4 +23,10 @@ export class NativeUtil extends NBindBase {
 
 	/** void takeScreenshot(int32_t, int32_t, std::string); */
 	takeScreenshot(p0: number, p1: number, p2: string): void;
+
+	/** std::string getExplorerPath(); */
+	getExplorerPath(): string;
+
+	/** void storeLastFgWindow(); */
+	storeLastFgWindow(): void;
 }
