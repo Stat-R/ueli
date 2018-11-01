@@ -58,7 +58,7 @@ export class InputValidationService {
 
     public getScopes(userInput: string): string[] {
         for (const combination of this.combs) {
-            if (combination.validator.isValidForSearchResults(userInput, "")
+            if (combination.validator.isValidForSearchResults(userInput, undefined)
              && combination.validator.getScopes) {
                 const scopes = combination.validator.getScopes(userInput);
                 if (scopes.length > 0) {
