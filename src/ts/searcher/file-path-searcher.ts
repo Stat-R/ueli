@@ -1,10 +1,12 @@
 import { Searcher } from "./searcher";
-import { FileHelpers } from "../helpers/file-helpers";
+import { FileHelpers, FancyFile } from "../helpers/file-helpers";
 import { Icons } from "../icon-manager/icon-manager";
 import { SearchEngine } from "../search-engine";
 import { SearchResultItem } from "../search-result-item";
 import * as fs from "fs";
 import * as path from "path";
+import { Injector } from "../injector";
+import { platform } from "os";
 
 export class FilePathSearcher implements Searcher {
     public readonly needSort = false;
@@ -12,14 +14,19 @@ export class FilePathSearcher implements Searcher {
 
     private textEditorName: string;
     private executableExtension: string[];
+    private regex: RegExp;
+    private cacheFolder: { filePath: string, isRecursive: boolean, result: SearchResultItem[] } | undefined;
 
     constructor(executableExtension: string[], textEditorName: string) {
         this.textEditorName = textEditorName;
+        this.regex = Injector.getFilePathRegExp(platform());
         this.executableExtension = executableExtension.map((ext) => ext.toLowerCase());
     }
 
     public async getSearchResult(userInput: string, cwd: string | undefined): Promise<SearchResultItem[]> {
-        if (cwd) {
+        const isValidPath = this.regex.test(userInput);
+
+        if (!isValidPath && cwd) {
             userInput = `${cwd}${userInput}`;
         }
 
@@ -39,21 +46,54 @@ export class FilePathSearcher implements Searcher {
 
         if (fs.existsSync(path.dirname(userInput))) {
             filePath = path.dirname(userInput);
-            const searchTerm = path.basename(userInput);
+            let searchTerm = path.basename(userInput);
 
-            return await this.getFolderSearchResult(filePath, searchTerm, /[\*\?\[\]]/.test(searchTerm));
+            const isRecursive = searchTerm.startsWith(":");
+            if (isRecursive) {
+                searchTerm = searchTerm.slice(1);
+            }
+
+            const isWildcard = /[*?]/.test(searchTerm);
+
+            let result: SearchResultItem[] = [];
+            if (this.cacheFolder !== undefined &&
+                filePath === this.cacheFolder.filePath &&
+                isRecursive === this.cacheFolder.isRecursive
+            ) {
+                result = this.cacheFolder.result;
+            } else {
+                result = await this.getFolderSearchResult(filePath, isRecursive);
+                this.cacheFolder = {
+                    filePath,
+                    isRecursive,
+                    result,
+                };
+            }
+
+            return (isWildcard
+                ? this.filterWildcard(result, searchTerm)
+                : this.sortSearchResult(result, searchTerm));
         }
 
         return [];
     }
 
-    private async getFolderSearchResult(folderPath: string, searchTerm?: string, wildCard = false): Promise<SearchResultItem[]> {
+    private async getFolderSearchResult(folderPath: string, recursive = false): Promise<SearchResultItem[]> {
         const result = [] as SearchResultItem[];
 
-        const files = await FileHelpers.getFilesFromFolder({
-            breadCrumb: FileHelpers.filePathToBreadCrumbs(folderPath),
-            fullPath: folderPath,
-        });
+        let files: FancyFile[] = [];
+
+        if (recursive) {
+            files = await FileHelpers.getFilesFromFolderRecursively({
+                breadCrumb: FileHelpers.filePathToBreadCrumbs(folderPath),
+                fullPath: folderPath,
+            });
+        } else {
+            files = await FileHelpers.getFilesFromFolder({
+                breadCrumb: FileHelpers.filePathToBreadCrumbs(folderPath),
+                fullPath: folderPath,
+            });
+        }
 
         for (const file of files) {
             let isDir: boolean;
@@ -87,11 +127,7 @@ export class FilePathSearcher implements Searcher {
             }
         }
 
-        return searchTerm === undefined
-            ? result
-            : (wildCard
-            ? this.filterWildcard(result, searchTerm)
-            : this.sortSearchResult(result, searchTerm));
+        return result;
     }
 
     private sortSearchResult(items: SearchResultItem[], searchTerm: string): SearchResultItem[] {
@@ -118,7 +154,11 @@ export class FilePathSearcher implements Searcher {
     }
 
     private filterWildcard(items: SearchResultItem[], searchTerm: string): SearchResultItem[] {
-        searchTerm = `^${searchTerm.replace(/\./g, "\\.").replace(/\*/g, ".*").replace(/\?/g, ".")}$`;
+        searchTerm = `^${searchTerm
+            .replace(/([.\[\](){}\-+|^$!=,])/g, (_, sym: string) => `\\${sym}`)
+            .replace(/\*/g, ".*")
+            .replace(/\?/g, ".")
+        }$`;
         const regExp = new RegExp(searchTerm);
         return items.filter((item) => {
             const name = path.basename(item.executionArgument);
