@@ -113,7 +113,7 @@ let processIVS: ProcessInputValidationService;
 let everythingIVS: EverythingInputValidationService;
 let executionService: ExecutionService;
 let isReady = false;
-let currentWorkingDirectory: string = "";
+let currentWorkingDirectory: string | undefined;
 
 function loadSearcher() {
     isReady = false;
@@ -245,9 +245,12 @@ function changeModeWithHotkey(mode: number, setCurrentWorkingDirectory = false) 
     }
 
     if (setCurrentWorkingDirectory) {
-        currentWorkingDirectory = nativeUtil.getExplorerPath();
+        const cwd = nativeUtil.getExplorerPath();
+        if (cwd) {
+            currentWorkingDirectory = cwd;
+        }
     } else {
-        currentWorkingDirectory = "";
+        currentWorkingDirectory = undefined;
     }
 
     if (isVisible && mode === inputMode) {
