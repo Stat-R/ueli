@@ -60,8 +60,8 @@ export class CommandLineSearcher implements Searcher {
                 } as SearchResultItem));
             }
         } else if (words.length > 1) {
-            const lastWord = words.pop();
-            if (lastWord && lastWord.startsWith("-")) {
+            const lastWord = words.pop() as string;
+            if (lastWord.startsWith("-")) {
                 const baseCommand = words[0];
                 const parameters: BareSearchResultItem[] = this.getCommandParameter(baseCommand);
 
@@ -85,7 +85,8 @@ export class CommandLineSearcher implements Searcher {
                         }) as SearchResultItem);
                     }
                 }
-            } else if (cwd) {
+            // Exclude the case user want to run command in current folder with only a dot
+            } else if (lastWord !== "." && cwd) {
                 const fileList = (await FileHelpers.getFilesFromFolder({
                     breadCrumb: [],
                     fullPath: cwd,
