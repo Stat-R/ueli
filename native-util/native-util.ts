@@ -37,7 +37,8 @@ export class NativeUtil {
     }
 
     public getExplorerPath(): string {
-        let rawPath: string = this.instance.getExplorerPath();
+        let rawPath: string = decodeURI(this.instance.getExplorerPath());
+
         if (rawPath) {
             rawPath = rawPath.replace("file:///", "").replace(/\//g, "\\") + "\\";
         }
