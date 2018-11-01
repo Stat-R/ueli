@@ -56,7 +56,8 @@ module.exports.onlineSearcher = class Searcher {
             const converted = (factor * data.rates[item]).toLocaleString();
 
             return {
-                executionArgument: "",
+                executionArgument: `${converted}`,
+                hideDescription: true,
                 name: `= ${converted} ${item}`,
                 icon: ICON,
             };

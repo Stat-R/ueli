@@ -8,6 +8,7 @@ interface SearchResultItem extends BareSearchResultItem {
     alternativePrefix?: string;
     breadCrumb?: string[];
     executionArgument: string;
+    hideDescription?: boolean;
     icon: string;
 }
 
