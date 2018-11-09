@@ -31,7 +31,7 @@ This repo contains personal modification, only supports Windows 10. Some optiona
 
 ## Quick tutorial
 
-* Press `alt+space` to show/hide the window
+* Press <kbd>Alt</kbd> <kbd>Space</kbd> to show/hide the window
 * Start typing a program name
 * Press Enter to launch the program
 
@@ -39,15 +39,15 @@ This repo contains personal modification, only supports Windows 10. Some optiona
 
 Keyboard shortcut|Description
 ---|---
-`Ctrl + o` | Open the selected program or file at it's location
-`Ctrl + Shift + C` | Copy search result to clipboard
-`ArrowUp` | Scroll up
-`ArrowDown` | Scroll down
-`F6`, `Ctrl + L` | Set focus on user input
-`Ctrl + ArrowUp`, `Ctrl + ArrowDown` | Browse previous input
+<kbd>Ctrl</kbd> <kbd>O</kbd> | Open the selected program or file at it's location
+<kbd>Ctrl</kbd> <kbd>Shift</kbd> <kbd>C</kbd> | Copy search result to clipboard
+<kbd>↑</kbd> | Scroll up
+<kbd>↓</kbd> | Scroll down
+<kbd>F6</kbd>, <kbd>Ctrl</kbd> <kbd>L</kbd> | Set focus on user input
+<kbd>Ctrl</kbd> <kbd>↑</kbd>, <kbd>Ctrl</kbd> <kbd>↓</kbd> | Browse previous input
 
-Hold `Alt` when opening an executable to run as adminstrator.  
-Hold `Alt` when opening an folder to open it in text editor.  
+Hold <kbd>Alt</kbd> when opening an executable to run as adminstrator.  
+Hold <kbd>Alt</kbd> when opening an folder to open it in text editor.  
 
 Check out config file for mode and media player hotkeys.
 
@@ -137,8 +137,10 @@ Option | Type | Description
 `directorySeparator` | string | Separator for search result description
 `everythingFilterFilePath` | string | Path to Everything's filters CSV file.
 `hotkeyEverythingMode` | string | 
+`hotkeyEverythingModeCwd` | string | Hotkey for Everything mode with Explorer location-aware.
 `hotkeyOnlineMode` | string |
 `hotkeyRunMode` | string |
+`hotkeyRunModeCwd` | string | Hotkey for Run mode with Explorer location-aware.
 `hotkeyWindowsMode` | string |
 `maxSearchResultCount` | number | Maximum number of search results to be displayed
 `maxTotalSearchResult` | number | Maximum number of search results to be listed
@@ -160,6 +162,7 @@ Option | Type | Description
 `textEditor` | textEditor | Set your favourite editor to open folder with it. 
 `userInputFontSize` | number | Font size of the user input in pixels
 `userInputHeight` | number | Height of the user input box in pixels
+`useNativeApplicationIcon` | boolean | Whether using native bitmap icon of programs.
 `webSearches` | webSearchEngine[] | A list of webSearchEngines
 `windowWidth` | number | Width of the main window in pixels 
 
