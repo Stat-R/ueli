@@ -50,7 +50,7 @@ export class ProgramsPlugin implements SearchPlugin {
                         tags = this.pathToTags(info.target);
 
                         if (this.shouldFetchIcon) {
-                            if (info.icon) {
+                            if (info.icon && !info.icon.endsWith(".dll")) {
                                 icon = await this.pathToIcon(info.icon);
                             }
 
@@ -133,6 +133,16 @@ export class ProgramsPlugin implements SearchPlugin {
                 resolve();
                 return;
             }
+
+            iconTarget = iconTarget.replace(/%([^%]+)%/g, (original: string, varName: string): string => {
+                const varValue = process.env[varName];
+
+                if (varValue) {
+                    return varValue;
+                }
+
+                return original;
+            });
 
             app.getFileIcon(iconTarget, (error, image: NativeImage) => {
                 if (error) {
