@@ -9,7 +9,7 @@ import { ExternalOnlinePlugin, ExternalRunPlugin } from "./external-plugin";
 import { GlobalUELI } from "./global-ueli";
 import { UeliHelpers } from "./helpers/ueli-helpers";
 import { WindowHelpers } from "./helpers/winow-helpers";
-import { Icons, IconsWindowsSetting } from "./icon-manager/icon-manager";
+import { Icons } from "./icon-manager/icon-manager";
 import { Injector } from "./injector";
 import { InputValidationService } from "./input-validation-service";
 import { InputValidatorSearcherCombinationManager } from "./input-validator-searcher-combination-manager";
@@ -448,7 +448,7 @@ function setModeIcon(): void {
             mainWindow.webContents.send(IpcChannels.getSearchIconResponse, Icons.WINDOWS);
             break;
         case InputModes.EVERYTHING:
-            mainWindow.webContents.send(IpcChannels.getSearchIconResponse, IconsWindowsSetting.DATAUSAGE);
+            mainWindow.webContents.send(IpcChannels.getSearchIconResponse, Icons.EVERYTHING);
             break;
     }
 }
