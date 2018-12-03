@@ -6,7 +6,8 @@ import { SearchEngine } from "../search-engine";
 import { BareSearchResultItem, SearchResultItem } from "../search-result-item";
 import { execFile, execFileSync } from "child_process";
 import { FileHelpers, FancyFile } from "../helpers/file-helpers";
-import { basename } from "path";
+import { basename, dirname } from "path";
+import { FilePathRegex } from "../helpers/file-path-regex";
 
 export class CommandLineSearcher implements Searcher {
     public readonly needSort = false;
@@ -16,12 +17,15 @@ export class CommandLineSearcher implements Searcher {
     private cachedParameters: { [key: string]: BareSearchResultItem[] };
     private searchEngine: SearchEngine;
     private powerShellPath: string;
+    private filePahtRegex: RegExp;
 
     constructor(powerShellPath: string) {
         this.programList = [];
         this.cachedParameters = {};
         this.searchEngine = new SearchEngine();
         this.powerShellPath = powerShellPath;
+        this.filePahtRegex = FilePathRegex.windowsFilePathRegExp;
+
         execFile(this.powerShellPath, [
             "-Command",
             `Get-Command -Type All | ForEach-Object { $_.Name }`,
@@ -101,6 +105,28 @@ export class CommandLineSearcher implements Searcher {
 
                 if (lastWord) {
                     const filteredFile = this.searchEngine.search(fileList, lastWord);
+                    if (filteredFile.length > 0) {
+                        return filteredFile;
+                    }
+                } else {
+                    return fileList;
+                }
+            } else if (this.filePahtRegex.test(lastWord)) {
+                const dir = dirname(lastWord);
+                const base = basename(lastWord);
+                const fileList = (await FileHelpers.getFilesFromFolder({
+                    breadCrumb: [],
+                    fullPath: dir,
+                })).map((item: FancyFile) => {
+                    const itemBase = basename(item.fullPath);
+                    return {
+                        executionArgument: `${CommandLineHelpers.commandLinePrefix}${words.join(" ")} ${item.fullPath}`,
+                        icon: Icons.COMMANDLINE,
+                        name: itemBase,
+                    } as SearchResultItem;
+                });
+                if (base) {
+                    const filteredFile = this.searchEngine.search(fileList, base);
                     if (filteredFile.length > 0) {
                         return filteredFile;
                     }
