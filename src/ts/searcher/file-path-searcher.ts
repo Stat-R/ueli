@@ -5,8 +5,7 @@ import { SearchEngine } from "../search-engine";
 import { SearchResultItem } from "../search-result-item";
 import * as fs from "fs";
 import * as path from "path";
-import { Injector } from "../injector";
-import { platform } from "os";
+import { FilePathRegex } from "../helpers/file-path-regex";
 
 export class FilePathSearcher implements Searcher {
     public readonly needSort = false;
@@ -19,7 +18,7 @@ export class FilePathSearcher implements Searcher {
 
     constructor(executableExtension: string[], textEditorName: string) {
         this.textEditorName = textEditorName;
-        this.regex = Injector.getFilePathRegExp(platform());
+        this.regex = FilePathRegex.windowsFilePathRegExp;
         this.executableExtension = executableExtension.map((ext) => ext.toLowerCase());
     }
 

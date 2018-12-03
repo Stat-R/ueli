@@ -5,9 +5,7 @@ import { FilePathExecutor } from "./executors/file-path-executor";
 import { Hotkey } from "./helpers/hotkey";
 import { StringHelpers } from "./helpers/string-helpers";
 import { UeliHelpers } from "./helpers/ueli-helpers";
-import { MacOsIconManager } from "./icon-manager/mac-os-icon-manager";
-import { WindowsIconManager } from "./icon-manager/windows-icon-manager";
-import { Injector } from "./injector";
+import { IconManager } from "./icon-manager/icon-manager";
 import { IpcChannels } from "./ipc-channels";
 import { MusicPlayer } from "./music-player/music-player";
 import { MusicPlayerNowPlaying } from "./music-player/music-player-nowplaying";
@@ -16,7 +14,7 @@ import { SearchResultItemViewModel, SearchResultItem } from "./search-result-ite
 import * as defaultCSS from "../scss/default.scss";
 import { clipboard, ipcRenderer } from "electron";
 import { existsSync, writeFileSync } from "fs";
-import { homedir, platform } from "os";
+import { homedir } from "os";
 import { join } from "path";
 import Vue from "vue";
 import { InputModes } from "./input-modes";
@@ -49,8 +47,7 @@ let shouldRotateCompletions = false;
 let autoCompList: string [] = [];
 let autoCompIndex = 0;
 
-const iconManager = Injector.getIconManager(platform());
-type IconKeys = keyof WindowsIconManager & keyof MacOsIconManager;
+const iconManager = new IconManager(config);
 
 const nextHotKey = new Hotkey(config.musicPlayerHotkeyNext);
 const backHotKey = new Hotkey(config.musicPlayerHotkeyBack);
@@ -286,8 +283,8 @@ function updateSearchResults(searchResults: SearchResultItem[] | null): void {
         viewModel.id = index;
         viewModel.active = false;
 
-        if (iconManager[searchResultItem.icon as IconKeys]) {
-            viewModel.icon = iconManager[searchResultItem.icon as IconKeys].call(iconManager);
+        if (iconManager[searchResultItem.icon as keyof IconManager]) {
+            viewModel.icon = iconManager[searchResultItem.icon as keyof IconManager].call(iconManager);
         }
 
         if (!viewModel.hideDescription) {
@@ -590,7 +587,7 @@ function autoDeleteSymbolPairs() {
 
 let notifyingTimeout: NodeJS.Timer | number | null = null;
 
-function notify(iconFunctionName: keyof WindowsIconManager) {
+function notify(iconFunctionName: keyof IconManager) {
     if (notifyingTimeout !== null) {
         clearTimeout(notifyingTimeout as number);
     }
@@ -653,7 +650,7 @@ function hideIndexNum() {
 (global as any).handleLinkClick = handleLinkClick;
 
 ipcRenderer.on(IpcChannels.getSearchIconResponse, (_event: Electron.Event, arg: string): void => {
-    vue.searchIcon = iconManager[arg as IconKeys].call(iconManager);
+    vue.searchIcon = iconManager[arg as keyof IconManager].call(iconManager);
 });
 
 ipcRenderer.on(IpcChannels.commandLineOutput, (_event: Electron.Event, arg: string): void => {
