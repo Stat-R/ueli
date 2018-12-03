@@ -1,23 +1,20 @@
-import * as childProcess from "child_process";
-import { Injector } from "../injector";
+import { exec } from "child_process";
 import { Executor } from "./executor";
-import { platform } from "os";
-import { ipcMain, dialog } from "electron";
+import { ipcMain, dialog, shell } from "electron";
 import { IpcChannels } from "../ipc-channels";
 import { statSync } from "fs";
 
 export class FilePathExecutor implements Executor {
     public static openFileLocation(filePath: string): void {
-        const command = Injector.getFileLocationExecutionCommand(platform(), filePath);
-        this.handleExecution(command);
+        shell.showItemInFolder(filePath);
     }
 
     private static handleExecution(command: string): void {
-        childProcess.exec(command, (err) => {
-            if (err) {
-                dialog.showErrorBox("Execute file/folde path", err.stack || err.message);
-            }
-        });
+        try {
+            shell.openItem(command);
+        } catch (err) {
+            dialog.showErrorBox("Execute file/folder path", err.stack || err.message);
+        }
     }
 
     public readonly hideAfterExecution = true;
@@ -37,18 +34,16 @@ export class FilePathExecutor implements Executor {
                 this.handleAlternativeExecuteFile(filePath);
             }
         } else {
-            const command = Injector.getFileExecutionCommand(platform(), filePath);
-            FilePathExecutor.handleExecution(command);
+            FilePathExecutor.handleExecution(filePath);
         }
     }
 
     private handleAlternativeExecuteFile(filePath: string) {
-        // TODO: Do something for macOS here
         ipcMain.emit(IpcChannels.elevatedExecute, filePath);
     }
 
     private handleAlternativeExecuteDir(filePath: string) {
-        childProcess.exec(`"${this.textEditorPath}" "${filePath}"`, (err) => {
+        exec(`"${this.textEditorPath}" "${filePath}"`, (err) => {
             if (err) {
                 dialog.showErrorBox("Execute file/folde path", err.stack || err.message);
             }
