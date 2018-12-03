@@ -18,6 +18,24 @@ interface FeatureOptions {
     youtube: boolean;
 }
 
+export interface CustomIcons {
+    bookmark?: string;
+    calculator?: string;
+    clipboard?: string;
+    commandLine?: string;
+    customShortcut?: string;
+    everything?: string;
+    file?: string;
+    folder?: string;
+    loading?: string;
+    online?: string;
+    program?: string;
+    search?: string;
+    url?: string;
+    variable?: string;
+    windows?: string;
+}
+
 export interface ConfigOptions {
     applicationFileExtensions: string[];
     applicationFolders: Array<[string, string]>;
@@ -28,6 +46,7 @@ export interface ConfigOptions {
     bookmarkFromBrowser: string;
     bookmarkProfileName: string;
     customCommands: CustomCommand[];
+    customIcons: CustomIcons;
     directorySeparator: string;
     everythingFilterFilePath: string;
     features: FeatureOptions;

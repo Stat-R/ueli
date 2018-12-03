@@ -28,6 +28,7 @@ export const defaultConfig: ConfigOptions = {
     bookmarkFromBrowser: "",
     bookmarkProfileName: "",
     customCommands: [],
+    customIcons: {},
     directorySeparator: " \u23F5 ",
     everythingFilterFilePath: `${homedir()}\\AppData\\Roaming\\Everything\\Filters.csv`,
     features: {
