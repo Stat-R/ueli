@@ -133,7 +133,8 @@ Option | Type | Description
 `blurBackground` | boolean | Whether ueli should show blurry background
 `bookmarkFromBrowser` | string | Browser to get bookmark from. Valid values: `firefox`, `chrome`, `vivaldi`, `opera`, `chromium`.
 `bookmarkProfileName` | string | https://github.com/khanhas/ueli/wiki/Browser-bookmark-search
-`customCommands` | customCommand[] | A list of customCommand.
+`customCommands` | [customCommand](#customcommand-object)[] | A list of customCommand.
+`customIcons` | [customIcons](#customicons-object) | Define custom search results and mode icon
 `directorySeparator` | string | Separator for search result description
 `everythingFilterFilePath` | string | Path to Everything's filters CSV file.
 `hotkeyEverythingMode` | string | 
@@ -159,17 +160,34 @@ Option | Type | Description
 `searchResultExecutionArgumentFontSize` | number | Font size of the search result execution argument in pixels
 `searchResultHeight` | number | Height of a search result box in pixels
 `searchResultNameFontSize` | number | Font size of the search result name in pixels
-`textEditor` | textEditor | Set your favourite editor to open folder with it. 
+`textEditor` | [textEditor](#texteditor-object) | Set your favourite editor to open folder with it. 
 `userInputFontSize` | number | Font size of the user input in pixels
 `userInputHeight` | number | Height of the user input box in pixels
 `useNativeApplicationIcon` | boolean | Whether using native bitmap icon of programs.
-`webSearches` | webSearchEngine[] | A list of webSearchEngines
+`webSearches` | [webSearchEngine](#websearchengine-object)[] | A list of webSearchEngines
 `windowWidth` | number | Width of the main window in pixels 
 
 ### `customCommand` object
 - `executionArgument` string - Execution argument for the custom command. Prefix `>` to execute command in UELI command line.
 - `name` string - Displayed name for the custom command
 - `icon` string - (Optional) SVG icon for the custom command. If no icon is set default icon is used.
+
+### `customIcons` object
+- `bookmark`: SVG for bookmark search result icon
+- `calculator`: SVG for calculator search result icon
+- `clipboard`: SVG for clipboard icon
+- `commandLine`: SVG for commandLine search result icon
+- `customShortcut`: SVG for customShortcut search result icon
+- `everything`: SVG for Everything mode icon
+- `file`: SVG for file search result icon
+- `folder`: SVG for folder search result icon
+- `loading`: SVG for loading icon
+- `online`: SVG for Online mode icon
+- `program`: SVG for program search result icon
+- `search`: SVG for Run mode icon
+- `url`: SVG for url search result icon
+- `variable`: SVG for variable search result icon
+- `windows`: SVG for Windows mode icon
 
 ### `textEditor` object
 - `name` string - Displayed name for the editor
