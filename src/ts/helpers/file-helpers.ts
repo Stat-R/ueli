@@ -135,11 +135,6 @@ export class FileHelpers {
                     return;
                 }
                 if (files && files.length > 0) {
-                    files = files.filter((fileName) => !fileName.startsWith("."));
-                    if (files.length === 0) {
-                        reject();
-                        return;
-                    }
                     resolve(files);
                 } else {
                     reject();
