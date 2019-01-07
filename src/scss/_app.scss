@@ -264,27 +264,23 @@ div.search-result.active {
 #player-info {
     width: 100%;
     font-family: var(--player-font-family);
+    color: var(--text-color);
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    overflow: hidden;
 
     & .title {
         font-weight: 600;
-        color: var(--text-color);
         font-size: 40px;
         line-height: 55px;
-        text-overflow: ellipsis;
-        white-space: nowrap;
-        overflow: hidden;
     }
 
     & .artist {
         font-weight: 100;
         font-kerning: 3px;
-        color: var(--text-color);
         opacity: 0.8;
         font-size: 20px;
         line-height: 35px;
-        text-overflow: ellipsis;
-        white-space: nowrap;
-        overflow: hidden;
     }
 }
 
