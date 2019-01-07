@@ -6,7 +6,6 @@ import { HomeFolderSearchPlugin } from "./search-plugins/home-folder-plugin";
 import { ProgramsPlugin } from "./search-plugins/programs-plugin";
 import { SearchPlugin } from "./search-plugins/search-plugin";
 import { UeliCommandsSearchPlugin } from "./search-plugins/ueli-commands-plugin";
-import { platform } from "os";
 
 export class SearchPluginManager {
     private plugins: SearchPlugin[];
@@ -35,7 +34,7 @@ export class SearchPluginManager {
         }
 
         if (config.features.systemSettings) {
-            this.plugins.push(Injector.getOperatingSystemSettingsPlugin(platform()));
+            this.plugins.push(Injector.getOperatingSystemSettingsPlugin());
         }
     }
 

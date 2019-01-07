@@ -5,7 +5,6 @@ import { TrayIconPathBuilder } from "./builders/tray-icon-path-builder";
 import { DirectorySeparator } from "./directory-separator";
 import { OperatingSystemHelpers } from "./helpers/operating-system-helpers";
 import { OperatingSystem } from "./operating-system";
-import { MacOsSettingsPlugin } from "./search-plugins/mac-os-settings-plugin";
 import { SearchPlugin } from "./search-plugins/search-plugin";
 import { Windows10SettingsSearchPlugin } from "./search-plugins/windows-10-settings-plugin";
 
@@ -57,10 +56,7 @@ export class Injector {
     }
   }
 
-  public static getOperatingSystemSettingsPlugin(platform: string): SearchPlugin {
-    switch (OperatingSystemHelpers.getOperatingSystemFromString(platform)) {
-      case OperatingSystem.Windows: return new Windows10SettingsSearchPlugin();
-      case OperatingSystem.macOS: return new MacOsSettingsPlugin();
-    }
+  public static getOperatingSystemSettingsPlugin(): SearchPlugin {
+    return new Windows10SettingsSearchPlugin();
   }
 }
