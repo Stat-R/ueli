@@ -1,4 +1,4 @@
-import { MusicInfoHandler } from "./music-info-handler";
+import { MusicInfoHandler } from "./info-handler";
 import { NowPlaying, PlayerName } from "nowplaying-node";
 import { MusicPlayer } from "./music-player";
 

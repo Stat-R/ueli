@@ -1,4 +1,4 @@
-import { MusicInfoHandler } from "./music-info-handler";
+import { MusicInfoHandler } from "./info-handler";
 import * as ws from "ws";
 import { MusicPlayer } from "./music-player";
 

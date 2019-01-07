@@ -1,4 +1,4 @@
-import { MusicInfoHandler } from "./music-info-handler";
+import { MusicInfoHandler } from "./info-handler";
 
 export interface MusicPlayer {
     artist: MusicInfoHandler<string>;
