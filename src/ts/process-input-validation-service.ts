@@ -6,7 +6,7 @@ import { Taskbar } from "taskbar-node";
 import { app, NativeImage } from "electron";
 
 export class ProcessInputValidationService {
-    public taskbar: Taskbar | undefined;
+    public taskbar: Taskbar;
     private searchEngine: SearchEngine;
     private shouldFetchIcon: boolean;
 
@@ -18,10 +18,6 @@ export class ProcessInputValidationService {
     public async getSearchResult(userInput: string): Promise<SearchResultItem[]> {
         const result = [] as SearchResultItem[];
         userInput = StringHelpers.trimAndReplaceMultipleWhiteSpacesWithOne(userInput);
-
-        if (!this.taskbar) {
-            return result;
-        }
 
         const allProcesses = this.taskbar.getAllApps();
         for (const process of allProcesses) {

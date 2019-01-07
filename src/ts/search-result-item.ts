@@ -10,6 +10,7 @@ export interface SearchResultItem extends BareSearchResultItem {
     executionArgument: string;
     hideDescription?: boolean;
     icon: string;
+    target?: string;
 }
 
 export interface SearchResultItemViewModel extends SearchResultItem {

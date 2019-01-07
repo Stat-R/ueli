@@ -42,20 +42,33 @@ export class ProgramsPlugin implements SearchPlugin {
 
                 let tags: string[] | undefined;
                 let icon: string | undefined;
+                let target: string | undefined;
 
                 if (detail.isLnk) {
                     const info = this.getShortcutInfo(file.fullPath);
-
                     if (info) {
-                        tags = this.pathToTags(info.target);
+                        target = info.target.replace(
+                            /%([^%]+)%/g,
+                            (original: string, varName: string): string => {
+                                const varValue = process.env[varName];
+
+                                if (varValue) {
+                                    return varValue;
+                                }
+
+                                return original;
+                            },
+                        );
+
+                        tags = this.pathToTags(target);
 
                         if (this.shouldFetchIcon) {
                             if (info.icon && !info.icon.endsWith(".dll")) {
                                 icon = await this.pathToIcon(info.icon);
                             }
 
-                            if (!icon && info.target) {
-                                icon = await this.pathToIcon(info.target);
+                            if (!icon && target) {
+                                icon = await this.pathToIcon(target);
                             }
                         }
                     }
@@ -68,6 +81,7 @@ export class ProgramsPlugin implements SearchPlugin {
                     icon: icon || Icons.PROGRAM,
                     name: detail.name,
                     tags,
+                    target,
                 } as SearchResultItem);
             }
         }
@@ -133,16 +147,6 @@ export class ProgramsPlugin implements SearchPlugin {
                 resolve();
                 return;
             }
-
-            iconTarget = iconTarget.replace(/%([^%]+)%/g, (original: string, varName: string): string => {
-                const varValue = process.env[varName];
-
-                if (varValue) {
-                    return varValue;
-                }
-
-                return original;
-            });
 
             app.getFileIcon(iconTarget, (error, image: NativeImage) => {
                 if (error) {

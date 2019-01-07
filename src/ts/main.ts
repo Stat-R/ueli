@@ -14,7 +14,7 @@ import { Injector } from "./injector";
 import { InputValidationService } from "./input-validation-service";
 import { InputValidatorSearcherCombinationManager } from "./input-validator-searcher-combination-manager";
 import { IpcChannels } from "./ipc-channels";
-import { WebSocketSearchResult } from "./music-player/music-player-websocket";
+import { WebSocketSearchResult } from "./music-player/websocket";
 import { OnlineInputValidationService } from "./online-input-validation-service";
 import { OnlineInputValidatorSearcherCombinationManager } from "./online-input-validator-searcher-combination-manager";
 import { ProcessInputValidationService } from "./process-input-validation-service";
@@ -44,12 +44,11 @@ const nativeUtil = new NativeUtil();
 
 let config = new ConfigFileRepository(defaultConfig, UeliHelpers.configFilePath).getConfig();
 
-let taskbar: Taskbar | undefined;
-
 const globalUELI: GlobalUELI = {
     config,
     onlinePluginCollection: [],
     runPluginCollection: [],
+    taskbar: new Taskbar(),
     webSocketCommandSender: (url: string) => {
         mainWindow.webContents.send(IpcChannels.websocketPlayURL, url);
     },
@@ -123,13 +122,19 @@ function loadSearcher() {
 
     runIVS = new InputValidationService(
         new InputValidatorSearcherCombinationManager(globalUELI).getCombinations());
+
     onlineIVS = new OnlineInputValidationService(
         new OnlineInputValidatorSearcherCombinationManager(globalUELI).getCombinations());
+
     processIVS = new ProcessInputValidationService(config.useNativeApplicationIcon);
+    processIVS.taskbar = globalUELI.taskbar;
+
     everythingIVS = new EverythingInputValidationService(nativeUtil, config.maxTotalSearchResult, config.everythingFilterFilePath);
+
     executionService = new ExecutionService(
         new ExecutionArgumentValidatorExecutorCombinationManager(globalUELI).getCombinations(),
         new CountManager(new CountFileRepository(UeliHelpers.countFilePath)));
+
     isReady = true;
 }
 
@@ -282,9 +287,9 @@ function showMainWindow(): void {
         nativeUtil.takeScreenshot(screenshotSize.width, screenshotSize.height, screenshotFile);
     }
 
+    mainWindow.webContents.send(IpcChannels.mainShow);
     mainWindow.restore();
     mainWindow.show();
-    mainWindow.webContents.send(IpcChannels.mainShow);
 }
 
 function updateWindowSize(searchResultCount: number): void {
@@ -305,8 +310,6 @@ function hideMainWindow(): void {
             mainWindow.hide();
         }, 100);
     }
-
-    destructTaskbar();
 }
 
 function reloadApp(): void {
@@ -316,8 +319,6 @@ function reloadApp(): void {
     executionService.destruct();
     runIVS.destruct();
     onlineIVS.destruct();
-
-    destructTaskbar();
 
     (async () => loadSearcher())();
 
@@ -335,7 +336,6 @@ function quitApp(): void {
     executionService.destruct();
     runIVS.destruct();
     onlineIVS.destruct();
-    destructTaskbar();
 
     mainWindow.webContents.session.clearCache(() => {/**/});
     mainWindow.webContents.session.clearStorageData();
@@ -359,7 +359,13 @@ function getSearch(userInput: string): void {
             );
 
             runIVS.getSearchResult(userInput, currentWorkingDirectory)
-                .then(sendResult);
+                .then((results) => {
+                    if (config.features.runModeSwitchTo) {
+                        prependSwitchProcesses(results);
+                    }
+
+                    sendResult(results);
+                });
 
             break;
         }
@@ -392,10 +398,6 @@ function getSearch(userInput: string): void {
             break;
         }
         case InputModes.WINDOWS: {
-            if (taskbar === undefined) {
-                taskbar = new Taskbar();
-            }
-            processIVS.taskbar = taskbar;
             processIVS.getSearchResult(userInput)
                 .then(sendResult);
             break;
@@ -416,10 +418,39 @@ function getSearch(userInput: string): void {
     }
 }
 
-function destructTaskbar() {
-    if (taskbar !== undefined) {
-        taskbar.destruct();
-        taskbar = undefined;
+function prependSwitchProcesses(results: SearchResultItem[]): void {
+    let index = 0;
+    const procs = globalUELI.taskbar.getAllApps();
+    const matchedProc = [] as Array<{ index: number; item: SearchResultItem }>;
+    for (const result of results) {
+        if (index > 4) {
+            break;
+        }
+
+        if (!result.target) {
+            index++;
+            continue;
+        }
+
+        for (const proc of procs) {
+            if (result.target !== proc.getProgramPath()) {
+                continue;
+            }
+
+            const item = {
+                breadCrumb: [proc.getWindowTitle() || proc.getProcessName()],
+                executionArgument: `HWND:${proc.getHWND()}`,
+                icon: result.icon,
+                name: `Switch to ${result.name}`,
+            };
+
+            matchedProc.unshift({ index, item });
+        }
+        index++;
+    }
+
+    for (const matched of matchedProc) {
+        results.splice(matched.index, 0, matched.item);
     }
 }
 

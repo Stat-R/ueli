@@ -40,6 +40,7 @@ export const defaultConfig: ConfigOptions = {
         fileBrowser: true,
         homeFolder: true,
         programs: true,
+        runModeSwitchTo: true,
         spotify: true,
         systemSettings: true,
         ueliCommands: true,

@@ -10,6 +10,7 @@ interface FeatureOptions {
     fileBrowser: boolean;
     homeFolder: boolean;
     programs: boolean;
+    runModeSwitchTo: boolean;
     spotify: boolean;
     systemSettings: boolean;
     ueliCommands: boolean;
