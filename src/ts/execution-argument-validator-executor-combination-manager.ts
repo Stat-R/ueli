@@ -1,18 +1,10 @@
 import { ExecutionArgumentValidatorExecutorCombination } from "./execution-argument-validator-executor-combination";
-import { CommandLineExecutionArgumentValidator } from "./execution-argument-validators/command-line-execution-argument-validator";
-import { CustomCommandExecutionArgumentValidator } from "./execution-argument-validators/custom-command-exeuction-argument-validator";
 import { FilePathExecutionArgumentValidator } from "./execution-argument-validators/file-path-execution-argument-validator";
-import { MacOsSettingsExecutionArgumentValidator } from "./execution-argument-validators/mac-os-execution-argument-validator";
-import { SpotifyExecutionArgumentValidator } from "./execution-argument-validators/spotify-exeuction-argument-validator";
-import { UeliCommandExecutionArgumentValidator } from "./execution-argument-validators/ueli-command-execution-argument-validator";
 import { WebSearchExecutionArgumentValidator } from "./execution-argument-validators/web-search-execution-argument-validator";
 import { WebUrlExecutionArgumentValidator } from "./execution-argument-validators/web-url-execution-argument-validator";
-import { ProcessExecutionArgumentValidator } from "./execution-argument-validators/windows-execution-argument-validator";
-import { WindowsSettingsExecutionArgumentValidator } from "./execution-argument-validators/windows-settings-execution-argument-validator";
 import { CommandLineExecutor } from "./executors/command-line-executor";
 import { CustomCommandExecutor } from "./executors/custom-command-executor";
 import { FilePathExecutor } from "./executors/file-path-executor";
-import { MacOsSettingsExecutor } from "./executors/mac-os-settings-executor";
 import { SpotifyExecutor } from "./executors/spotify-executor";
 import { UeliCommandExecutor } from "./executors/ueli-command-executor";
 import { WebSearchExecutor } from "./executors/web-search-executor";
@@ -20,9 +12,10 @@ import { WebUrlExecutor } from "./executors/web-url-executor";
 import { ProcessExecutor } from "./executors/windows-executor";
 import { WindowsSettingsExecutor } from "./executors/windows-settings-executor";
 import { GlobalUELI } from "./global-ueli";
-import { OperatingSystemHelpers } from "./helpers/operating-system-helpers";
-import { OperatingSystem } from "./operating-system";
-import { platform } from "os";
+import { PrefixArgumentValidator } from "./execution-argument-validators/prefix-argument-validator";
+import { ClipboardExecutor } from "./executors/clipboard-executor";
+import { UeliHelpers } from "./helpers/ueli-helpers";
+import { WindowsSettingsHelpers } from "./helpers/windows-settings-helpers";
 
 export class ExecutionArgumentValidatorExecutorCombinationManager {
     private combinations: ExecutionArgumentValidatorExecutorCombination[];
@@ -39,14 +32,18 @@ export class ExecutionArgumentValidatorExecutorCombinationManager {
             },
             {
                 executor: new ProcessExecutor,
-                validator: new ProcessExecutionArgumentValidator,
+                validator: new PrefixArgumentValidator("HWND:"),
+            },
+            {
+                executor: new ClipboardExecutor,
+                validator: new PrefixArgumentValidator("clipboard:"),
             },
         ];
 
         if (globalUELI.config.features.ueliCommands) {
             this.combinations.push({
                 executor: new UeliCommandExecutor,
-                validator: new UeliCommandExecutionArgumentValidator,
+                validator: new PrefixArgumentValidator(UeliHelpers.ueliCommandPrefix),
             });
         }
 
@@ -62,41 +59,29 @@ export class ExecutionArgumentValidatorExecutorCombinationManager {
         if (globalUELI.config.features.commandLine) {
             this.combinations.push({
                 executor: clExecutor,
-                validator: new CommandLineExecutionArgumentValidator,
+                validator: new PrefixArgumentValidator(">"),
             });
         }
 
         if (globalUELI.config.features.customCommands) {
             this.combinations.push({
                 executor: new CustomCommandExecutor(clExecutor),
-                validator: new CustomCommandExecutionArgumentValidator,
+                validator: new PrefixArgumentValidator(UeliHelpers.customCommandPrefix),
             });
         }
 
         if (globalUELI.config.features.spotify) {
             this.combinations.push({
                 executor: new SpotifyExecutor(globalUELI.webSocketCommandSender),
-                validator: new SpotifyExecutionArgumentValidator,
+                validator: new PrefixArgumentValidator("spotify:"),
             });
         }
 
         if (globalUELI.config.features.systemSettings) {
-            switch (OperatingSystemHelpers.getOperatingSystemFromString(platform())) {
-                case OperatingSystem.Windows: {
-                    this.combinations.push({
-                        executor: new WindowsSettingsExecutor,
-                        validator: new WindowsSettingsExecutionArgumentValidator,
-                    });
-                    break;
-                }
-                case OperatingSystem.macOS: {
-                    this.combinations.push({
-                        executor: new MacOsSettingsExecutor,
-                        validator: new MacOsSettingsExecutionArgumentValidator,
-                    });
-                    break;
-                }
-            }
+            this.combinations.push({
+                executor: new WindowsSettingsExecutor,
+                validator: new PrefixArgumentValidator(WindowsSettingsHelpers.windowsSettingsPrefix),
+            });
         }
 
         for (const plugin of globalUELI.runPluginCollection) {
