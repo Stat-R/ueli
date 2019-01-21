@@ -9,7 +9,10 @@
 #include <algorithm>
 #include <Shldisp.h>
 #include <comdef.h>
+#include <filesystem>
+#include <sstream>
 
+namespace fs = std::filesystem;
 namespace Gdiplus
 {
     using std::min;
@@ -29,6 +32,28 @@ std::vector<std::vector<std::string>> ipcResultList;
 bool ipcGotResult = false;
 
 bool GetEncoderClsid(CLSID *pClsid);
+
+class File {
+public:
+    File(fs::directory_entry _item) : item(_item) {};
+    std::string path() { return item.path().u8string(); };
+    std::string name() { return item.path().filename().u8string(); };
+    std::vector<std::string> crumbs()
+    {
+        std::vector<std::string> out;
+        std::string token;
+        std::istringstream tokenStream(path());
+        while (std::getline(tokenStream, token, '\\'))
+        {
+            out.push_back(token);
+        }
+        return out;
+    }
+    bool isDir() { return item.is_directory(); };
+
+  private:
+    fs::directory_entry item;
+};
 
 class NativeUtil
 {
@@ -114,7 +139,15 @@ class NativeUtil
         }
 
         Microsoft::WRL::ComPtr<IContextMenu> iMenu = nullptr;
-        result = iFolder->GetUIObjectOf(browserHwnd, 1, (const ITEMIDLIST **)&idChild, IID_IContextMenu, nullptr, (void **)&iMenu);
+
+        result = iFolder->GetUIObjectOf(
+            browserHwnd, 1,
+            (const ITEMIDLIST **)&idChild,
+            IID_IContextMenu,
+            nullptr,
+            (void **)&iMenu
+        );
+
         if (!SUCCEEDED(result) || !iFolder)
         {
             return;
@@ -173,7 +206,10 @@ class NativeUtil
                 query->reply_copydata_message = COPYDATA_QUERYCOMPLETE;
                 query->search_flags = matchOptions;
                 query->reply_hwnd = (DWORD)ipcHwnd;
-                query->request_flags = EVERYTHING_IPC_QUERY2_REQUEST_NAME | EVERYTHING_IPC_QUERY2_REQUEST_FULL_PATH_AND_NAME | EVERYTHING_IPC_QUERY2_REQUEST_EXTENSION;
+                query->request_flags =
+                    EVERYTHING_IPC_QUERY2_REQUEST_NAME |
+                    EVERYTHING_IPC_QUERY2_REQUEST_FULL_PATH_AND_NAME |
+                    EVERYTHING_IPC_QUERY2_REQUEST_EXTENSION;
                 query->sort_type = EVERYTHING_IPC_SORT_NAME_ASCENDING;
 
                 CopyMemory(query + 1, search_string, len);
@@ -294,6 +330,26 @@ class NativeUtil
         fgHwnd = (long long)GetForegroundWindow();
     }
 
+    std::vector<File> iterateFolder(std::string folderPath)
+    {
+        std::vector<File> out;
+
+        for (const auto &item : fs::directory_iterator(folderPath))
+            out.push_back(File{item});
+
+        return out;
+    }
+
+    std::vector<File> recursiveIterateFolder(std::string folderPath)
+    {
+        std::vector<File> out;
+
+        for (const auto &item : fs::recursive_directory_iterator(folderPath))
+            out.push_back(File{item});
+
+        return out;
+    }
+
   private:
     void CreateEverythingIPCWindow()
     {
@@ -336,6 +392,14 @@ class NativeUtil
     long long fgHwnd = 0;
 };
 
+NBIND_CLASS(File)
+{
+    method(path);
+    method(name);
+    method(isDir);
+    method(crumbs);
+}
+
 NBIND_CLASS(NativeUtil)
 {
     construct();
@@ -347,6 +411,8 @@ NBIND_CLASS(NativeUtil)
     method(takeScreenshot);
     method(getExplorerPath);
     method(storeLastFgWindow);
+    method(iterateFolder);
+    method(recursiveIterateFolder);
 }
 
 std::wstring StrToWStr(const std::string &str)
