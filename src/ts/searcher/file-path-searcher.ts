@@ -1,11 +1,12 @@
 import { Searcher } from "./searcher";
-import { FileHelpers, FancyFile } from "../helpers/file-helpers";
+import { FileHelpers } from "../helpers/file-helpers";
 import { Icons } from "../icon-manager/icon-manager";
 import { SearchEngine } from "../search-engine";
 import { SearchResultItem } from "../search-result-item";
 import * as fs from "fs";
-import * as path from "path";
+import { dirname, basename, extname } from "path";
 import { FilePathRegex } from "../helpers/file-path-regex";
+import { File, NativeUtil } from "../native-lib";
 
 export class FilePathSearcher implements Searcher {
     public readonly needSort = false;
@@ -15,11 +16,13 @@ export class FilePathSearcher implements Searcher {
     private executableExtension: string[];
     private regex: RegExp;
     private cacheFolder: { filePath: string, isRecursive: boolean, result: SearchResultItem[] } | undefined;
+    private nativeUtil: NativeUtil;
 
-    constructor(executableExtension: string[], textEditorName: string) {
+    constructor(executableExtension: string[], textEditorName: string, nativeUtil: NativeUtil) {
         this.textEditorName = textEditorName;
         this.regex = FilePathRegex.windowsFilePathRegExp;
         this.executableExtension = executableExtension.map((ext) => ext.toLowerCase());
+        this.nativeUtil = nativeUtil;
     }
 
     public async getSearchResult(userInput: string, cwd: string | undefined): Promise<SearchResultItem[]> {
@@ -36,16 +39,16 @@ export class FilePathSearcher implements Searcher {
             const stats = fs.lstatSync(filePath);
             if (stats.isDirectory()) {
                 if (userInput.endsWith("\\")) {
-                    return await this.getFolderSearchResult(filePath);
+                    return this.getFolderSearchResult(filePath);
                 }
             } else {
                 return this.getFileSearchResult(filePath);
             }
         }
 
-        if (fs.existsSync(path.dirname(userInput))) {
-            filePath = path.dirname(userInput);
-            let searchTerm = path.basename(userInput);
+        if (fs.existsSync(dirname(userInput))) {
+            filePath = dirname(userInput);
+            let searchTerm = basename(userInput);
 
             const isRecursive = searchTerm.startsWith(":");
             if (isRecursive) {
@@ -77,51 +80,38 @@ export class FilePathSearcher implements Searcher {
         return [];
     }
 
-    private async getFolderSearchResult(folderPath: string, recursive = false): Promise<SearchResultItem[]> {
+    private getFolderSearchResult(folderPath: string, recursive = false): SearchResultItem[] {
         const result = [] as SearchResultItem[];
 
-        let files: FancyFile[] = [];
+        let files: File[] = [];
 
         if (recursive) {
-            files = await FileHelpers.getFilesFromFolderRecursively({
-                breadCrumb: FileHelpers.filePathToBreadCrumbs(folderPath),
-                fullPath: folderPath,
-            });
+            files = this.nativeUtil.recursiveIterateFolder(folderPath);
         } else {
-            files = await FileHelpers.getFilesFromFolder({
-                breadCrumb: FileHelpers.filePathToBreadCrumbs(folderPath),
-                fullPath: folderPath,
-            });
+            files = this.nativeUtil.iterateFolder(folderPath);
         }
 
         for (const file of files) {
-            let isDir: boolean;
-            try {
-                isDir = fs.lstatSync(file.fullPath).isDirectory();
-            } catch (_e) {
-                continue;
-            }
-
-            if (isDir) {
+            if (file.isDir()) {
                 result.push({
                     alternativePrefix: this.textEditorName && `Open in ${this.textEditorName}`,
-                    breadCrumb: file.breadCrumb,
-                    executionArgument: file.fullPath,
+                    breadCrumb: FileHelpers.crumbsToLinkedCrumbs(file.crumbs()),
+                    executionArgument: file.path(),
                     icon: Icons.FOLDER,
-                    name: path.basename(file.fullPath),
+                    name: file.name(),
                 } as SearchResultItem);
             } else {
-                let prefix = "";
-                const fileExt = path.extname(file.fullPath).toLowerCase();
-                if (this.executableExtension.indexOf(fileExt) !== -1) {
-                    prefix = "Run As Administrator";
-                }
+                const fileName = file.name();
+                const prefix = this.isExecutableFile(fileName)
+                    ? "Run As Administrator"
+                    : undefined;
+
                 result.push({
                     alternativePrefix: prefix,
-                    breadCrumb: file.breadCrumb,
-                    executionArgument: file.fullPath,
+                    breadCrumb: FileHelpers.crumbsToLinkedCrumbs(file.crumbs()),
+                    executionArgument: file.path(),
                     icon: Icons.FILE,
-                    name: path.basename(file.fullPath),
+                    name: fileName,
                 } as SearchResultItem);
             }
         }
@@ -130,16 +120,11 @@ export class FilePathSearcher implements Searcher {
     }
 
     private sortSearchResult(items: SearchResultItem[], searchTerm: string): SearchResultItem[] {
-        const searchEngine = new SearchEngine();
-        return searchEngine.search(items, searchTerm);
+        return new SearchEngine().search(items, searchTerm);
     }
 
     private getFileSearchResult(filePath: string): SearchResultItem[] {
-        let prefix = "";
-        const fileExt = path.extname(filePath).toLowerCase();
-        if (this.executableExtension.indexOf(fileExt) !== -1) {
-            prefix = "Run As Administrator";
-        }
+        const prefix = this.isExecutableFile(filePath) ? "Run As Administrator" : undefined;
 
         return [
             {
@@ -147,7 +132,7 @@ export class FilePathSearcher implements Searcher {
                 breadCrumb: FileHelpers.filePathToBreadCrumbs(filePath),
                 executionArgument: filePath,
                 icon: Icons.FILE,
-                name: path.basename(filePath),
+                name: basename(filePath),
             } as SearchResultItem,
         ];
     }
@@ -160,8 +145,17 @@ export class FilePathSearcher implements Searcher {
         }$`;
         const regExp = new RegExp(searchTerm);
         return items.filter((item) => {
-            const name = path.basename(item.executionArgument);
+            const name = basename(item.executionArgument);
             return regExp.test(name);
         });
+    }
+
+    private isExecutableFile(input: string): boolean {
+        const ext = extname(input).toLowerCase();
+        if (this.executableExtension.indexOf(ext) !== -1) {
+            return true;
+        }
+
+        return false;
     }
 }

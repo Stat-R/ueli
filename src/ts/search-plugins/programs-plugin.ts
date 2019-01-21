@@ -2,10 +2,11 @@ import { Icons } from "../icon-manager/icon-manager";
 import { SearchResultItem } from "../search-result-item";
 import { SearchPlugin } from "./search-plugin";
 import { ConfigOptions } from "../config-options";
-import { FileHelpers } from "../helpers/file-helpers";
+// import { FileHelpers } from "../helpers/file-helpers";
 import { StringHelpers } from "../helpers/string-helpers";
 import * as path from "path";
 import { shell, NativeImage, app, ShortcutDetails } from "electron";
+import { NativeUtil } from "../native-lib";
 
 interface Program {
     name: string;
@@ -17,24 +18,32 @@ export class ProgramsPlugin implements SearchPlugin {
     private extensions: string[];
     private blacklist: string[];
     private shouldFetchIcon: boolean;
+    private nativeUtil: NativeUtil;
 
-    public constructor(config: ConfigOptions) {
+    public constructor(config: ConfigOptions, nativeUtil: NativeUtil) {
         this.folders = config.applicationFolders;
         this.extensions = config.applicationFileExtensions.map((item) => item.toLowerCase());
         this.blacklist = config.applicationKeywordBlacklist.map((item) => item.toLowerCase());
         this.shouldFetchIcon = config.useNativeApplicationIcon;
+        this.nativeUtil = nativeUtil;
     }
 
     public async getAllItems(): Promise<SearchResultItem[]> {
         const results = [] as SearchResultItem[];
 
         for (const applicationFolder of this.folders) {
-            const breadCrumb = [FileHelpers.toHTML(applicationFolder[0], applicationFolder[1])];
+            // const breadCrumb = [FileHelpers.toHTML(applicationFolder[0], applicationFolder[1])];
             const fullPath = applicationFolder[0];
 
-            const files = await FileHelpers.getFilesFromFolderRecursively({ breadCrumb, fullPath });
+            const files = this.nativeUtil.recursiveIterateFolder(fullPath);
+
             for (const file of files) {
-                const detail = this.getNameExtension(file.fullPath);
+                if (file.isDir()) {
+                    continue;
+                }
+
+                const filePath = file.path();
+                const detail = this.getNameExtension(file.name());
 
                 if (!detail) {
                     continue;
@@ -45,25 +54,16 @@ export class ProgramsPlugin implements SearchPlugin {
                 let target: string | undefined;
 
                 if (detail.isLnk) {
-                    const info = this.getShortcutInfo(file.fullPath);
+                    const info = this.getShortcutInfo(filePath);
+
                     if (info) {
-                        target = info.target.replace(
-                            /%([^%]+)%/g,
-                            (original: string, varName: string): string => {
-                                const varValue = process.env[varName];
-
-                                if (varValue) {
-                                    return varValue;
-                                }
-
-                                return original;
-                            },
-                        );
+                        target = this.replaceEnvVar(info.target);
 
                         tags = this.pathToTags(target);
 
                         if (this.shouldFetchIcon) {
                             if (info.icon && !info.icon.endsWith(".dll")) {
+                                info.icon = this.replaceEnvVar(info.icon);
                                 icon = await this.pathToIcon(info.icon);
                             }
 
@@ -76,8 +76,8 @@ export class ProgramsPlugin implements SearchPlugin {
 
                 results.push({
                     alternativePrefix: "Run as Admin",
-                    breadCrumb: file.breadCrumb,
-                    executionArgument: file.fullPath,
+                    executionArgument: filePath,
+                    hideDescription: true,
                     icon: icon || Icons.PROGRAM,
                     name: detail.name,
                     tags,
@@ -148,13 +148,29 @@ export class ProgramsPlugin implements SearchPlugin {
                 return;
             }
 
-            app.getFileIcon(iconTarget, (error, image: NativeImage) => {
+            app.getFileIcon(iconTarget, (error: Error, image: NativeImage) => {
                 if (error) {
                     resolve();
                     return;
                 }
+
                 resolve(`<image href='${image.toDataURL()}'/>`);
             });
         });
+    }
+
+    private replaceEnvVar(input: string): string {
+        return input.replace(
+            /%([^%]+)%/g,
+            (original: string, varName: string): string => {
+                const varValue = process.env[varName];
+
+                if (varValue) {
+                    return varValue;
+                }
+
+                return original;
+            },
+        );
     }
 }
