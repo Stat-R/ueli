@@ -1,35 +1,31 @@
 import { Searcher } from "./searcher";
 import { Icons } from "../icon-manager/icon-manager";
 import { SearchResultItem } from "../search-result-item";
-import * as math from "mathjs";
+import { CalculatorInputValidator } from "../input-validators/calculator-input-validator";
 
 export class CalculatorSearcher implements Searcher {
     public readonly needSort = false;
     public readonly shouldIsolate = true;
+    public validator: CalculatorInputValidator;
 
-    public async getSearchResult(userInput: string): Promise<SearchResultItem[]> {
-        const result = math.eval(userInput);
-        let resultString = "";
+    constructor() {
+        this.validator = new CalculatorInputValidator;
+    }
 
-        if (result === null) {
-            resultString = "null";
-        } else {
-            resultString = result.toString();
-
-            if (resultString === "[object Object]") {
-                resultString = JSON.stringify(result);
-            }
-        }
-
-        resultString = resultString.replace(/\^(\d+)/g, (_, num: string) => num.sup());
-
+    public async getSearchResult(_: string): Promise<SearchResultItem[]> {
         return [
             {
-                executionArgument: resultString,
+                executionArgument: `clipboard:${this.validator.result}`,
                 hideDescription: true,
                 icon: Icons.CALCULATOR,
-                name: `= ${resultString}`,
+                name: `= ${this.styleResult(this.validator.result)}`,
             } as SearchResultItem,
         ];
+    }
+
+    private styleResult(input: string): string {
+        return input
+            // HTML styled "x^y"
+            .replace(/\^(\d+)/g, (_: any, num: string) => num.sup());
     }
 }
