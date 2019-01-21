@@ -1,8 +1,9 @@
 import { StringHelpers } from "./helpers/string-helpers";
 import { Icons } from "./icon-manager/icon-manager";
 import { SearchResultItem } from "./search-result-item";
-import { NativeUtil } from "../../native-util/native-util";
+import { NativeUtil } from "./native-lib";
 import { readFileSync } from "fs";
+import { GlobalUELI } from "./global-ueli";
 
 interface EverythingFilter {
     [key: string]: {
@@ -26,12 +27,12 @@ export class EverythingInputValidationService {
     private filters: EverythingFilter | undefined;
     private filterPrefixes: string[] = [];
 
-    constructor(nativeUtil: NativeUtil, maxResults: number, filterFile: string) {
-        this.nativeUtil = nativeUtil;
-        this.maxResults = maxResults;
+    constructor(globalUeli: GlobalUELI) {
+        this.nativeUtil = globalUeli.nativeUtil;
+        this.maxResults = globalUeli.config.maxSearchResultCount;
 
-        if (filterFile) {
-            this.filters = this.parseFilterCSV(filterFile);
+        if (globalUeli.config.everythingFilterFilePath) {
+            this.filters = this.parseFilterCSV(globalUeli.config.everythingFilterFilePath);
 
             if (this.filters) {
                 this.filterPrefixes = Object.keys(this.filters).map((filterName) => `${filterName}:`);
