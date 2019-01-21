@@ -254,9 +254,16 @@ function changeModeWithHotkey(mode: number, setCurrentWorkingDirectory = false) 
     }
 
     if (setCurrentWorkingDirectory) {
-        const cwd = nativeUtil.getExplorerPath();
-        if (cwd) {
-            currentWorkingDirectory = cwd;
+        let rawPath = nativeUtil.getExplorerPath();
+        if (rawPath) {
+            rawPath = decodeURI(rawPath)
+                .replace("file:///", "").replace(/\//g, "\\");
+
+            if (!rawPath.endsWith("\\")) {
+                rawPath += "\\";
+            }
+
+            currentWorkingDirectory = rawPath;
         }
     } else {
         currentWorkingDirectory = undefined;
