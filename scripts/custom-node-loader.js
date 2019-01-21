@@ -13,7 +13,7 @@ module.exports = function(content) {
   this.emitFile(url, content);
 
   var publicPath = `__webpack_public_path__ + ${JSON.stringify(url)}`;
-  var devPath = `__webpack_public_path__ + ${JSON.stringify(join("build", url))}`;
+  var devPath = `__webpack_public_path__ + ${JSON.stringify(join("bundle", url))}`;
 
   return `try {
   global.process.dlopen(module, ${publicPath});

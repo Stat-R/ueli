@@ -1,14 +1,14 @@
 {
   "name": "ueli",
   "productName": "ueli",
-  "version": "4.4.0",
+  "version": "4.6.0",
   "author": {
     "name": "Oliver Schwendener",
     "email": "oliver.schwendener@hotmail.com",
     "url": "https://github.com/oliverschwendener"
   },
   "description": "A cross-platform alt+space launcher",
-  "main": "./build/main.js",
+  "main": "./bundle/main.js",
   "scripts": {
     "build": "webpack --progress",
     "build:watch": "webpack -w --progress",
@@ -22,8 +22,8 @@
     "package:publish": "yarn clean & yarn build:publish && electron-builder --config electron-builder-config.yml --publish onTag",
     "package": "yarn build && electron-builder --dir --config electron-builder-config.yml --publish never",
     "link:taskbar": "mklink /J \"D:/ueli/node_modules/taskbar-node\" \"D:/taskbar-node/\"",
-    "clean": "rmdir \"./build\" \"./dist\" /S /Q",
-    "build:util": "node-gyp configure build && ndts . > \"./native-util/lib-types.d.ts\"",
+    "clean": "rmdir bundle dist /S /Q",
+    "build:util": "node-gyp configure build && ndts . > \"./src/ts/native-lib.d.ts\" && electron-rebuild --only nbind -f",
     "el": "electron-rebuild",
     "elf": "rmdir \"./build\" /S /Q & yarn el && yarn build && yarn start",
     "noti": "C:/SnoreToast.exe -t \"Build Done\" -m \"VSCode\"",
@@ -55,7 +55,7 @@
     "autogypi": "^0.2.2",
     "coveralls": "^3.0.1",
     "css-loader": "^0.28.11",
-    "electron": "^3.0.7",
+    "electron": "^3.0.8",
     "electron-builder": "^20.18.0",
     "electron-rebuild": "^1.7.3",
     "extract-loader": "^2.0.1",
