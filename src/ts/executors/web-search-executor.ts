@@ -1,14 +1,10 @@
-import { exec } from "child_process";
-import { Injector } from "../injector";
 import { Executor } from "./executor";
-import { platform } from "os";
 import { WebSearchHelpers } from "../helpers/web-search-helper";
 import { WebSearch } from "../web-search";
-import { dialog } from "electron";
+import { shell } from "electron";
 
 export class WebSearchExecutor implements Executor {
     public readonly hideAfterExecution = true;
-    public readonly resetUserInputAfterExecution = true;
     public readonly logExecution = false;
 
     private webSearches: WebSearch[];
@@ -20,12 +16,8 @@ export class WebSearchExecutor implements Executor {
     public execute(executionArgument: string): void {
         for (const webSearch of this.webSearches) {
             if (executionArgument.startsWith(`${webSearch.prefix}${WebSearchHelpers.webSearchSeparator}`)) {
-                const command = Injector.getOpenUrlWithDefaultBrowserCommand(platform(), executionArgument);
-                exec(command, (err) => {
-                    if (err) {
-                        dialog.showErrorBox("Execute file/folde path", err.stack || err.message);
-                    }
-                });
+                shell.openExternal(executionArgument);
+                return;
             }
         }
     }
