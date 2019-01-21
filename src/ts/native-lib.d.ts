@@ -2,6 +2,20 @@ import { Buffer } from "nbind/dist/shim";
 
 export class NBindBase { free?(): void }
 
+export class File extends NBindBase {
+	/** std::string path(); */
+	path(): string;
+
+	/** std::string name(); */
+	name(): string;
+
+	/** bool isDir(); */
+	isDir(): boolean;
+
+	/** std::vector<std::string> crumbs(); */
+	crumbs(): string[];
+}
+
 export class NativeUtil extends NBindBase {
 	/** NativeUtil(); */
 	constructor();
@@ -29,4 +43,10 @@ export class NativeUtil extends NBindBase {
 
 	/** void storeLastFgWindow(); */
 	storeLastFgWindow(): void;
+
+	/** std::vector<File> iterateFolder(std::string); */
+	iterateFolder(p0: string): File[];
+
+	/** std::vector<File> recursiveIterateFolder(std::string); */
+	recursiveIterateFolder(p0: string): File[];
 }

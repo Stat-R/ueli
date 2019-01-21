@@ -3,7 +3,7 @@
     {
       "target_name": "nbind",
       "includes": [
-		    "auto.gypi"
+		    "node_modules\\nbind\\src\\nbind.gypi"
 	    ],
       "conditions": [
         ["OS=='win'", {
@@ -20,22 +20,13 @@
             "NTDDI_VERSION=NTDDI_WIN7",
             "UNICODE"
           ],
+          "msbuild_settings": {
+            "ClCompile": {
+              "LanguageStandard": "stdcpp17",
+            }
+          },
         }],
       ],
     },
-    {
-			"target_name": "copy_binary",
-			"type":"none",
-			"dependencies": [ "nbind" ],
-			"copies": [
-				{
-					'destination': '<(module_root_dir)/native-util/',
-					'files': ['<(module_root_dir)/build/Release/nbind.node'],
-				},
-			],
-    },
   ],
-  "includes": [
-		"auto-top.gypi"
-  ]
 }
