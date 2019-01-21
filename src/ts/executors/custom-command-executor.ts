@@ -1,13 +1,11 @@
 import { CommandLineExecutor } from "./command-line-executor";
 import { Executor } from "./executor";
-import { CommandLineExecutionArgumentValidator } from "../execution-argument-validators/command-line-execution-argument-validator";
 import { UeliHelpers } from "../helpers/ueli-helpers";
 import { exec } from "child_process";
 import { dialog } from "electron";
 
 export class CustomCommandExecutor implements Executor {
     public hideAfterExecution = true;
-    public readonly resetUserInputAfterExecution = true;
     public readonly logExecution = true;
     private commandLineExecutor: CommandLineExecutor;
 
@@ -17,7 +15,7 @@ export class CustomCommandExecutor implements Executor {
 
     public execute(executionArgument: string, _: boolean, cwd: string | undefined): void {
         executionArgument = executionArgument.replace(UeliHelpers.customCommandPrefix, "");
-        if (new CommandLineExecutionArgumentValidator().isValidForExecution(executionArgument)) {
+        if (executionArgument.startsWith(">")) {
             this.hideAfterExecution = false;
             this.commandLineExecutor.execute(executionArgument, false, cwd);
             return;

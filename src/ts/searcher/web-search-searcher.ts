@@ -1,5 +1,4 @@
 import { Searcher } from "./searcher";
-import { NoWebSearchErrorFoundError } from "../errors/no-websearch-found-error";
 import { WebSearchHelpers } from "../helpers/web-search-helper";
 import { SearchResultItem } from "../search-result-item";
 import { WebSearch } from "../web-search";
@@ -33,7 +32,7 @@ export class WebSearchSearcher implements Searcher {
             }
         }
 
-        throw new NoWebSearchErrorFoundError(userInput);
+        return [];
     }
 
     private createSearchTerm(userInput: string, webSearch: WebSearch): string {

@@ -56,6 +56,7 @@ export class BrowserBookmark implements SearchPlugin {
             const db = new SQL.Database(fileBuffer);
 
             const results = db.exec(`SELECT b.title, p.url FROM moz_bookmarks b JOIN moz_places p ON b.fk = p.id WHERE p.url NOT LIKE 'place%'`);
+            db.close();
 
             if (!results[0]
                 && !results[0].values

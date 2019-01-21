@@ -18,7 +18,6 @@ export class FilePathExecutor implements Executor {
     }
 
     public readonly hideAfterExecution = true;
-    public readonly resetUserInputAfterExecution = true;
     public readonly logExecution = true;
     private textEditorPath: string;
 

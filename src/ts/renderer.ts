@@ -78,7 +78,7 @@ const vue = new Vue({
         searchResults: [] as SearchResultItemViewModel[],
         showAlternativePrefix: false,
         showIndexNum: false,
-        stylesheetPath: `./build/${defaultCSS && "default"}.css`,
+        stylesheetPath: `./bundle/${defaultCSS && "default"}.css`,
         userInput: "",
     },
     el: "#vue-root",
@@ -370,6 +370,8 @@ function handleEnterPress(alternative = false): void {
     } else {
         execute(activeItem.executionArgument, false);
     }
+
+    resetUserInput();
 }
 
 function handleOpenFileLocation(): void {

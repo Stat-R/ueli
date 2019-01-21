@@ -2,8 +2,6 @@ import { CommandLineCompleter } from "./completer/command-line-completer";
 import { FilePathCompleter } from "./completer/file-path-completer";
 import { GlobalUELI } from "./global-ueli";
 import { InputValidatorSearcherCombination } from "./input-validator-searcher-combination";
-import { CalculatorInputValidator } from "./input-validators/calculator-input-validator";
-import { CommandLineInputValidator } from "./input-validators/command-line-input-validator";
 import { FilePathInputValidator } from "./input-validators/file-path-input-validator";
 import { PrefixInputValidator } from "./input-validators/prefix-input-validator";
 import { SearchPluginsInputValidator } from "./input-validators/search-plugins-input-validator";
@@ -23,9 +21,10 @@ export class InputValidatorSearcherCombinationManager {
     constructor(globalUELI: GlobalUELI) {
         this.combinations = [];
         if (globalUELI.config.features.calculator) {
+            const calcSearcher = new CalculatorSearcher;
             this.combinations.push({
-                searcher: new CalculatorSearcher,
-                validator: new CalculatorInputValidator,
+                searcher: calcSearcher,
+                validator: calcSearcher.validator,
             });
         }
 
@@ -39,8 +38,10 @@ export class InputValidatorSearcherCombinationManager {
         if (globalUELI.config.features.commandLine) {
             this.combinations.push({
                 completer: new CommandLineCompleter,
-                searcher: new CommandLineSearcher(globalUELI.config.powerShellPath),
-                validator: new CommandLineInputValidator,
+                searcher: new CommandLineSearcher(
+                    globalUELI.config.powerShellPath,
+                    globalUELI.nativeUtil),
+                validator: new PrefixInputValidator(">", "CLI"),
             });
         }
 
@@ -54,7 +55,10 @@ export class InputValidatorSearcherCombinationManager {
         if (globalUELI.config.features.fileBrowser) {
             this.combinations.push({
                 completer: new FilePathCompleter,
-                searcher: new FilePathSearcher(globalUELI.config.applicationFileExtensions, globalUELI.config.textEditor.name),
+                searcher: new FilePathSearcher(
+                    globalUELI.config.applicationFileExtensions,
+                    globalUELI.config.textEditor.name,
+                    globalUELI.nativeUtil),
                 validator: new FilePathInputValidator,
             });
         }
@@ -67,7 +71,9 @@ export class InputValidatorSearcherCombinationManager {
         }
 
         this.combinations.push({
-            searcher: new SearchPluginsSearcher(globalUELI.config),
+            searcher: new SearchPluginsSearcher(
+                globalUELI.config,
+                globalUELI.nativeUtil),
             validator: new SearchPluginsInputValidator,
         });
 

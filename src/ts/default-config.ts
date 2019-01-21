@@ -1,20 +1,14 @@
 import { ConfigOptions } from "./config-options";
-import { OperatingSystemHelpers } from "./helpers/operating-system-helpers";
-import { OperatingSystem } from "./operating-system";
 import { WebSearch } from "./web-search";
-import { homedir, platform } from "os";
+import { homedir } from "os";
 
 export const defaultConfig: ConfigOptions = {
-    applicationFileExtensions: OperatingSystemHelpers.getOperatingSystemFromString(platform()) === OperatingSystem.Windows
-        ? [".lnk", ".appref-ms", ".url", ".exe"]
-        : [".app"],
-    applicationFolders: OperatingSystemHelpers.getOperatingSystemFromString(platform()) === OperatingSystem.Windows
-        ? [
-            ["C:\\ProgramData\\Microsoft\\Windows\\Start Menu\\Programs", "Start Menu"],
-            [`${homedir()}\\AppData\\Roaming\\Microsoft\\Windows\\Start Menu`, "Start Menu"],
-            [`${homedir()}\\Desktop`, "Desktop"],
-        ]
-        : [["/Applications", "Applications"]],
+    applicationFileExtensions: [".lnk", ".appref-ms", ".url", ".exe"],
+    applicationFolders: [
+        ["C:\\ProgramData\\Microsoft\\Windows\\Start Menu\\Programs", "Start Menu"],
+        [`${homedir()}\\AppData\\Roaming\\Microsoft\\Windows\\Start Menu`, "Start Menu"],
+        [`${homedir()}\\Desktop`, "Desktop"],
+    ],
     applicationKeywordBlacklist: [],
     autoCompleteSymbolPairs: [
         ["(", ")"],

@@ -19,13 +19,12 @@ import { OnlineInputValidationService } from "./online-input-validation-service"
 import { OnlineInputValidatorSearcherCombinationManager } from "./online-input-validator-searcher-combination-manager";
 import { ProcessInputValidationService } from "./process-input-validation-service";
 import { SearchResultItem } from "./search-result-item";
-import { NativeUtil } from "../../native-util/native-util";
-import { existsSync, mkdirSync, readdirSync } from "fs";
-import { homedir, platform } from "os";
+import { NativeUtil } from "./native-lib";
+import { existsSync, mkdirSync } from "fs";
+import { homedir } from "os";
 import * as path from "path";
 import { Taskbar } from "taskbar-node";
 import { InputModes } from "./input-modes";
-
 import {
     app,
     BrowserWindow,
@@ -40,12 +39,14 @@ import {
 let mainWindow: BrowserWindow;
 let trayIcon: Tray;
 
-const nativeUtil = new NativeUtil();
+const nbind = require("../../build/Release/nbind.node");
+const nativeUtil: NativeUtil = new nbind.NativeUtil();
 
 let config = new ConfigFileRepository(defaultConfig, UeliHelpers.configFilePath).getConfig();
 
 const globalUELI: GlobalUELI = {
     config,
+    nativeUtil,
     onlinePluginCollection: [],
     runPluginCollection: [],
     taskbar: new Taskbar(),
@@ -61,22 +62,21 @@ function getExternalPlugins() {
     const onlineCollection = [] as ExternalOnlinePlugin[];
 
     if (existsSync(extPluginPath)) {
-        const pluginNameCollection = readdirSync(extPluginPath);
-        for (const pluginName of pluginNameCollection) {
+        const plugins = nativeUtil.iterateFolder(extPluginPath);
+        for (const plugin of plugins) {
             try {
-                const pluginFullPath = path.join(extPluginPath, pluginName);
-                const obj = __non_webpack_require__(pluginFullPath);
+                const obj = __non_webpack_require__(plugin.path());
                 if (obj.runSearcher && obj.inputValidator) {
                     runCollection.push(obj as ExternalRunPlugin);
                 } else if (obj.onlineSearcher && obj.inputValidator) {
                     onlineCollection.push(obj as ExternalOnlinePlugin);
                 } else {
                     dialog.showErrorBox(
-                        `Invalid plugin: ${pluginName}`,
+                        `Invalid plugin: ${plugin.name()}`,
                         "Cannot find runSeacher or onlineSeacher or inputValidator exports.");
                 }
             } catch (error) {
-                dialog.showErrorBox(`Cannot load plugin ${pluginName}`, error.message);
+                dialog.showErrorBox(`Cannot load plugin ${plugin}`, error.message);
             }
         }
     } else {
@@ -114,7 +114,7 @@ let executionService: ExecutionService;
 let isReady = false;
 let currentWorkingDirectory: string | undefined;
 
-function loadSearcher() {
+async function loadSearcher() {
     isReady = false;
     const externalPlugins = getExternalPlugins();
     globalUELI.runPluginCollection = externalPlugins.runCollection;
@@ -129,7 +129,7 @@ function loadSearcher() {
     processIVS = new ProcessInputValidationService(config.useNativeApplicationIcon);
     processIVS.taskbar = globalUELI.taskbar;
 
-    everythingIVS = new EverythingInputValidationService(nativeUtil, config.maxTotalSearchResult, config.everythingFilterFilePath);
+    everythingIVS = new EverythingInputValidationService(globalUELI);
 
     executionService = new ExecutionService(
         new ExecutionArgumentValidatorExecutorCombinationManager(globalUELI).getCombinations(),
@@ -138,8 +138,6 @@ function loadSearcher() {
     isReady = true;
 }
 
-(async () => loadSearcher())();
-
 let playerConnectStatus: boolean = false;
 
 app.on("ready", createMainWindow);
@@ -147,11 +145,17 @@ app.on("window-all-closed", quitApp);
 app.requestSingleInstanceLock();
 
 function createMainWindow(): void {
+    loadSearcher();
+
     mainWindow = new BrowserWindow({
         autoHideMenuBar: true,
         center: true,
         frame: false,
-        height: WindowHelpers.calculateMaxWindowHeight(config.userInputHeight, config.maxSearchResultCount, config.searchResultHeight),
+        height: WindowHelpers.calculateMaxWindowHeight(
+            config.userInputHeight,
+            config.maxSearchResultCount,
+            config.searchResultHeight,
+        ),
         maximizable: false,
         show: false,
         skipTaskbar: true,
@@ -191,7 +195,7 @@ function moveWindow(): void {
 }
 
 function createTrayIcon(): void {
-    trayIcon = new Tray(Injector.getTrayIconPath(platform(), path.join(__dirname, "../")));
+    trayIcon = new Tray(Injector.getTrayIconPath(path.join(__dirname, "../")));
     trayIcon.setToolTip(UeliHelpers.productName);
     trayIcon.setContextMenu(Menu.buildFromTemplate([
         {
@@ -245,7 +249,7 @@ function changeModeWithHotkey(mode: number, setCurrentWorkingDirectory = false) 
     const isVisible = mainWindow.isVisible();
 
     if (!isVisible) {
-        nativeUtil.storeLastForegroundWindow();
+        nativeUtil.storeLastFgWindow();
         showMainWindow();
     }
 
@@ -320,7 +324,7 @@ function reloadApp(): void {
     runIVS.destruct();
     onlineIVS.destruct();
 
-    (async () => loadSearcher())();
+    loadSearcher();
 
     mainWindow.reload();
     resetWindowToDefaultSizeAndPosition();
@@ -333,9 +337,16 @@ function resetWindowToDefaultSizeAndPosition(): void {
 }
 
 function quitApp(): void {
+    isReady = false;
     executionService.destruct();
     runIVS.destruct();
     onlineIVS.destruct();
+
+    globalUELI.taskbar.destruct();
+
+    if (globalUELI.nativeUtil.free) {
+        globalUELI.nativeUtil.free();
+    }
 
     mainWindow.webContents.session.clearCache(() => {/**/});
     mainWindow.webContents.session.clearStorageData();
@@ -509,10 +520,6 @@ ipcMain.on(IpcChannels.setLoadingIcon, setLoadingIcon);
 ipcMain.on(IpcChannels.commandLineExecution, (arg: string): void => {
     mainWindow.webContents.send(IpcChannels.commandLineOutput, arg);
     updateWindowSize(config.maxSearchResultCount);
-});
-
-ipcMain.on(IpcChannels.resetUserInput, (): void => {
-    mainWindow.webContents.send(IpcChannels.resetUserInput);
 });
 
 ipcMain.on(IpcChannels.playerConnectStatus, (_: Event, arg: boolean): void => {

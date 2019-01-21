@@ -3,7 +3,6 @@ import { Taskbar } from "taskbar-node";
 
 export class ProcessExecutor implements Executor {
     public readonly hideAfterExecution = true;
-    public readonly resetUserInputAfterExecution = true;
     public readonly logExecution = false;
 
     public execute(executionArgument: string): void {

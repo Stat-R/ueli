@@ -28,7 +28,6 @@ class ExternalPluginExecutionArgumentValidator implements ExecutionArgumentValid
 
 class ExternalPluginExecutor implements Executor {
     public hideAfterExecution: boolean;
-    public resetUserInputAfterExecution: boolean;
     public logExecution: boolean;
     public execute: Executor["execute"];
     public destruct?: () => void;

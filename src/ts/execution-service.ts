@@ -20,9 +20,7 @@ export class ExecutionService {
             if (combi.validator.isValidForExecution(executionArgument)) {
                 combi.executor.execute(executionArgument, alternative, cwd);
 
-                if (combi.executor.resetUserInputAfterExecution) {
-                    ipcMain.emit(IpcChannels.resetUserInput);
-                }
+                ipcMain.emit(IpcChannels.resetUserInput);
 
                 if (combi.executor.hideAfterExecution) {
                     ipcMain.emit(IpcChannels.hideWindow, false);

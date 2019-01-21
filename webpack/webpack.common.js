@@ -7,7 +7,7 @@ module.exports = {
   mode: "development",
   stats: "minimal",
   output: {
-    path: path.resolve(__dirname, "../build")
+    path: path.resolve(__dirname, "../bundle")
   },
   resolve: {
     extensions: [".ts", ".js"]

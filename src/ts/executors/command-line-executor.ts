@@ -1,14 +1,12 @@
 import { Executor } from "./executor";
-import { CommandLineHelpers } from "../helpers/command-line-helpers";
-import { StringHelpers } from "../helpers/string-helpers";
 import { Icons } from "../icon-manager/icon-manager";
 import { IpcChannels } from "../ipc-channels";
 import { spawn, SpawnOptions } from "child_process";
 import { ipcMain } from "electron";
+import { homedir } from "os";
 
 export class CommandLineExecutor implements Executor {
     public readonly hideAfterExecution = false;
-    public readonly resetUserInputAfterExecution = true;
     public readonly logExecution = false;
     private shellPath: string;
 
@@ -17,18 +15,15 @@ export class CommandLineExecutor implements Executor {
     }
 
     public execute(executionArgument: string, _: boolean, cwd: string | undefined): void {
-        const words = StringHelpers.stringToWords(executionArgument);
-        words[0] = words[0].replace(CommandLineHelpers.commandLinePrefix, "");
-        words.unshift("-Command");
-
+        executionArgument = executionArgument.substring(1);
         const clOptions: SpawnOptions = {
-            cwd,
+            cwd: cwd || homedir(),
             env: process.env,
         };
 
         ipcMain.emit(IpcChannels.setLoadingIcon);
 
-        const commandLineTool = spawn(this.shellPath, words, clOptions);
+        const commandLineTool = spawn(this.shellPath, [executionArgument], clOptions);
 
         commandLineTool.on("error", (err) => {
             this.sendCommandLineOutputToRenderer(err.message);
@@ -38,7 +33,7 @@ export class CommandLineExecutor implements Executor {
             this.sendCommandLineOutputToRenderer(data.toString());
         });
 
-        commandLineTool.stdout.on("data", (data) => {
+        commandLineTool.stdout.on("data", (data: Buffer) => {
             this.sendCommandLineOutputToRenderer(data.toString());
         });
 
