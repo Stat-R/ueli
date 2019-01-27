@@ -2,6 +2,17 @@ import { Buffer } from "nbind/dist/shim";
 
 export class NBindBase { free?(): void }
 
+export class EverythingResult extends NBindBase {
+	/** std::string name; -- Read-only */
+	name: string;
+
+	/** std::string path; -- Read-only */
+	path: string;
+
+	/** bool isDir; -- Read-only */
+	isDir: boolean;
+}
+
 export class File extends NBindBase {
 	/** std::string path(); */
 	path(): string;
@@ -26,11 +37,8 @@ export class NativeUtil extends NBindBase {
 	/** void elevateExecute(std::string); */
 	elevateExecute(p0: string): void;
 
-	/** void queryEverything(std::string, int32_t, int32_t); */
-	queryEverything(p0: string, p1: number, p2: number): void;
-
-	/** std::vector<std::vector<std::string>> resolveEverything(); */
-	resolveEverything(): (string[])[];
+	/** void queryEverything(std::string, int32_t, int32_t, cbFunction &); */
+	queryEverything(p0: string, p1: number, p2: number, p3: (...args: any[]) => any): void;
 
 	/** void activateContextMenu(std::string); */
 	activateContextMenu(p0: string): void;

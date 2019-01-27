@@ -24,18 +24,11 @@ namespace Gdiplus
 #define COPYDATA_QUERYCOMPLETE 0
 #define GETDATA(data) (wchar_t *)(data + sizeof(DWORD))
 using convert_typeX = std::codecvt_utf8<wchar_t>;
-std::wstring StrToWStr(const std::string &str);
-std::string WStrToStr(const std::wstring &wstr);
-LRESULT CALLBACK window_proc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam);
 
-std::vector<std::vector<std::string>> ipcResultList;
-bool ipcGotResult = false;
-
-bool GetEncoderClsid(CLSID *pClsid);
-
-class File {
-public:
-    File(fs::directory_entry _item) : item(_item) {};
+class File
+{
+  public:
+    File(fs::directory_entry _item) : item(_item){};
     std::string path() { return item.path().u8string(); };
     std::string name() { return item.path().filename().u8string(); };
     std::vector<std::string> crumbs()
@@ -54,6 +47,30 @@ public:
   private:
     fs::directory_entry item;
 };
+
+class EverythingResult
+{
+  public:
+    EverythingResult(std::string _name, std::string _path, bool _isDir) : name(_name),
+                                                                          path(_path),
+                                                                          isDir(_isDir){};
+    std::string getName() { return (name); };
+    std::string getPath() { return (path); };
+    bool getIsDir() { return (isDir); };
+
+  private:
+    std::string path;
+    std::string name;
+    bool isDir;
+};
+
+std::wstring StrToWStr(const std::string &str);
+std::string WStrToStr(const std::wstring &wstr);
+LRESULT CALLBACK window_proc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam);
+
+nbind::cbFunction* ipcCallback;
+
+bool GetEncoderClsid(CLSID *pClsid);
 
 class NativeUtil
 {
@@ -179,7 +196,7 @@ class NativeUtil
         DestroyMenu(hMenu);
     }
 
-    void queryEverything(std::string queryInput, int maxResults, int matchOptions)
+    void queryEverything(std::string queryInput, int maxResults, int matchOptions, nbind::cbFunction &callback)
     {
         std::wstring wideQuery = StrToWStr(queryInput);
         wchar_t *search_string = &wideQuery[0];
@@ -189,65 +206,52 @@ class NativeUtil
         int size;
         COPYDATASTRUCT cds;
 
-        ipcGotResult = false;
-        ipcResultList.clear();
-
         HWND everything_hwnd = FindWindow(EVERYTHING_IPC_WNDCLASS, 0);
-        if (everything_hwnd)
+        if (!everything_hwnd)
         {
-            len = (wcslen(search_string) + 1) * sizeof(wchar_t);
-            size = sizeof(EVERYTHING_IPC_QUERY2) + len;
+            printf("NO EVERYTHING WINDOW\n");
+            return;
+        }
 
-            query = (EVERYTHING_IPC_QUERY2 *)HeapAlloc(GetProcessHeap(), 0, size);
-            if (query)
-            {
-                query->max_results = maxResults;
-                query->offset = 0;
-                query->reply_copydata_message = COPYDATA_QUERYCOMPLETE;
-                query->search_flags = matchOptions;
-                query->reply_hwnd = (DWORD)ipcHwnd;
-                query->request_flags =
-                    EVERYTHING_IPC_QUERY2_REQUEST_NAME |
-                    EVERYTHING_IPC_QUERY2_REQUEST_FULL_PATH_AND_NAME |
-                    EVERYTHING_IPC_QUERY2_REQUEST_EXTENSION;
-                query->sort_type = EVERYTHING_IPC_SORT_NAME_ASCENDING;
+        len = (wcslen(search_string) + 1) * sizeof(wchar_t);
+        size = sizeof(EVERYTHING_IPC_QUERY2) + len;
 
-                CopyMemory(query + 1, search_string, len);
+        query = (EVERYTHING_IPC_QUERY2 *)HeapAlloc(GetProcessHeap(), 0, size);
+        if (!query)
+        {
+            return;
+        }
 
-                cds.cbData = size;
-                cds.dwData = EVERYTHING_IPC_COPYDATA_QUERY2;
-                cds.lpData = query;
+        query->max_results = maxResults;
+        query->offset = 0;
+        query->reply_copydata_message = COPYDATA_QUERYCOMPLETE;
+        query->search_flags = matchOptions;
+        query->reply_hwnd = (DWORD)ipcHwnd;
+        query->request_flags =
+            EVERYTHING_IPC_QUERY2_REQUEST_HIGHLIGHTED_NAME |
+            EVERYTHING_IPC_QUERY2_REQUEST_FULL_PATH_AND_NAME;
 
-                if (SendMessage(everything_hwnd, WM_COPYDATA, (WPARAM)ipcHwnd, (LPARAM)&cds) == TRUE)
-                {
-                    HeapFree(GetProcessHeap(), 0, query);
-                    return;
-                }
-                else
-                {
-                    printf("NO IPC RUNNING\n");
-                }
+        query->sort_type = EVERYTHING_IPC_SORT_NAME_ASCENDING;
 
-                HeapFree(GetProcessHeap(), 0, query);
-            }
+        CopyMemory(query + 1, search_string, len);
+
+        cds.cbData = size;
+        cds.dwData = EVERYTHING_IPC_COPYDATA_QUERY2;
+        cds.lpData = query;
+
+        ipcCallback = new nbind::cbWrapper(callback);
+
+        if (SendMessage(everything_hwnd, WM_COPYDATA, (WPARAM)ipcHwnd, (LPARAM)&cds) == TRUE)
+        {
+            HeapFree(GetProcessHeap(), 0, query);
+            return;
         }
         else
         {
-            printf("NO EVERYTHING WINDOW\n");
+            printf("NO IPC RUNNING\n");
         }
 
-        return;
-    }
-
-    std::vector<std::vector<std::string>> resolveEverything()
-    {
-        std::vector<std::vector<std::string>> results;
-        if (ipcGotResult)
-        {
-            results = ipcResultList;
-        }
-
-        return results;
+        HeapFree(GetProcessHeap(), 0, query);
     }
 
     void takeScreenshot(int width, int height, std::string outPath)
@@ -400,13 +404,19 @@ NBIND_CLASS(File)
     method(crumbs);
 }
 
+NBIND_CLASS(EverythingResult)
+{
+    getter(getName);
+    getter(getPath);
+    getter(getIsDir);
+}
+
 NBIND_CLASS(NativeUtil)
 {
     construct();
     method(storeBrowserHwnd);
     method(elevateExecute);
     method(queryEverything);
-    method(resolveEverything);
     method(activateContextMenu);
     method(takeScreenshot);
     method(getExplorerPath);
@@ -452,6 +462,8 @@ LRESULT CALLBACK window_proc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
             EVERYTHING_IPC_LIST2 *list = (EVERYTHING_IPC_LIST2 *)cds->lpData;
             EVERYTHING_IPC_ITEM2 *items = (EVERYTHING_IPC_ITEM2 *)(list + 1);
 
+            std::vector<EverythingResult> results;
+
             for (i = 0; i < list->numitems; i++)
             {
                 std::vector<std::string> colection;
@@ -459,18 +471,29 @@ LRESULT CALLBACK window_proc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
 
                 char *p = ((char *)list) + items[i].data_offset;
 
-                colection.push_back(WStrToStr(GETDATA(p))); // EVERYTHING_IPC_QUERY2_REQUEST_NAME
+                // EVERYTHING_IPC_QUERY2_REQUEST_FULL_PATH_AND_NAME
+                std::string path = WStrToStr(GETDATA(p));
 
                 DWORD len = *(DWORD *)p;
                 p += sizeof(DWORD);
                 p += (len + 1) * sizeof(wchar_t);
 
-                colection.push_back(WStrToStr(GETDATA(p))); // EVERYTHING_IPC_QUERY2_REQUEST_FULL_PATH_AND_NAME
+                // EVERYTHING_IPC_QUERY2_REQUEST_NAME
+                std::string name = WStrToStr(GETDATA(p));
 
-                colection.push_back((item.flags & EVERYTHING_IPC_FOLDER) ? "folder" : "file");
-                ipcResultList.push_back(colection);
+                bool isDir = item.flags & EVERYTHING_IPC_FOLDER;
+
+                results.push_back(EverythingResult{
+                    name, path, isDir});
             }
-            ipcGotResult = true;
+
+            if (ipcCallback != nullptr)
+            {
+                (*ipcCallback)(results);
+                delete ipcCallback;
+                ipcCallback = nullptr;
+            }
+
             return true;
         }
 
