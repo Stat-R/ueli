@@ -45,4 +45,6 @@ export class IpcChannels {
 
     public static readonly getScopes = "get-scopes";
     public static readonly inputMode = "input-mode";
+
+    public static readonly toggleDevTool = "toggle-dev-tool";
 }

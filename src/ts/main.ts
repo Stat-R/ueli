@@ -568,3 +568,7 @@ ipcMain.on(IpcChannels.autoComplete, (_: Event, userInput: string, cavetPosition
         mainWindow.webContents.send(IpcChannels.autoCompleteResponse, result);
     }
 });
+
+ipcMain.on(IpcChannels.toggleDevTool, () => {
+    mainWindow.webContents.toggleDevTools();
+});

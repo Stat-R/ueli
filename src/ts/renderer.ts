@@ -90,7 +90,9 @@ const vue = new Vue({
         handleKeyPress: (event: KeyboardEvent): void => {
             vue.isMouseMoving = false;
 
-            if (event.key === "Enter" && event.altKey) {
+            if (event.key === "F12") {
+                handleToggleDevTool();
+            } else if (event.key === "Enter" && event.altKey) {
                 handleEnterPress(true);
             } else if (event.key === "Enter") {
                 handleEnterPress(false);
