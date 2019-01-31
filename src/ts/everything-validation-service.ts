@@ -120,7 +120,6 @@ export class EverythingInputValidationService {
                 userInput = `${cwd} ${userInput}`;
             }
 
-
             this.nativeUtil.queryEverything(
                 userInput,
                 this.maxResults,
