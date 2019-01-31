@@ -61,15 +61,12 @@ export const defaultConfig: ConfigOptions = {
     musicPlayerWebSocketPort: 8974,
     onlineModeDelay: 500,
     powerShellPath: "powershell",
-    searchResultExecutionArgumentFontSize: 14,
     searchResultHeight: 60,
-    searchResultNameFontSize: 20,
     textEditor: {
         name: "Code",
         path: "C:/Program Files/Microsoft VS Code/Code.exe",
     },
     useNativeApplicationIcon: false,
-    userInputFontSize: 36,
     userInputHeight: 80,
     webSearches: [
         {

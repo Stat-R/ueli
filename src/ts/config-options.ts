@@ -70,12 +70,9 @@ export interface ConfigOptions {
     musicPlayerHotkeyMute: string;
     onlineModeDelay: number;
     powerShellPath: string;
-    searchResultExecutionArgumentFontSize: number;
     searchResultHeight: number;
-    searchResultNameFontSize: number;
     useNativeApplicationIcon: boolean;
     userInputHeight: number;
-    userInputFontSize: number;
     textEditor: {
         name: string;
         path: string;

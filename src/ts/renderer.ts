@@ -169,32 +169,17 @@ const vue = new Vue({
         },
         playPauseTrack,
         previousTrack,
-        searchResultAlternativePrefixStyle: (): string => {
-            return `font-size: ${config.searchResultNameFontSize - 4}px;`;
-        },
-        searchResultExecutionArgumentStyle: (): string => {
-            return `font-size: ${config.searchResultExecutionArgumentFontSize}px;`;
-        },
         searchResultHeight: (): string => {
             return `height: ${config.searchResultHeight}px`;
         },
         searchResultIconStyle: (): string => {
             return `height: ${config.searchResultHeight}px; width: ${config.searchResultHeight}px;`;
         },
-        searchResultIndexNumStyle: (): string => {
-            return `font-size: ${config.searchResultExecutionArgumentFontSize}px;`;
-        },
-        searchResultNameStyle: (): string => {
-            return `font-size: ${config.searchResultNameFontSize}px;`;
-        },
         searchResultWidth: (): string => {
             return `width: ${config.searchResultHeight}px; min-width: ${config.searchResultHeight}px;`;
         },
         userInputContainerStyle: (): string => {
             return `height: ${config.userInputHeight}px;`;
-        },
-        userInputStyle: (): string => {
-            return `font-size: ${config.userInputFontSize}px;`;
         },
     },
     watch: {
@@ -220,6 +205,9 @@ if (!existsSync(customCSSPath)) {
     --player-font-family: "SF Pro Display", "Segoe UI", "Helvetica";
     --font-family-mono: "Consolas", "Courier", monospace;
     --font-icon: "Segoe MDL2 Assets";
+    --input-font-size: 36px;
+    --item-name-font-size: 20px;
+    --item-execution-argument-font-size: 14px;
 }`, "utf-8");
 }
 
@@ -647,6 +635,10 @@ function showIndexNum() {
 
 function hideIndexNum() {
     vue.showIndexNum = false;
+}
+
+function handleToggleDevTool() {
+    ipcRenderer.send(IpcChannels.toggleDevTool);
 }
 
 (global as any).handleLinkClick = handleLinkClick;
