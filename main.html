@@ -33,7 +33,7 @@
                 </div>
                 <input
                     id="user-input"
-                    class="user-input" :style="userInputStyle()"
+                    class="user-input"
                     type="text" v-model="userInput"
                     :autofocus="{ 'autofocus' : autoFocus }"
                     v-on:keyDown="handleKeyPress"
@@ -130,7 +130,6 @@
                             class="search-result-index-num"
                             v-if="searchResult.id <= 9"
                             :class="{ 'active':  showIndexNum}"
-                            :style="searchResultIndexNumStyle()"
                         >
                             <span
                                 v-html="(searchResult.id + 1) % 10"
@@ -142,21 +141,18 @@
                                 <span
                                     class="search-result-alternative-prefix"
                                     :class="{ 'active' : (searchResult.active || showIndexNum) && searchResult.alternativePrefix && showAlternativePrefix }"
-                                    :style="searchResultAlternativePrefixStyle()"
                                     v-html="searchResult.alternativePrefix"
                                 >
                                 </span>
                                 <span
                                     class="search-result-name"
                                     :class="{ 'active' : searchResult.active }"
-                                    :style="searchResultNameStyle()"
                                     v-html="searchResult.name"
                                 >
                                 </span>
                             </div>
                             <span
                                 class="search-result-execution-argument"
-                                :style="searchResultExecutionArgumentStyle()"
                                 :class="{ 'active' : searchResult.active } "
                                 v-html="searchResult.description"
                             >
