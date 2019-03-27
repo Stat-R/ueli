@@ -7,6 +7,7 @@ import { StringHelpers } from "../helpers/string-helpers";
 import * as path from "path";
 import { shell, NativeImage, app, ShortcutDetails } from "electron";
 import { NativeUtil } from "../native-lib";
+import { FileHelpers } from "../helpers/file-helpers";
 
 interface Program {
     name: string;
@@ -19,6 +20,7 @@ export class ProgramsPlugin implements SearchPlugin {
     private blacklist: string[];
     private shouldFetchIcon: boolean;
     private nativeUtil: NativeUtil;
+    private showBreadCrumb: boolean;
 
     public constructor(config: ConfigOptions, nativeUtil: NativeUtil) {
         this.folders = config.applicationFolders;
@@ -26,13 +28,13 @@ export class ProgramsPlugin implements SearchPlugin {
         this.blacklist = config.applicationKeywordBlacklist.map((item) => item.toLowerCase());
         this.shouldFetchIcon = config.useNativeApplicationIcon;
         this.nativeUtil = nativeUtil;
+        this.showBreadCrumb = config.showBreadCrumb;
     }
 
     public async getAllItems(): Promise<SearchResultItem[]> {
         const results = [] as SearchResultItem[];
 
         for (const applicationFolder of this.folders) {
-            // const breadCrumb = [FileHelpers.toHTML(applicationFolder[0], applicationFolder[1])];
             const fullPath = applicationFolder[0];
 
             const files = this.nativeUtil.recursiveIterateFolder(fullPath);
@@ -76,8 +78,9 @@ export class ProgramsPlugin implements SearchPlugin {
 
                 results.push({
                     alternativePrefix: "Run as Admin",
+                    breadCrumb: this.showBreadCrumb && FileHelpers.filePathToFancyBreadCrumbs(filePath, applicationFolder[0], applicationFolder[1]),
                     executionArgument: filePath,
-                    hideDescription: true,
+                    hideDescription: !this.showBreadCrumb,
                     icon: icon || Icons.PROGRAM,
                     name: detail.name,
                     tags,

@@ -21,4 +21,27 @@ export class FileHelpers {
 
         return linkedCrumbs;
     }
+
+    public static filePathToFancyBreadCrumbs(filePath: string, rootPath: string, fancyName: string): string[] {
+        if (!rootPath.endsWith("\\")) {
+            rootPath += "\\";
+        }
+        const crumbs = filePath.replace(rootPath, "").split("\\");
+        if (!crumbs[crumbs.length - 1]) {
+            crumbs.length = crumbs.length - 1;
+        }
+
+        return this.fancyCrumbsToLinkedCrumbs(rootPath, fancyName, crumbs);
+    }
+
+    public static fancyCrumbsToLinkedCrumbs(rootPath: string, fancyName: string, crumbs: string[]): string[] {
+        const linkedCrumbs = new Array<string>(crumbs.length);
+        for (let i = 0; i < crumbs.length; i++) {
+            const fullPath = rootPath + crumbs.slice(0, i + 1).join("\\");
+            linkedCrumbs[i] = this.toHTML(fullPath, crumbs[i]);
+        }
+
+        linkedCrumbs.unshift(this.toHTML(rootPath, fancyName));
+        return linkedCrumbs
+    }
 }

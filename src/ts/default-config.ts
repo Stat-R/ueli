@@ -62,6 +62,7 @@ export const defaultConfig: ConfigOptions = {
     onlineModeDelay: 500,
     powerShellPath: "powershell",
     searchResultHeight: 60,
+    showBreadCrumb: true,
     textEditor: {
         name: "Code",
         path: "C:/Program Files/Microsoft VS Code/Code.exe",

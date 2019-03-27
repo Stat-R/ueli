@@ -71,6 +71,7 @@ export interface ConfigOptions {
     onlineModeDelay: number;
     powerShellPath: string;
     searchResultHeight: number;
+    showBreadCrumb: boolean;
     useNativeApplicationIcon: boolean;
     userInputHeight: number;
     textEditor: {
