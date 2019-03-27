@@ -29,13 +29,17 @@ export class CommandLineExecutor implements Executor {
             this.sendCommandLineOutputToRenderer(err.message);
         });
 
-        commandLineTool.stderr.on("data", (data) => {
-            this.sendCommandLineOutputToRenderer(data.toString());
-        });
-
-        commandLineTool.stdout.on("data", (data: Buffer) => {
-            this.sendCommandLineOutputToRenderer(data.toString());
-        });
+        if (commandLineTool.stderr) {
+            commandLineTool.stderr.on("data", (data) => {
+                this.sendCommandLineOutputToRenderer(data.toString());
+            });
+        }
+        
+        if (commandLineTool.stdout) {
+            commandLineTool.stdout.on("data", (data: Buffer) => {
+                this.sendCommandLineOutputToRenderer(data.toString());
+            });
+        }
 
         commandLineTool.on("exit", (code) => {
             ipcMain.emit(IpcChannels.setModeIcon, Icons.SEARCH);
