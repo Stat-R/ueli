@@ -59,7 +59,7 @@ export class CalculatorInputValidator implements InputValidator {
         let result = value.toString();
 
         if (result === "[object Object]") {
-            result = JSON.stringify(result);
+            result = JSON.stringify(value);
         }
 
         return result;
