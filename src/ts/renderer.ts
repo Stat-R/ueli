@@ -18,6 +18,7 @@ import { homedir } from "os";
 import { join } from "path";
 import Vue from "vue";
 import { InputModes } from "./input-modes";
+import { MusicPlayerAutoSwitcher } from "./music-player/autoswitcher";
 
 const config = new ConfigFileRepository(defaultConfig, UeliHelpers.configFilePath).getConfig();
 
@@ -116,12 +117,20 @@ const vue = new Vue({
             } else if (event.key === "Escape") {
                 ipcRenderer.send(IpcChannels.hideWindow);
             } else if (event.key === "Backspace") {
-                if (vue.userInput.length === 0) {
-                    if (prefix) {
-                        vue.userInput = prefix.slice(0, prefix.length - 1);
-                        prefix = "";
-                        onChangeUserInput(vue.userInput);
-                    }
+                const input = document.querySelector("input");
+                if (prefix &&
+                    input &&
+                    input.selectionStart !== null &&
+                    input.selectionEnd !== null &&
+                    (input.selectionStart - input.selectionEnd) === 0 &&
+                    input.selectionStart === 0
+                ) {
+                    event.preventDefault();
+                    const newPrefix = prefix.slice(0, prefix.length - 1);
+                    prefix = "";
+                    vue.userInput = input.value = newPrefix + vue.userInput;
+                    cavetPosition = newPrefix.length;
+                    onChangeUserInput(input.value);
                 } else {
                     autoDeleteSymbolPairs();
                 }
@@ -215,16 +224,21 @@ if (!existsSync(customCSSPath)) {
 
 onMainWindowShow();
 
-const playerType = config.musicPlayerType.toLowerCase();
-
 let player: MusicPlayer | undefined;
 
-if (playerType === "local") {
-    player = new MusicPlayerNowPlaying(config.musicPlayerLocalName.toLowerCase());
-} else if (playerType === "websocket") {
-    player = new MusicPlayerWebSocket(config.musicPlayerWebSocketPort);
-} else {
-    player = undefined;
+switch (config.musicPlayerType.toLowerCase()) {
+    case "local":
+        player = new MusicPlayerNowPlaying(config.musicPlayerLocalName.toLowerCase());
+        break;
+    case "websocket":
+        player = new MusicPlayerWebSocket(config.musicPlayerWebSocketPort);
+        break;
+    case "all":
+        player = new MusicPlayerAutoSwitcher(
+            new MusicPlayerWebSocket(config.musicPlayerWebSocketPort),
+            new MusicPlayerNowPlaying(config.musicPlayerLocalName.toLowerCase())
+        );
+        break;
 }
 
 if (player !== undefined) {
@@ -234,7 +248,7 @@ if (player !== undefined) {
             const url = new URL(info);
             vue.musicPlayer.albumCover = "url(" + url.href + ")";
         } catch (e) {
-            // nah
+            vue.musicPlayer.albumCover = "";
         }
     };
     player.state.onChange = (info) => vue.musicPlayer.state = info;
