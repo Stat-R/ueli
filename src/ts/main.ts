@@ -168,6 +168,7 @@ function createMainWindow(): void {
     nativeUtil.storeBrowserHwnd();
 
     mainWindow.setSize(config.windowWidth, config.userInputHeight);
+    setWindowSizeAndPosition()
 
     mainWindow.on("close", quitApp);
     mainWindow.on("blur", hideMainWindow);
@@ -334,7 +335,31 @@ function reloadApp(): void {
     loadSearcher();
 
     mainWindow.reload();
+
     resetWindowToDefaultSizeAndPosition();
+    setWindowSizeAndPosition();
+}
+
+function setWindowSizeAndPosition(): void {
+    const custom = config.windowLocation;
+    if (!custom) {
+        return;
+    }
+
+    const newPosition = mainWindow.getPosition();
+    if (typeof custom.x === "number") {
+        newPosition[0] = custom.x;
+    } else if (typeof custom.x === "string") {
+        newPosition[0] += parseInt(custom.x);
+    }
+
+    if (typeof custom.y === "number") {
+        newPosition[1] = custom.y;
+    } else if (typeof custom.y === "string") {
+        newPosition[1] += parseInt(custom.y);
+    }
+
+    mainWindow.setPosition(newPosition[0], newPosition[1]);
 }
 
 function resetWindowToDefaultSizeAndPosition(): void {

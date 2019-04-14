@@ -79,5 +79,9 @@ export interface ConfigOptions {
         path: string;
     };
     webSearches: WebSearch[];
+    windowLocation?: {
+        x?: number,
+        y?: number,
+    };
     windowWidth: number;
 }
